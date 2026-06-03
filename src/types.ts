@@ -40,7 +40,7 @@ export interface UserDatabase {
   subdomain_id: number;
   db_name: string;
   db_user: string;
-  db_password?: string;
+  db_password?: string; // returned by backend on claim, may be undefined if hidden
   created_at: string;
   updated_at: string;
 }

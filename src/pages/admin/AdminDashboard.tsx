@@ -1,5 +1,5 @@
 // src/pages/admin/AdminDashboard.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, Globe, Database, CreditCard, 
   CheckCircle, XCircle, HardDrive, ShieldCheck,
@@ -18,10 +18,19 @@ export const AdminDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
   const { setActiveTab } = useSystemStore();
-  const { payments, subdomains, databases, confirmPayment } = useDataStore();
+  const { 
+    payments, 
+    confirmPayment, 
+    adminStats, 
+    fetchAdminStats 
+  } = useDataStore();
 
   const [confirmPayId, setConfirmPayId] = useState<number | null>(null);
   const [viewProofPath, setViewProofPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAdminStats();
+  }, [fetchAdminStats]);
 
   const handleApprovePayment = async () => {
     if (confirmPayId) {
@@ -32,10 +41,17 @@ export const AdminDashboard: React.FC = () => {
         message: 'Klien telah diaktifkan paket hostingnya dan subdomain di-provisioning.',
       });
       setConfirmPayId(null);
+      // Refresh stats since subdomain and databases are created on approval
+      await fetchAdminStats();
     }
   };
 
   const pendingPayments = payments.filter(p => p.status === 'pending');
+  const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+
+  const usedGb = adminStats?.storage.usedMb ? parseFloat((adminStats.storage.usedMb / 1024).toFixed(2)) : 0;
+  const limitGb = adminStats?.storage.limitGb ?? 256;
+  const storagePercentage = Math.min(100, Math.round((usedGb / limitGb) * 100));
 
   return (
     <div className="space-y-6 w-full text-left">
@@ -56,7 +72,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[10px] font-black text-text-muted uppercase tracking-wider block">{t('totalUsers')}</span>
-              <span className="text-2xl font-black text-text-main">48</span>
+              <span className="text-2xl font-black text-text-main">{adminStats?.totalUsers ?? 0}</span>
             </div>
             <div className="h-10 w-10 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
               <Users className="h-5 w-5" />
@@ -68,7 +84,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[10px] font-black text-text-muted uppercase tracking-wider block">{t('totalSubdomains')}</span>
-              <span className="text-2xl font-black text-text-main">{subdomains.length + 12}</span>
+              <span className="text-2xl font-black text-text-main">{adminStats?.totalSubdomains ?? 0}</span>
             </div>
             <div className="h-10 w-10 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
               <Globe className="h-5 w-5" />
@@ -80,7 +96,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[10px] font-black text-text-muted uppercase tracking-wider block">{t('totalDatabases')}</span>
-              <span className="text-2xl font-black text-text-main">{databases.length + 8}</span>
+              <span className="text-2xl font-black text-text-main">{adminStats?.totalDatabases ?? 0}</span>
             </div>
             <div className="h-10 w-10 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
               <Database className="h-5 w-5" />
@@ -92,7 +108,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[10px] font-black text-text-muted uppercase tracking-wider block">Queue Jobs</span>
-              <span className="text-2xl font-black text-text-main">0 Active</span>
+              <span className="text-2xl font-black text-text-main">{adminStats?.activeQueueJobs ?? 0} Active</span>
             </div>
             <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
               <ShieldCheck className="h-5 w-5" />
@@ -127,7 +143,7 @@ export const AdminDashboard: React.FC = () => {
                 <tbody className="divide-y divide-border-main/30 text-xs">
                   {pendingPayments.map((p) => (
                     <tr key={p.id} className="hover:bg-border-main/5 transition-colors">
-                      <td className="py-3 font-semibold text-text-main font-mono text-[11px]">
+                      <td className="py-3 font-semibold text-text-main font-mono text-[11px] select-all">
                         {p.transaction_id}
                       </td>
                       <td className="py-3 text-center font-bold text-text-main font-mono text-[11px]">
@@ -179,10 +195,10 @@ export const AdminDashboard: React.FC = () => {
               <div className="space-y-1.5 text-xs text-text-muted">
                 <div className="flex justify-between font-bold">
                   <span>Server SSD Occupancy</span>
-                  <span className="text-brand-primary">48.2 GB / 256 GB (18%)</span>
+                  <span className="text-brand-primary">{usedGb} GB / {limitGb} GB ({storagePercentage}%)</span>
                 </div>
                 <div className="w-full bg-border-main/50 h-3 rounded-full overflow-hidden">
-                  <div className="bg-brand-primary h-full rounded-full" style={{ width: '18%' }} />
+                  <div className="bg-brand-primary h-full rounded-full" style={{ width: `${storagePercentage || 1}%` }} />
                 </div>
               </div>
 
@@ -191,18 +207,16 @@ export const AdminDashboard: React.FC = () => {
                   Top Disk Consumers
                 </span>
                 
-                <div className="flex justify-between items-center py-1.5 border-b border-border-main/20">
-                  <span className="font-mono text-text-main text-[11px]">myportfolio.subly.host</span>
-                  <span className="font-bold text-text-muted">1.2 GB used</span>
-                </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-border-main/20">
-                  <span className="font-mono text-text-main text-[11px]">shop-api.subly.host</span>
-                  <span className="font-bold text-text-muted">2.0 GB used</span>
-                </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-border-main/20">
-                  <span className="font-mono text-text-main text-[11px]">dev-express.subly.host</span>
-                  <span className="font-bold text-text-muted">820 MB used</span>
-                </div>
+                {(adminStats?.topConsumers || []).map((consumer, index) => (
+                  <div key={index} className="flex justify-between items-center py-1.5 border-b border-border-main/20">
+                    <span className="font-mono text-text-main text-[11px] truncate max-w-xs">{consumer.name}</span>
+                    <span className="font-bold text-text-muted">{consumer.usedMb >= 1024 ? `${(consumer.usedMb / 1024).toFixed(1)} GB` : `${consumer.usedMb} MB`} used</span>
+                  </div>
+                ))}
+                
+                {(!adminStats?.topConsumers || adminStats.topConsumers.length === 0) && (
+                  <p className="text-[10px] text-text-muted italic">Belum ada subdomain aktif terhitung.</p>
+                )}
               </div>
             </div>
           </CardPanel>
@@ -238,12 +252,16 @@ export const AdminDashboard: React.FC = () => {
         onClose={() => setViewProofPath(null)}
         title="Tanda Terima Pembayaran Klien"
       >
-        <div className="p-6 bg-slate-900/10 rounded-3xl border border-border-main/50 flex flex-col items-center justify-center gap-4 select-none">
-          <div className="h-40 w-full max-w-xs bg-linear-to-b from-brand-primary/20 to-brand-secondary/10 rounded-2xl border border-brand-primary/15 flex items-center justify-center">
-            <CreditCard className="h-12 w-12 text-brand-primary animate-pulse" />
+        <div className="p-6 bg-slate-900/10 rounded-3xl border border-border-main/50 flex flex-col items-center justify-center gap-4">
+          <div className="w-full max-w-xs border border-border-main bg-white rounded-3xl p-3 shadow-md flex items-center justify-center select-none overflow-hidden">
+            <img 
+              src={`${viewProofPath?.startsWith('http') ? '' : UPLOADS_BASE}/${viewProofPath}`} 
+              alt="Screenshot Proof" 
+              className="max-h-64 object-contain rounded-2xl" 
+            />
           </div>
           <div className="text-center text-xs font-bold text-text-muted">
-            <p>Screenshot-Proof-QRIS.png</p>
+            <p className="truncate max-w-xs">{viewProofPath?.split('/').pop()}</p>
             <p className="text-[10px] font-black text-brand-primary mt-1">E-WALLET TRANSACTION SUCCESS RECEIPT</p>
           </div>
         </div>

@@ -1,9 +1,6 @@
 // src/pages/dashboard/PlansCheckout.tsx
-import React, { useState, useEffect } from 'react';
-import { 
-  CreditCard, QrCode, FileText, CheckCircle, 
-  Clock, AlertTriangle, Upload, HelpCircle, ArrowRight 
-} from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { QrCode, Clock, Upload } from 'lucide-react';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
 import { useToastStore } from '../../stores/useToastStore';
@@ -11,84 +8,96 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
-import { Modal } from '../../components/ui/Modal';
-
-// Generate QRIS static dummy image using inline SVG data URI to avoid external dependencies
-const qrisBase64Svg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><rect width='160' height='160' fill='white'/><rect x='10' y='10' width='40' height='40' fill='black'/><rect x='20' y='20' width='20' height='20' fill='white'/><rect x='110' y='10' width='40' height='40' fill='black'/><rect x='120' y='20' width='20' height='20' fill='white'/><rect x='10' y='110' width='40' height='40' fill='black'/><rect x='20' y='120' width='20' height='20' fill='white'/><rect x='60' y='60' width='40' height='40' fill='black'/><rect x='70' y='70' width='20' height='20' fill='white'/><rect x='60' y='10' width='10' height='40' fill='black'/><rect x='10' y='60' width='40' height='10' fill='black'/><rect x='140' y='60' width='10' height='40' fill='black'/><rect x='60' y='140' width='40' height='10' fill='black'/><rect x='110' y='110' width='40' height='40' fill='black'/><rect x='120' y='120' width='20' height='20' fill='white'/></svg>";
 
 export const PlansCheckout: React.FC = () => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
   const { setActiveTab } = useSystemStore();
-  const { payments, confirmPayment, uploadProof } = useDataStore();
+  const { payments, uploadProof, settings, fetchSettings, fetchPayments } = useDataStore();
 
   const [activePaymentId, setActivePaymentId] = useState<number | null>(null);
   const [pollingProgress, setPollingProgress] = useState(0);
-  const [proofFile, setProofFile] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [isUploadingProof, setIsUploadingProof] = useState(false);
+
+  const lastStatusRef = useRef<string | null>(null);
 
   // Filter current active payment
   const activePayment = payments.find(p => p.id === activePaymentId) || payments.find(p => p.status === 'pending');
 
   useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+  useEffect(() => {
     if (activePayment) {
       setActivePaymentId(activePayment.id);
+      
+      // Toast notification on status change from pending -> success
+      if (lastStatusRef.current === 'pending' && activePayment.status === 'success') {
+        addToast({
+          type: 'success',
+          title: t('paymentSuccess'),
+          message: 'Pembayaran Anda telah disetujui. Subdomain telah diaktifkan secara otomatis oleh server.',
+        });
+        setActivePaymentId(null);
+      }
+      lastStatusRef.current = activePayment.status;
     }
-  }, [activePayment]);
+  }, [activePayment, addToast, t]);
 
-  // Polling simulation every 5 seconds (Section 3.D)
+  // Polling database payments status every 5 seconds
   useEffect(() => {
     if (!activePaymentId || activePayment?.status !== 'pending') return;
 
-    let timer = 0;
-    const interval = setInterval(() => {
-      setPollingProgress(prev => {
-        if (prev >= 100) {
-          timer += 1;
-          // Auto confirm payment after 3 polling checks (15 seconds) for demonstration
-          if (timer >= 2) {
-            clearInterval(interval);
-            handleMockPaySuccess();
-            return 100;
-          }
-          return 0; // Reset progress bar circle
-        }
-        return prev + 10;
-      });
-    }, 500);
+    setPollingProgress(0);
+    const interval = setInterval(async () => {
+      try {
+        await fetchPayments();
+        setPollingProgress(prev => (prev >= 100 ? 0 : prev + 25));
+      } catch (err) {
+        console.error('Error polling payment status:', err);
+      }
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [activePaymentId, activePayment?.status]);
+  }, [activePaymentId, activePayment?.status, fetchPayments]);
 
-  const handleMockPaySuccess = async () => {
-    if (activePayment) {
-      await confirmPayment(activePayment.id);
-      addToast({
-        type: 'success',
-        title: t('paymentSuccess'),
-        message: 'Subdomain Anda telah diaktifkan secara otomatis oleh server.',
-      });
-      setActivePaymentId(null);
-    }
-  };
-
-  const handleProofUploadSubmit = (e: React.FormEvent) => {
+  const handleProofUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activePayment) return;
+    if (!activePayment || !proofFile) return;
     
     setIsUploadingProof(true);
-    setTimeout(async () => {
-      setIsUploadingProof(false);
-      await uploadProof(activePayment.id, '/proofs/proof-uploaded.png');
+    try {
+      await uploadProof(activePayment.id, proofFile);
       addToast({
         type: 'info',
         title: 'Bukti Bayar Diunggah',
         message: 'Administrasi Subly akan meninjau tanda terima transaksi Anda.',
       });
-    }, 1000);
+      setProofFile(null);
+    } catch {
+      addToast({
+        type: 'error',
+        title: 'Gagal Mengunggah',
+        message: 'Terjadi kesalahan saat mengunggah bukti pembayaran Anda.',
+      });
+    } finally {
+      setIsUploadingProof(false);
+    }
   };
 
   const totalAmount = activePayment ? activePayment.amount + activePayment.unique_code : 0;
+  
+  // QRIS Image URL Configuration
+  const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+  const qrisImgUrl = settings.qris_image_path ? `${settings.qris_image_path.startsWith('http') ? '' : UPLOADS_BASE}/${settings.qris_image_path}` : null;
+
+  // Dynamic QRIS Payload Fallback
+  const qrisNmid = settings.qris_nmid || 'ID102027381928';
+  const qrisMerchant = settings.qris_merchant_name || 'SUBLY HOSTING INDONESIA';
+  const dynamicQrData = `00020101021138590016${qrisNmid}520400005303360540${totalAmount}.005802ID59${qrisMerchant.length.toString().padStart(2, '0')}${qrisMerchant}6005DEPOK610516424620707031236304`;
+  const dynamicQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(dynamicQrData)}`;
 
   return (
     <div className="space-y-6 w-full text-left">
@@ -113,9 +122,9 @@ export const PlansCheckout: React.FC = () => {
                 {/* QR Code container */}
                 <div className="p-4 bg-white rounded-3xl border border-border-main shrink-0 flex flex-col items-center gap-2 select-none shadow-md">
                   <img 
-                    src={qrisBase64Svg} 
+                    src={qrisImgUrl || dynamicQrUrl} 
                     alt="QRIS Code" 
-                    className="w-40 h-40" 
+                    className="w-40 h-40 object-contain" 
                   />
                   <div className="px-3 py-1 rounded bg-slate-900 text-white font-black text-[9px] tracking-wider uppercase">
                     QRIS GPN
@@ -161,34 +170,25 @@ export const PlansCheckout: React.FC = () => {
                   </div>
 
                   {/* Polling progress animation */}
-                  <div className="flex items-center gap-3 py-2 text-xs font-bold text-text-muted">
+                  <div className="flex items-center gap-3 py-2 text-xs font-bold text-text-muted select-none">
                     <Clock className="h-4.5 w-4.5 animate-spin text-brand-primary shrink-0" />
                     <div className="flex-1">
-                      <p>Mengecek status pembayaran (Polling 5s)...</p>
+                      <p>Menunggu verifikasi pembayaran oleh Admin...</p>
                       <div className="w-full bg-border-main h-1 rounded-full overflow-hidden mt-1.5">
                         <div 
-                          className="bg-brand-primary h-full transition-all duration-200"
-                          style={{ width: `${pollingProgress}%` }}
+                          className="bg-brand-primary h-full transition-all duration-500"
+                          style={{ width: `${pollingProgress || 10}%` }}
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Mock Pay tools */}
-                  <div className="pt-2 border-t border-border-main/50 flex flex-wrap gap-2.5">
-                    <Button 
-                      onClick={handleMockPaySuccess} 
-                      variant="primary" 
-                      size="sm"
-                      icon={<CheckCircle className="h-4 w-4" />}
-                    >
-                      {t('paySuccessBtn')}
-                    </Button>
+                  <div className="pt-2 border-t border-border-main/50 flex flex-wrap gap-2.5 select-none">
                     <button
-                      onClick={() => setActiveTab('chat')} // Help link
-                      className="text-xs font-semibold text-brand-primary hover:underline px-3 py-2"
+                      onClick={() => setActiveTab('chat')}
+                      className="text-xs font-semibold text-brand-primary hover:underline py-1"
                     >
-                      Konfirmasi Manual via Chat
+                      Butuh bantuan? Hubungi Admin via Live Chat
                     </button>
                   </div>
                 </div>
@@ -217,14 +217,14 @@ export const PlansCheckout: React.FC = () => {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setProofFile(e.target.files?.[0]?.name || 'receipt.png')}
+                      onChange={(e) => setProofFile(e.target.files?.[0] || null)}
                       className="hidden"
                       id="receipt-file-input"
                     />
                     <label htmlFor="receipt-file-input" className="cursor-pointer flex flex-col items-center gap-1.5">
                       <Upload className="h-6 w-6 text-text-muted" />
-                      <span className="text-[10px] font-bold text-text-main">
-                        {proofFile ? proofFile : 'Pilih file screenshot'}
+                      <span className="text-[10px] font-bold text-text-main truncate max-w-full">
+                        {proofFile ? proofFile.name : 'Pilih file screenshot'}
                       </span>
                     </label>
                   </div>
@@ -248,7 +248,7 @@ export const PlansCheckout: React.FC = () => {
         <CardPanel 
           title="Riwayat Invoice Pembayaran"
           headerActions={
-            <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/15 px-2.5 py-0.5 rounded uppercase">
+            <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/15 px-2.5 py-0.5 rounded uppercase select-none">
               All Transactions
             </span>
           }
@@ -256,7 +256,7 @@ export const PlansCheckout: React.FC = () => {
           <div className="overflow-x-auto w-full mt-2">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
+                <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest select-none">
                   <th className="py-2.5 pb-2 font-bold">Transaction ID</th>
                   <th className="py-2.5 pb-2 font-bold">Plan</th>
                   <th className="py-2.5 pb-2 text-center font-bold">Total</th>
@@ -271,22 +271,22 @@ export const PlansCheckout: React.FC = () => {
                     className="hover:bg-border-main/5 transition-colors cursor-pointer"
                     onClick={() => p.status === 'pending' && setActivePaymentId(p.id)}
                   >
-                    <td className="py-3 font-semibold text-text-main font-mono text-[11px]">
+                    <td className="py-3 font-semibold text-text-main font-mono text-[11px] select-all">
                       {p.transaction_id}
                     </td>
-                    <td className="py-3 text-text-muted">
+                    <td className="py-3 text-text-muted select-none">
                       {p.plan?.name || 'Hosting Plan'}
                     </td>
                     <td className="py-3 text-center font-bold text-text-main font-mono text-[11px]">
                       Rp {(p.amount + p.unique_code).toLocaleString('id-ID')}
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="py-3 text-center select-none">
                       <Badge 
                         status={p.status === 'success' ? 'success' : p.status === 'pending' ? 'pending' : 'failed'} 
                         label={p.status === 'success' ? 'Paid' : p.status === 'pending' ? 'Unpaid' : 'Failed'} 
                       />
                     </td>
-                    <td className="py-3 text-right pr-6 text-[10px] text-text-muted font-semibold">
+                    <td className="py-3 text-right pr-6 text-[10px] text-text-muted font-semibold select-none">
                       {new Date(p.created_at).toLocaleDateString()}
                     </td>
                   </tr>

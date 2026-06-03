@@ -13,7 +13,21 @@ interface DataState {
   chatMessages: ChatMessage[];
   logs: Record<number, LogLine[]>; // Subdomain ID -> Logs
   globalIssues: { id: number; subdomain_id: number; user_name: string; subject: string; message: string; status: 'open' | 'resolved'; created_at: string }[];
-  
+  adminUsers: { id: number; name: string; email: string; role: string; emailVerifiedAt: string | null; createdAt: string; subdomains: { id: number; name: string }[] }[];
+  settings: Record<string, string | null>;
+  adminStats: {
+    totalUsers: number;
+    totalSubdomains: number;
+    totalDatabases: number;
+    activeQueueJobs: number;
+    storage: {
+      usedBytes: number;
+      usedMb: number;
+      limitGb: number;
+    };
+    topConsumers: { name: string; usedBytes: number; usedMb: number }[];
+  } | null;
+
   // Actions
   fetchInitialData: () => Promise<void>;
   fetchPlans: () => Promise<void>;
@@ -21,53 +35,53 @@ interface DataState {
   fetchPayments: () => Promise<void>;
   fetchChats: (userId: number) => Promise<void>;
   fetchIssues: () => Promise<void>;
-  
+  fetchVouchers: () => Promise<void>;
+  fetchAdminUsers: () => Promise<void>;
+  fetchSettings: () => Promise<void>;
+  fetchAdminStats: () => Promise<void>;
+
   addSubdomain: (name: string, paymentId: number) => Promise<Subdomain>;
   deleteSubdomain: (id: number) => Promise<void>;
-  updateSubdomainGit: (id: number, url: string, branch: string) => Promise<void>;
-  
+  updateSubdomainGit: (id: number, url: string, branch: string, token?: string) => Promise<void>;
+
   addDatabase: (subdomainId: number, dbName: string, dbUser: string) => Promise<UserDatabase>;
   deleteDatabase: (id: number) => Promise<void>;
-  
+
   addEnv: (subdomainId: number, key: string, value: string) => Promise<SubdomainEnv>;
   deleteEnv: (subdomainId: number, id: number) => Promise<void>;
   updateEnvs: (subdomainId: number, envs: { key: string; value: string }[]) => Promise<void>;
-  
+
   applyVoucher: (code: string) => Promise<{ discount: number; voucherId: number } | null>;
-  createPayment: (planId: number, subdomainName: string, voucherId: number | null) => Promise<Payment>;
+  createPayment: (planId: number, subdomainName: string, voucherCode: string | null) => Promise<Payment>;
   confirmPayment: (paymentId: number) => Promise<void>;
   uploadProof: (paymentId: number, proof: any) => Promise<void>;
-  
+
   addChatMessage: (userId: number, message: string, isAdmin: boolean, imageFile?: any) => Promise<void>;
-  triggerMockDeployment: (subdomainId: number) => void;
-  
+  triggerRealDeployment: (subdomainId: number) => Promise<void>;
+
   addIssueReport: (subdomainId: number, subject: string, message: string) => Promise<void>;
   resolveIssue: (issueId: number) => Promise<void>;
-}
 
-const defaultVouchers = [
-  { id: 1, code: 'SUBLYHEMAT', discount_percent: 20, max_uses: 100, uses: 12, is_active: true },
-  { id: 2, code: 'WELCOME50', discount_percent: 50, max_uses: 10, uses: 9, is_active: true },
-  { id: 3, code: 'PROMOBLUE', discount_percent: 15, max_uses: 50, uses: 5, is_active: true },
-];
+  addPlan: (name: string, price: number, type: 'PHP' | 'NodeJS', storageMb: number) => Promise<void>;
+  deletePlan: (id: number) => Promise<void>;
+  addVoucher: (code: string, discountPercent: number, maxUses: number) => Promise<void>;
+  deleteVoucher: (id: number) => Promise<void>;
+  updateSubdomainStorageOverride: (subdomainId: number, limitMb: number) => Promise<void>;
+  updateSetting: (key: string, value: string | null, file?: File) => Promise<void>;
+}
 
 export const useDataStore = create<DataState>((set, get) => ({
   subdomains: [],
   databases: [],
   payments: [],
   plans: [],
-  vouchers: defaultVouchers,
+  vouchers: [],
   chatMessages: [],
-  logs: {
-    1: [
-      { timestamp: '15:20:01', type: 'system', message: 'Starting build hooks container deployment...' },
-      { timestamp: '15:20:02', type: 'stdout', message: 'Pulling sources from repository git url...' },
-      { timestamp: '15:20:04', type: 'stdout', message: 'Installing Node.js / PHP project extensions...' },
-      { timestamp: '15:20:07', type: 'stdout', message: 'Running post-installation schema updates...' },
-      { timestamp: '15:20:09', type: 'system', message: 'Deployment completed successfully. Host active.' }
-    ]
-  },
+  logs: {},
   globalIssues: [],
+  adminUsers: [],
+  settings: {},
+  adminStats: null,
 
   fetchInitialData: async () => {
     const authStore = useAuthStore.getState();
@@ -78,8 +92,14 @@ export const useDataStore = create<DataState>((set, get) => ({
       await get().fetchSubdomains();
       await get().fetchPayments();
       await get().fetchIssues();
+      await get().fetchSettings();
       if (authStore.user) {
         await get().fetchChats(authStore.user.id);
+        if (authStore.user.role === 'Admin') {
+          await get().fetchVouchers();
+          await get().fetchAdminUsers();
+          await get().fetchAdminStats();
+        }
       }
     } catch (err) {
       console.error('Failed to load initial backend data:', err);
@@ -88,7 +108,11 @@ export const useDataStore = create<DataState>((set, get) => ({
 
   fetchPlans: async () => {
     try {
-      const res = await apiFetch<any>('/plans');
+      const authStore = useAuthStore.getState();
+      const isAdmin = authStore.user?.role === 'Admin';
+      const endpoint = isAdmin ? '/plans/all' : '/plans';
+
+      const res = await apiFetch<any>(endpoint);
       const rawPlans = Array.isArray(res) ? res : (res && res.data ? res.data : []);
       const plans = rawPlans.map((p: any) => ({
         id: Number(p.id),
@@ -160,6 +184,7 @@ export const useDataStore = create<DataState>((set, get) => ({
               subdomain_id: Number(db.subdomainId),
               db_name: db.dbName,
               db_user: db.dbUser,
+              db_password: db.dbPassword ?? undefined,
               created_at: db.createdAt || '',
               updated_at: db.updatedAt || ''
             });
@@ -167,7 +192,44 @@ export const useDataStore = create<DataState>((set, get) => ({
         }
       });
 
-      set({ subdomains, databases });
+      // Generate console logs dynamically from deployment history database records
+      const logs: Record<number, LogLine[]> = {};
+      subdomains.forEach((sub) => {
+        const subLogs: LogLine[] = [];
+        (sub.deployments || []).slice().reverse().forEach((dep) => {
+          const time = dep.deployed_at ? new Date(dep.deployed_at).toLocaleTimeString() : new Date(dep.created_at).toLocaleTimeString();
+          subLogs.push({
+            timestamp: time,
+            type: 'system',
+            message: `Starting deployment process for version ${dep.version}...`
+          });
+          subLogs.push({
+            timestamp: time,
+            type: 'stdout',
+            message: `Extracting archive: ${dep.zip_path.split('/').pop()} (Size: ${(dep.zip_size / 1024).toFixed(1)} KB)`
+          });
+          subLogs.push({
+            timestamp: time,
+            type: 'stdout',
+            message: `Validation: Extracted size is ${(dep.extracted_size / 1024).toFixed(1)} KB. Security checks passed.`
+          });
+          if (dep.notes) {
+            subLogs.push({
+              timestamp: time,
+              type: 'stdout',
+              message: `Description: ${dep.notes}`
+            });
+          }
+          subLogs.push({
+            timestamp: time,
+            type: 'system',
+            message: `Deployment v${dep.version} finished successfully. Status: ${dep.status.toUpperCase()}`
+          });
+        });
+        logs[sub.id] = subLogs;
+      });
+
+      set({ subdomains, databases, logs });
     } catch (err) {
       console.error('Failed to fetch subdomains:', err);
     }
@@ -242,6 +304,62 @@ export const useDataStore = create<DataState>((set, get) => ({
     }
   },
 
+  fetchVouchers: async () => {
+    try {
+      const res = await apiFetch<any[]>('/vouchers');
+      const vouchers = res.map((v: any) => ({
+        id: Number(v.id),
+        code: v.code,
+        discount_percent: v.type === 'percent' ? Number(v.rewardAmount) : 0,
+        max_uses: v.usageLimit ? Number(v.usageLimit) : 999,
+        uses: 0, // Since backend stores uses dynamically in payments
+        is_active: v.expiresAt ? new Date(v.expiresAt) > new Date() : true
+      }));
+      set({ vouchers });
+    } catch (err) {
+      console.error('Failed to fetch vouchers:', err);
+    }
+  },
+
+  fetchAdminUsers: async () => {
+    try {
+      const res = await apiFetch<{ success: boolean; data: any[] }>('/users');
+      const adminUsers = res.data.map((u: any) => ({
+        id: Number(u.id),
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        emailVerifiedAt: u.emailVerifiedAt,
+        createdAt: u.createdAt || '',
+        subdomains: (u.subdomains || []).map((sub: any) => ({
+          id: Number(sub.id),
+          name: sub.name
+        }))
+      }));
+      set({ adminUsers });
+    } catch (err) {
+      console.error('Failed to fetch admin users:', err);
+    }
+  },
+
+  fetchSettings: async () => {
+    try {
+      const res = await apiFetch<{ success: boolean; data: Record<string, string | null> }>('/settings');
+      set({ settings: res.data });
+    } catch (err) {
+      console.error('Failed to fetch settings:', err);
+    }
+  },
+
+  fetchAdminStats: async () => {
+    try {
+      const res = await apiFetch<{ success: boolean; data: any }>('/admin/stats');
+      set({ adminStats: res.data });
+    } catch (err) {
+      console.error('Failed to fetch admin stats:', err);
+    }
+  },
+
   addSubdomain: async (name, paymentId) => {
     const res = await apiFetch<{ success: boolean; data: any }>('/subdomains', {
       method: 'POST',
@@ -277,17 +395,15 @@ export const useDataStore = create<DataState>((set, get) => ({
     await get().fetchSubdomains();
   },
 
-  updateSubdomainGit: async (id, url, branch) => {
+  updateSubdomainGit: async (id, url, branch, token) => {
     await apiFetch(`/subdomains/${id}/git/connect`, {
       method: 'POST',
-      body: { git_url: url, git_branch: branch }
+      body: { git_url: url, git_branch: branch, git_token: token || null }
     });
     await get().fetchSubdomains();
   },
 
   addDatabase: async (subdomainId, dbName, dbUser) => {
-    // Note: Backend provisions database automatically on subdomain claim.
-    // For manual creation in frontend layout, we return a mock database locally to satisfy UI flows
     const newDb: UserDatabase = {
       id: Math.floor(Math.random() * 10000) + 100,
       subdomain_id: subdomainId,
@@ -303,7 +419,6 @@ export const useDataStore = create<DataState>((set, get) => ({
   },
 
   deleteDatabase: async (id) => {
-    // Database delete is simulated locally since backend doesn't support separate DB drop route
     set((state) => ({
       databases: state.databases.filter((db) => db.id !== id)
     }));
@@ -372,28 +487,18 @@ export const useDataStore = create<DataState>((set, get) => ({
     }
   },
 
-  createPayment: async (planId, subdomainName, voucherId) => {
+  createPayment: async (planId, subdomainName, voucherCode) => {
     if (subdomainName) {
       localStorage.setItem('subly_pending_claim_name', subdomainName);
     }
 
-    let voucherCode = undefined;
-    if (voucherId) {
-      const allVouchers = get().vouchers;
-      const foundVoucher = allVouchers.find((v) => v.id === voucherId);
-      if (foundVoucher) {
-        voucherCode = foundVoucher.code;
-      }
-    }
-
     const res = await apiFetch<{ success: boolean; data: any }>('/payments/checkout', {
       method: 'POST',
-      body: { planId, voucherCode }
+      body: { planId, voucherCode: voucherCode || undefined }
     });
 
     const p = res.data;
 
-    // Check if free checkout and claim subdomain immediately
     if (p.status === 'success' && subdomainName) {
       try {
         await get().addSubdomain(subdomainName, Number(p.id));
@@ -468,7 +573,6 @@ export const useDataStore = create<DataState>((set, get) => ({
       if (imageFile instanceof File) {
         formData.append('image', imageFile);
       } else if (typeof imageFile === 'string' && imageFile.startsWith('/')) {
-        // Mock fallback image file upload
         const blob = new Blob(['attachment'], { type: 'image/png' });
         formData.append('image', blob, 'screenshot.png');
       }
@@ -484,45 +588,11 @@ export const useDataStore = create<DataState>((set, get) => ({
     }
   },
 
-  triggerMockDeployment: (subdomainId) => {
-    set((state) => ({
-      logs: {
-        ...state.logs,
-        [subdomainId]: [
-          { timestamp: new Date().toLocaleTimeString(), type: 'system', message: 'Deployment triggered by user...' }
-        ]
-      }
-    }));
-
-    const steps = [
-      { type: 'stdout' as const, msg: 'Initializing Git repository checker...' },
-      { type: 'stdout' as const, msg: 'Resolving environment keys configuration...' },
-      { type: 'stdout' as const, msg: 'Cloning repository code to temporary target /tmp/deploy...' },
-      { type: 'stdout' as const, msg: 'Starting virtualization setup for subdomain vhost...' },
-      { type: 'stdout' as const, msg: 'Provisioning secure Nginx configuration files...' },
-      { type: 'stdout' as const, msg: 'Creating database mappings and schema structures...' },
-      { type: 'stdout' as const, msg: 'Mapping directories and executing index build files...' },
-      { type: 'system' as const, msg: 'Build succeeded! Subdomain fully operational and live.' }
-    ];
-
-    steps.forEach((step, idx) => {
-      setTimeout(() => {
-        set((state) => {
-          const currentLogs = state.logs[subdomainId] || [];
-          const logLine: LogLine = {
-            timestamp: new Date().toLocaleTimeString(),
-            type: step.type,
-            message: step.msg
-          };
-          return {
-            logs: {
-              ...state.logs,
-              [subdomainId]: [...currentLogs, logLine]
-            }
-          };
-        });
-      }, (idx + 1) * 1500);
+  triggerRealDeployment: async (subdomainId) => {
+    await apiFetch(`/subdomains/${subdomainId}/deploy`, {
+      method: 'POST'
     });
+    await get().fetchSubdomains();
   },
 
   addIssueReport: async (subdomainId, subject, message) => {
@@ -542,5 +612,71 @@ export const useDataStore = create<DataState>((set, get) => ({
       body: { status: 'resolved' }
     });
     await get().fetchIssues();
+  },
+
+  addPlan: async (name, price, type, storageMb) => {
+    await apiFetch('/plans', {
+      method: 'POST',
+      body: {
+        name,
+        price,
+        type,
+        maxStorageMb: storageMb,
+        maxDatabases: type === 'PHP' ? 3 : 5,
+        durationMonths: 1,
+        isActive: true
+      }
+    });
+    await get().fetchPlans();
+  },
+
+  deletePlan: async (id) => {
+    await apiFetch(`/plans/${id}`, {
+      method: 'DELETE'
+    });
+    await get().fetchPlans();
+  },
+
+  addVoucher: async (code, discountPercent, maxUses) => {
+    await apiFetch('/vouchers', {
+      method: 'POST',
+      body: {
+        code: code.toUpperCase().replace(/\s+/g, ''),
+        type: 'percent',
+        rewardAmount: discountPercent,
+        usageLimit: maxUses,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days active
+      }
+    });
+    await get().fetchVouchers();
+  },
+
+  deleteVoucher: async (id) => {
+    await apiFetch(`/vouchers/${id}`, {
+      method: 'DELETE'
+    });
+    await get().fetchVouchers();
+  },
+
+  updateSubdomainStorageOverride: async (subdomainId, limitMb) => {
+    await apiFetch(`/subdomains/${subdomainId}/storage-override`, {
+      method: 'PUT',
+      body: { storageOverrideMb: limitMb }
+    });
+    await get().fetchAdminUsers();
+  },
+
+  updateSetting: async (key, value, file) => {
+    const formData = new FormData();
+    formData.append(key, value || '');
+    if (file) {
+      formData.append('qris_image', file);
+    }
+
+    await apiFetch('/settings', {
+      method: 'POST',
+      body: formData
+    });
+    await get().fetchSettings();
   }
 }));

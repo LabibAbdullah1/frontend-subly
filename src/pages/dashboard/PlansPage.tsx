@@ -17,19 +17,16 @@ export const PlansPage: React.FC = () => {
   const { setActiveTab } = useSystemStore();
   const { plans, applyVoucher, createPayment } = useDataStore();
 
-    // Checkout modal states
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+    const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [voucherCode, setVoucherCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<number | null>(null);
-  const [appliedVoucherId, setAppliedVoucherId] = useState<number | null>(null);
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
 
   const handleOpenCheckout = (plan: any) => {
     setSelectedPlan(plan);
     setVoucherCode('');
     setAppliedDiscount(null);
-    setAppliedVoucherId(null);
     setCheckoutModalOpen(true);
   };
 
@@ -38,7 +35,6 @@ export const PlansPage: React.FC = () => {
     const result = await applyVoucher(voucherCode);
     if (result) {
       setAppliedDiscount(result.discount);
-      setAppliedVoucherId(result.voucherId);
       addToast({
         type: 'success',
         title: 'Voucher Diterapkan',
@@ -51,7 +47,6 @@ export const PlansPage: React.FC = () => {
         message: 'Kode voucher salah, kedaluwarsa, atau kuota habis.',
       });
       setAppliedDiscount(null);
-      setAppliedVoucherId(null);
     }
   };
 
@@ -60,7 +55,7 @@ export const PlansPage: React.FC = () => {
 
     setIsCheckoutInProgress(true);
     try {
-      await createPayment(selectedPlan.id, '', appliedVoucherId);
+      await createPayment(selectedPlan.id, '', appliedDiscount ? voucherCode : null);
       addToast({
         type: 'info',
         title: 'Invoice Tagihan Dibuat',

@@ -14,6 +14,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { TerminalConsole } from '../../components/dashboard/TerminalConsole';
 import { FileManager } from '../../components/dashboard/FileManager';
+import { apiFetch } from '../../utils/api';
 
 type SubTab = 'overview' | 'git-env' | 'files' | 'logs';
 
@@ -26,7 +27,7 @@ export const SubdomainPortal: React.FC = () => {
     updateSubdomainGit,
     updateEnvs,
     logs,
-    triggerMockDeployment
+    triggerRealDeployment
   } = useDataStore();
 
   const subdomain = subdomains.find(s => s.id === currentSubdomainId);
@@ -40,9 +41,9 @@ export const SubdomainPortal: React.FC = () => {
   const [branchSearch, setBranchSearch] = useState('');
   const [selectedBranch, setSelectedBranch] = useState('main');
   const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
+  const [branchesList, setBranchesList] = useState<string[]>(['main', 'master']);
 
-  const mockBranches = ['main', 'master', 'development', 'staging', 'feature/auth-validation', 'hotfix/htaccess-cpanel'];
-  const filteredBranches = mockBranches.filter(b => b.toLowerCase().includes(branchSearch.toLowerCase()));
+  const filteredBranches = branchesList.filter(b => b.toLowerCase().includes(branchSearch.toLowerCase()));
 
   // Environment variables editor state
   const [envMode, setEnvMode] = useState<'form' | 'raw'>('form');
@@ -145,7 +146,7 @@ export const SubdomainPortal: React.FC = () => {
     }
   };
 
-  const handleVerifyGit = () => {
+  const handleVerifyGit = async () => {
     if (!gitUrlInput.startsWith('https://github.com/')) {
       addToast({
         type: 'error',
@@ -156,37 +157,74 @@ export const SubdomainPortal: React.FC = () => {
     }
 
     setIsVerifyingGit(true);
-    setTimeout(() => {
-      setIsVerifyingGit(false);
+    try {
+      const res = await apiFetch<{ success: boolean; branches: string[] }>('/subdomains/git/check-repository', {
+        method: 'POST',
+        body: { git_url: gitUrlInput, git_token: gitTokenInput || null }
+      });
+      setBranchesList(res.branches);
+      if (res.branches.length > 0) {
+        setSelectedBranch(res.branches[0]);
+      }
       setGitVerified(true);
       addToast({
         type: 'success',
         title: 'Repository Terhubung',
         message: 'Koneksi GitHub sukses diverifikasi. Silakan pilih branch target.',
       });
-    }, 1200);
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Repository Tidak Ditemukan',
+        message: err.message || 'Gagal memverifikasi repository.',
+      });
+      setGitVerified(false);
+    } finally {
+      setIsVerifyingGit(false);
+    }
   };
 
   const handleConnectGitRepo = async () => {
     if (!subdomain || !gitVerified) return;
-    await updateSubdomainGit(subdomain.id, gitUrlInput, selectedBranch);
-    addToast({
-      type: 'success',
-      title: 'Git Terintegrasi',
-      message: `Repositori sukses dikaitkan ke branch ${selectedBranch}.`,
-    });
-    triggerMockDeployment(subdomain.id);
-    setActiveSubTab('logs'); // Redirect to logs tab automatically
+    try {
+      await updateSubdomainGit(subdomain.id, gitUrlInput, selectedBranch, gitTokenInput);
+      addToast({
+        type: 'success',
+        title: 'Git Terintegrasi',
+        message: `Repositori sukses dikaitkan ke branch ${selectedBranch}.`,
+      });
+      await triggerRealDeployment(subdomain.id);
+      setActiveSubTab('logs'); // Redirect to logs tab automatically
+    } catch {
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal mengaitkan repositori Git.',
+      });
+    }
   };
 
-  const handleTriggerDeploy = () => {
+  const handleTriggerDeploy = async () => {
     if (subdomain) {
-      triggerMockDeployment(subdomain.id);
       addToast({
         type: 'info',
         title: 'Deploy Dimulai',
-        message: 'Infrastruktur subly sedang merender virtual host Anda...',
+        message: 'Infrastruktur sedang memproses deployment Anda...',
       });
+      try {
+        await triggerRealDeployment(subdomain.id);
+        addToast({
+          type: 'success',
+          title: 'Deploy Sukses',
+          message: 'Website Anda telah dideploy dan aktif.',
+        });
+      } catch (err: any) {
+        addToast({
+          type: 'error',
+          title: 'Deploy Gagal',
+          message: err.message || 'Terjadi kesalahan saat memproses deployment.',
+        });
+      }
     }
   };
 
