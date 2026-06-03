@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-card: var(--bg-card);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-border-main: var(--border-main);
+  --color-glow-color: var(--glow-color);
+  
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+:root {
+  /* Light Theme - Premium Minimalist White & Violet */
+  --brand-primary: #5e6ad2;       /* Premium Indigo/Violet */
+  --brand-secondary: #4f46e5;     /* Darker Indigo */
+  --bg-base: #f9fafb;             /* Pure Off-white */
+  --bg-surface: #ffffff;          /* Pure White */
+  --bg-card: rgba(255, 255, 255, 0.7); /* Glassmorphism Light */
+  --text-main: #0f172a;           /* Dark slate */
+  --text-muted: #64748b;          /* Muted gray */
+  --border-main: #e5e7eb;         /* Soft Gray border */
+  --glow-color: rgba(94, 106, 210, 0.08);
+  color-scheme: light;
+}
+
+:root[class="dark"] {
+  /* Dark Theme - Pure Black & Luminous Indigo (Mencontoh subly-v2) */
+  --brand-primary: #5e6ad2;       /* Accent Indigo */
+  --brand-secondary: #7885e7;     /* Light Indigo Accent */
+  --bg-base: #000000;             /* Pure Black */
+  --bg-surface: #080808;          /* Charcoal Dark Surface */
+  --bg-card: rgba(8, 8, 8, 0.65); /* Glassmorphism Dark */
+  --text-main: #ffffff;           /* Pure White */
+  --text-muted: #bcbcbc;          /* Neutral 350 body text */
+  --border-main: #121212;         /* Dark Neutral 900 border */
+  --glow-color: rgba(94, 106, 210, 0.12);
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--border-main);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.5), 0 4px 20px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .glass-panel {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.043), 0 24px 50px -12px rgba(0, 0, 0, 0.85);
+}
+
+/* Premium glows */
+.glow-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glow-hover:hover {
+  box-shadow: 0 0 24px var(--glow-color);
+  border-color: var(--brand-primary);
+  transform: translateY(-2px);
+}
+
+/* Premium styled input fields */
+.premium-input {
+  background-color: var(--bg-base);
+  border: 1px solid var(--border-main);
+  color: var(--text-main);
+  border-radius: 0.75rem; /* 12px */
+  padding: 0.625rem 1rem;
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 600;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-input:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px var(--glow-color), 0 0 12px var(--glow-color);
+}
+
+/* Custom Webkit scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-main);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-secondary);
+}
+
+/* Pulse animation for active signals */
+@keyframes signal-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animate-signal-ping {
+  animation: signal-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
