@@ -8,6 +8,7 @@ import {
 import { useSystemStore } from './stores/useSystemStore';
 import { useAuthStore } from './stores/useAuthStore';
 import { useToastStore } from './stores/useToastStore';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // UI Atoms
 import { Toast } from './components/ui/Toast';
@@ -125,11 +126,22 @@ export const App: React.FC = () => {
         </header>
 
         {/* Public Content pages */}
-        <main className="flex-1 flex flex-col">
-          {activeTab === 'legal' && <LegalPages />}
-          {activeTab === 'login' && <LoginPage />}
-          {activeTab === 'register' && <RegisterPage />}
-          {activeTab !== 'legal' && activeTab !== 'login' && activeTab !== 'register' && <LandingPage />}
+        <main className="flex-1 flex flex-col overflow-x-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              className="flex-1 flex flex-col"
+            >
+              {activeTab === 'legal' && <LegalPages />}
+              {activeTab === 'login' && <LoginPage />}
+              {activeTab === 'register' && <RegisterPage />}
+              {activeTab !== 'legal' && activeTab !== 'login' && activeTab !== 'register' && <LandingPage />}
+            </motion.div>
+          </AnimatePresence>
         </main>
 
         {/* Global Floating Toast Alerts Container */}
@@ -177,39 +189,49 @@ export const App: React.FC = () => {
         <Header />
 
         {/* Main Dashboard Pages router content wrapper */}
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto w-full max-w-7xl mx-auto">
-          
-          {/* Customer Dashboard Router */}
-          {currentRole === 'Customer' && (
-            <>
-              {activeTab === 'dashboard' && <DashboardOverview />}
-              {activeTab === 'subdomains' && (
-                currentSubdomainId === null 
-                  ? <SubdomainsList /> 
-                  : <SubdomainPortal />
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto w-full max-w-7xl mx-auto overflow-x-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${currentRole}-${activeTab}-${currentSubdomainId}`}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ type: "spring", stiffness: 350, damping: 28 }}
+              className="w-full"
+            >
+              {/* Customer Dashboard Router */}
+              {currentRole === 'Customer' && (
+                <>
+                  {activeTab === 'dashboard' && <DashboardOverview />}
+                  {activeTab === 'subdomains' && (
+                    currentSubdomainId === null 
+                      ? <SubdomainsList /> 
+                      : <SubdomainPortal />
+                  )}
+                  {activeTab === 'databases' && <DatabasesPage />}
+                  {activeTab === 'plans' && <PlansPage />}
+                  {activeTab === 'billing' && <PlansCheckout />}
+                  {activeTab === 'chat' && <SupportChat />}
+                  {activeTab === 'reports' && <IssueReports />}
+                  {activeTab === 'profile' && <ProfileSettings />}
+                </>
               )}
-              {activeTab === 'databases' && <DatabasesPage />}
-              {activeTab === 'plans' && <PlansPage />}
-              {activeTab === 'billing' && <PlansCheckout />}
-              {activeTab === 'chat' && <SupportChat />}
-              {activeTab === 'reports' && <IssueReports />}
-              {activeTab === 'profile' && <ProfileSettings />}
-            </>
-          )}
 
-          {/* Admin Panel Router */}
-          {currentRole === 'Admin' && (
-            <>
-              {activeTab === 'admin-dashboard' && <AdminDashboard />}
-              {activeTab === 'admin-plans' && <AdminCRUDs />}
-              {activeTab === 'admin-vouchers' && <AdminCRUDs />}
-              {activeTab === 'admin-users' && <AdminCRUDs />}
-              {activeTab === 'admin-payments' && <AdminDashboard />} {/* Payment confirms inside admin dashboard overview */}
-              {activeTab === 'admin-chat' && <SupportChat />}        {/* Shared chat console component */}
-              {activeTab === 'admin-settings' && <AdminCRUDs />}
-            </>
-          )}
-
+              {/* Admin Panel Router */}
+              {currentRole === 'Admin' && (
+                <>
+                  {activeTab === 'admin-dashboard' && <AdminDashboard />}
+                  {activeTab === 'admin-plans' && <AdminCRUDs />}
+                  {activeTab === 'admin-vouchers' && <AdminCRUDs />}
+                  {activeTab === 'admin-users' && <AdminCRUDs />}
+                  {activeTab === 'admin-payments' && <AdminDashboard />} {/* Payment confirms inside admin dashboard overview */}
+                  {activeTab === 'admin-chat' && <SupportChat />}        {/* Shared chat console component */}
+                  {activeTab === 'admin-settings' && <AdminCRUDs />}
+                  {activeTab === 'profile' && <ProfileSettings />}
+                </>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 

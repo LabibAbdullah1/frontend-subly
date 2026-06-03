@@ -1,11 +1,10 @@
 // src/components/dashboard/FileManager.tsx
 import React, { useState, useRef } from 'react';
 import { 
-  Folder, File, Search, ChevronRight, CornerDownRight, 
+  Folder, Search, ChevronRight, 
   Trash2, Upload, AlertCircle, FileArchive, FileCode, 
-  Image, FileText, CheckCircle
+  Image, FileText
 } from 'lucide-react';
-import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -266,7 +265,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
       </div>
 
       {/* Path Breadcrumbs navigation */}
-      <div className="glass-panel px-6 py-3.5 rounded-2xl flex items-center justify-between shadow-xs">
+      <div className="glass-panel px-6 py-3.5 rounded-xl flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-1.5 text-xs font-bold text-text-muted">
           <Folder className="h-4.5 w-4.5 text-brand-primary shrink-0" />
           <button 
@@ -306,10 +305,10 @@ export const FileManager: React.FC<FileManagerProps> = ({
         onDragLeave={handleDrag}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`glass-panel border-dashed border-2 rounded-3xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-2.5 ${
+        className={`glass-panel border-dashed border-2 rounded-xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-2.5 ${
           dragActive 
             ? 'border-brand-primary bg-brand-primary/5 shadow-lg' 
-            : 'border-border-main hover:border-brand-primary hover:bg-brand-primary/2'
+            : 'border-border-main hover:border-amber-500/40 hover:bg-brand-primary/2'
         }`}
       >
         <input 
@@ -334,7 +333,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
           </div>
         ) : (
           <>
-            <div className="h-10 w-10 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
+            <div className="h-10 w-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
               <Upload className="h-5 w-5" />
             </div>
             <div>
@@ -348,7 +347,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
       </div>
 
       {/* Explorer file grid list */}
-      <div className="glass-panel rounded-3xl overflow-hidden shadow-xs flex flex-col">
+      <div className="glass-panel rounded-xl overflow-hidden shadow-xs flex flex-col">
         <div className="px-6 py-4 border-b border-border-main/50 bg-bg-surface/20 flex justify-between items-center select-none">
           <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
             Daftar Berkas & Folder ({currentItems.length} item)
@@ -438,7 +437,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
           </>
         }
       >
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-600 dark:text-red-400">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-red-600 dark:text-red-400">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <div className="text-xs text-left">
             <p className="font-bold">Menghapus item:</p>

@@ -34,7 +34,7 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
   };
 
   return (
-    <div className="w-full bg-[#090d16] border border-border-main rounded-3xl overflow-hidden shadow-2xl flex flex-col font-mono text-xs text-slate-300 select-none">
+    <div className="w-full bg-[#090d16] border border-border-main rounded-xl overflow-hidden shadow-2xl flex flex-col font-mono text-xs text-slate-300 select-none">
       {/* Console Header */}
       <div className="px-5 py-3.5 border-b border-border-main bg-slate-950/80 flex items-center justify-between select-none">
         <div className="flex items-center gap-2">

@@ -25,7 +25,7 @@ export const CardPanel: React.FC<CardPanelProps> = ({
 
   return (
     <div
-      className={`glass-panel rounded-3xl p-6 glow-hover transition-all duration-300 ${
+      className={`glass-panel rounded-xl p-6 glow-hover transition-all duration-300 ${
         glow ? 'shadow-md shadow-brand-primary/5 hover:shadow-lg' : ''
       } ${className}`}
       style={customStyle}
@@ -34,7 +34,7 @@ export const CardPanel: React.FC<CardPanelProps> = ({
       {(title || headerActions) && (
         <div className="flex items-center justify-between border-b border-border-main pb-4 mb-4 select-none">
           {title && (
-            <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">
+            <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
               {title}
             </h3>
           )}

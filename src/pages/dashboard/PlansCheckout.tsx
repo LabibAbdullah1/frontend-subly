@@ -18,7 +18,21 @@ export const PlansCheckout: React.FC = () => {
   const [activePaymentId, setActivePaymentId] = useState<number | null>(null);
   const [pollingProgress, setPollingProgress] = useState(0);
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [isUploadingProof, setIsUploadingProof] = useState(false);
+
+  useEffect(() => {
+    if (!proofFile) {
+      setProofPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(proofFile);
+    setProofPreviewUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [proofFile]);
 
   const lastStatusRef = useRef<string | null>(null);
 
@@ -76,11 +90,11 @@ export const PlansCheckout: React.FC = () => {
         message: 'Administrasi Subly akan meninjau tanda terima transaksi Anda.',
       });
       setProofFile(null);
-    } catch {
+    } catch (err: any) {
       addToast({
         type: 'error',
         title: 'Gagal Mengunggah',
-        message: 'Terjadi kesalahan saat mengunggah bukti pembayaran Anda.',
+        message: err.message || 'Terjadi kesalahan saat mengunggah bukti pembayaran Anda.',
       });
     } finally {
       setIsUploadingProof(false);
@@ -103,7 +117,7 @@ export const PlansCheckout: React.FC = () => {
     <div className="space-y-6 w-full text-left">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-text-main tracking-tight uppercase">
+          <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">
             {t('billingTitle')}
           </h1>
           <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-0.5">
@@ -120,13 +134,13 @@ export const PlansCheckout: React.FC = () => {
             <CardPanel title="Checkout Gateway QRIS Statis">
               <div className="flex flex-col md:flex-row gap-6 mt-4 items-center md:items-start text-left">
                 {/* QR Code container */}
-                <div className="p-4 bg-white rounded-3xl border border-border-main shrink-0 flex flex-col items-center gap-2 select-none shadow-md">
+                <div className="p-4 bg-white rounded-xl border border-border-main shrink-0 flex flex-col items-center gap-2 select-none shadow-md">
                   <img 
                     src={qrisImgUrl || dynamicQrUrl} 
                     alt="QRIS Code" 
                     className="w-40 h-40 object-contain" 
                   />
-                  <div className="px-3 py-1 rounded bg-slate-900 text-white font-black text-[9px] tracking-wider uppercase">
+                  <div className="px-3 py-1 rounded bg-slate-900 text-white font-bold text-[9px] tracking-wider uppercase">
                     QRIS GPN
                   </div>
                 </div>
@@ -142,7 +156,7 @@ export const PlansCheckout: React.FC = () => {
                     {t('uniqueCodeHint')}
                   </p>
 
-                  <div className="p-4 rounded-2xl bg-brand-primary/5 border border-brand-primary/10 grid grid-cols-1 md:grid-cols-2 gap-4 select-none">
+                  <div className="p-4 rounded-xl bg-brand-primary/5 border border-brand-primary/10 grid grid-cols-1 md:grid-cols-2 gap-4 select-none">
                     <div>
                       <span className="text-[10px] font-bold text-text-muted uppercase block">
                         Tagihan Paket
@@ -160,10 +174,10 @@ export const PlansCheckout: React.FC = () => {
                       </span>
                     </div>
                     <div className="md:col-span-2 border-t border-border-main/50 pt-2">
-                      <span className="text-[10px] font-black text-text-muted uppercase block">
+                      <span className="text-[10px] font-bold text-text-muted uppercase block">
                         {t('uniqueAmount')}
                       </span>
-                      <span className="text-xl font-black text-brand-primary">
+                      <span className="text-xl font-bold text-brand-primary">
                         Rp {totalAmount.toLocaleString('id-ID')}
                       </span>
                     </div>
@@ -201,7 +215,7 @@ export const PlansCheckout: React.FC = () => {
             <CardPanel title={t('uploadReceipt')}>
               <form onSubmit={handleProofUploadSubmit} className="space-y-4 mt-2">
                 <div className="space-y-2 text-left">
-                  <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
+                  <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                     Invoice ID
                   </label>
                   <p className="text-xs font-mono font-bold text-text-main bg-border-main/20 p-2.5 rounded-xl break-all">
@@ -210,23 +224,51 @@ export const PlansCheckout: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5 text-left">
-                  <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
+                  <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                     Unggah Bukti Bayar
                   </label>
-                  <div className="border border-dashed border-border-main hover:border-brand-primary rounded-2xl p-4 text-center cursor-pointer transition-all">
+                  <div className="border border-dashed border-border-main hover:border-amber-500/40 rounded-xl p-4 text-center cursor-pointer transition-all relative overflow-hidden">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg, image/png, image/jpg, image/webp"
                       onChange={(e) => setProofFile(e.target.files?.[0] || null)}
                       className="hidden"
                       id="receipt-file-input"
                     />
-                    <label htmlFor="receipt-file-input" className="cursor-pointer flex flex-col items-center gap-1.5">
-                      <Upload className="h-6 w-6 text-text-muted" />
-                      <span className="text-[10px] font-bold text-text-main truncate max-w-full">
-                        {proofFile ? proofFile.name : 'Pilih file screenshot'}
-                      </span>
-                    </label>
+                    {proofPreviewUrl ? (
+                      <div className="relative group">
+                        <img 
+                          src={proofPreviewUrl} 
+                          alt="Preview Bukti Bayar" 
+                          className="max-h-48 w-full object-contain rounded-lg bg-black/10 p-1 border border-border-main/50 animate-in fade-in duration-200"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg gap-3">
+                          <label 
+                            htmlFor="receipt-file-input" 
+                            className="px-3 py-1.5 rounded-lg bg-bg-surface text-text-main text-[10px] font-bold cursor-pointer hover:bg-border-main/20 shadow-sm"
+                          >
+                            Ganti Gambar
+                          </label>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setProofFile(null);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-[10px] font-bold cursor-pointer hover:bg-red-700 shadow-sm"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label htmlFor="receipt-file-input" className="cursor-pointer flex flex-col items-center gap-1.5">
+                        <Upload className="h-6 w-6 text-text-muted" />
+                        <span className="text-[10px] font-bold text-text-main truncate max-w-full">
+                          Pilih file bukti bayar (PNG, JPG, WEBP)
+                        </span>
+                      </label>
+                    )}
                   </div>
                 </div>
 

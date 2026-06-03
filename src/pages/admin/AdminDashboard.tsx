@@ -1,23 +1,17 @@
-// src/pages/admin/AdminDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, Globe, Database, CreditCard, 
-  CheckCircle, XCircle, HardDrive, ShieldCheck,
-  AlertTriangle, ArrowRight, Eye, RefreshCw
+  Users, Globe, Database, ShieldCheck, Eye
 } from 'lucide-react';
-import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
 import { useToastStore } from '../../stores/useToastStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 
 export const AdminDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
-  const { setActiveTab } = useSystemStore();
   const { 
     payments, 
     confirmPayment, 
@@ -57,7 +51,7 @@ export const AdminDashboard: React.FC = () => {
     <div className="space-y-6 w-full text-left">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-text-main tracking-tight uppercase">
+          <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">
             {t('adminStats')}
           </h1>
           <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-0.5">
@@ -71,10 +65,10 @@ export const AdminDashboard: React.FC = () => {
         <CardPanel className="p-5">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-black text-text-muted uppercase tracking-wider block">{t('totalUsers')}</span>
-              <span className="text-2xl font-black text-text-main">{adminStats?.totalUsers ?? 0}</span>
+              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider block">{t('totalUsers')}</span>
+              <span className="text-2xl font-bold text-text-main">{adminStats?.totalUsers ?? 0}</span>
             </div>
-            <div className="h-10 w-10 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+            <div className="h-10 w-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
               <Users className="h-5 w-5" />
             </div>
           </div>
@@ -83,10 +77,10 @@ export const AdminDashboard: React.FC = () => {
         <CardPanel className="p-5">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-black text-text-muted uppercase tracking-wider block">{t('totalSubdomains')}</span>
-              <span className="text-2xl font-black text-text-main">{adminStats?.totalSubdomains ?? 0}</span>
+              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider block">{t('totalSubdomains')}</span>
+              <span className="text-2xl font-bold text-text-main">{adminStats?.totalSubdomains ?? 0}</span>
             </div>
-            <div className="h-10 w-10 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+            <div className="h-10 w-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
               <Globe className="h-5 w-5" />
             </div>
           </div>
@@ -95,10 +89,10 @@ export const AdminDashboard: React.FC = () => {
         <CardPanel className="p-5">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-black text-text-muted uppercase tracking-wider block">{t('totalDatabases')}</span>
-              <span className="text-2xl font-black text-text-main">{adminStats?.totalDatabases ?? 0}</span>
+              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider block">{t('totalDatabases')}</span>
+              <span className="text-2xl font-bold text-text-main">{adminStats?.totalDatabases ?? 0}</span>
             </div>
-            <div className="h-10 w-10 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+            <div className="h-10 w-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
               <Database className="h-5 w-5" />
             </div>
           </div>
@@ -107,10 +101,10 @@ export const AdminDashboard: React.FC = () => {
         <CardPanel className="p-5">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-black text-text-muted uppercase tracking-wider block">Queue Jobs</span>
-              <span className="text-2xl font-black text-text-main">{adminStats?.activeQueueJobs ?? 0} Active</span>
+              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider block">Queue Jobs</span>
+              <span className="text-2xl font-bold text-text-main">{adminStats?.activeQueueJobs ?? 0} Active</span>
             </div>
-            <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
               <ShieldCheck className="h-5 w-5" />
             </div>
           </div>
@@ -241,7 +235,7 @@ export const AdminDashboard: React.FC = () => {
           </>
         }
       >
-        <div className="p-3.5 rounded-2xl bg-brand-primary/5 border border-brand-primary/10 text-brand-primary text-xs font-bold text-left">
+        <div className="p-3.5 rounded-xl bg-brand-primary/5 border border-brand-primary/10 text-brand-primary text-xs font-bold text-left">
           Penyetujuan pembayaran ini akan memicu provisioning otomatis subdomain cPanel klien dan mengalokasikan resources RAM/CPU virtual host.
         </div>
       </Modal>
@@ -252,17 +246,17 @@ export const AdminDashboard: React.FC = () => {
         onClose={() => setViewProofPath(null)}
         title="Tanda Terima Pembayaran Klien"
       >
-        <div className="p-6 bg-slate-900/10 rounded-3xl border border-border-main/50 flex flex-col items-center justify-center gap-4">
-          <div className="w-full max-w-xs border border-border-main bg-white rounded-3xl p-3 shadow-md flex items-center justify-center select-none overflow-hidden">
+        <div className="p-6 bg-slate-900/10 rounded-xl border border-border-main/50 flex flex-col items-center justify-center gap-4">
+          <div className="w-full max-w-xs border border-border-main bg-white rounded-xl p-3 shadow-md flex items-center justify-center select-none overflow-hidden">
             <img 
               src={`${viewProofPath?.startsWith('http') ? '' : UPLOADS_BASE}/${viewProofPath}`} 
               alt="Screenshot Proof" 
-              className="max-h-64 object-contain rounded-2xl" 
+              className="max-h-64 object-contain rounded-xl" 
             />
           </div>
           <div className="text-center text-xs font-bold text-text-muted">
             <p className="truncate max-w-xs">{viewProofPath?.split('/').pop()}</p>
-            <p className="text-[10px] font-black text-brand-primary mt-1">E-WALLET TRANSACTION SUCCESS RECEIPT</p>
+            <p className="text-[10px] font-bold text-brand-primary mt-1">E-WALLET TRANSACTION SUCCESS RECEIPT</p>
           </div>
         </div>
       </Modal>

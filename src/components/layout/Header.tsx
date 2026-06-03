@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { 
   Menu, Sun, Moon, Bell, ChevronDown, 
-  User, LogOut, Languages, ShieldAlert
+  User, LogOut, Languages
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useDataStore } from '../../stores/useDataStore';
@@ -18,7 +19,6 @@ export const Header: React.FC = () => {
     toggleLanguage, 
     toggleSidebar, 
     currentRole, 
-    setCurrentRole,
     activeTab,
     setActiveTab,
     currentSubdomainId,
@@ -29,7 +29,6 @@ export const Header: React.FC = () => {
   const { subdomains } = useDataStore();
   
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
   // Generate breadcrumbs from active tab
   const getBreadcrumbs = () => {
@@ -43,6 +42,7 @@ export const Header: React.FC = () => {
       if (activeTab === 'admin-payments') crumbs.push({ label: t('paymentConfirmation'), active: true });
       if (activeTab === 'admin-chat') crumbs.push({ label: t('adminChatTitle'), active: true });
       if (activeTab === 'admin-settings') crumbs.push({ label: t('systemSettings'), active: true });
+      if (activeTab === 'profile') crumbs.push({ label: t('profile'), active: true });
     } else {
       crumbs.push({ label: 'Client portal', active: activeTab === 'dashboard', onClick: () => setActiveTab('dashboard') });
       if (activeTab === 'plans') crumbs.push({ label: t('plans'), active: true });
@@ -116,59 +116,17 @@ export const Header: React.FC = () => {
           className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer"
           title={t('theme')}
         >
-          {theme === 'light' ? <Moon className="h-4.5 w-4.5" /> : <Sun className="h-4.5 w-4.5" />}
+          <motion.div
+            key={theme}
+            initial={{ rotate: -90, scale: 0.8, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          >
+            {theme === 'light' ? <Moon className="h-4.5 w-4.5" /> : <Sun className="h-4.5 w-4.5" />}
+          </motion.div>
         </button>
 
-        {/* Desktop view role switcher */}
-        {device === 'desktop' && (
-          <div className="relative">
-            <button 
-              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-              className="px-3.5 py-1.5 rounded-xl bg-brand-primary/5 hover:bg-brand-primary/10 text-brand-primary border border-brand-primary/15 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-            >
-              <ShieldAlert className="h-4 w-4" />
-              <span>{currentRole} Mode</span>
-              <ChevronDown className="h-3 w-3" />
-            </button>
-            
-            {roleDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setRoleDropdownOpen(false)} />
-                <div className="absolute right-0 mt-2.5 w-40 rounded-2xl bg-bg-surface border border-border-main shadow-2xl p-2 z-20 animate-in fade-in slide-in-from-top-3 duration-150">
-                  <div className="text-[9px] font-black text-text-muted uppercase px-3 py-1.5 select-none tracking-widest border-b border-border-main mb-1">
-                    {t('role')}
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setCurrentRole('Customer');
-                      setRoleDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer ${
-                      currentRole === 'Customer' 
-                        ? 'bg-brand-primary/10 text-brand-primary' 
-                        : 'text-text-muted hover:bg-border-main/30 hover:text-text-main'
-                    }`}
-                  >
-                    Client (Customer)
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setCurrentRole('Admin');
-                      setRoleDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer ${
-                      currentRole === 'Admin' 
-                        ? 'bg-brand-primary/10 text-brand-primary' 
-                        : 'text-text-muted hover:bg-border-main/30 hover:text-text-main'
-                    }`}
-                  >
-                    Administrator
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        )}
+
 
         {/* Notifications */}
         <button 
@@ -197,79 +155,52 @@ export const Header: React.FC = () => {
             )}
           </button>
 
-          {profileDropdownOpen && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setProfileDropdownOpen(false)} />
-              <div className="absolute right-0 mt-2.5 w-60 rounded-3xl bg-bg-surface border border-border-main shadow-2xl p-3.5 z-20 animate-in fade-in slide-in-from-top-3 duration-150 text-left">
-                {/* Profile Header */}
-                <div className="px-2 pb-3 mb-2 border-b border-border-main select-none">
-                  <p className="text-xs font-black text-text-main">{user ? user.name : 'Labib'}</p>
-                  <p className="text-[10px] text-text-muted truncate mt-0.5">{user ? user.email : 'client@subly.net'}</p>
-                </div>
-
-                {/* Mobile View Role Switcher inside profile */}
-                {device === 'mobile' && (
-                  <div className="border-b border-border-main pb-2 mb-2">
-                    <div className="text-[9px] font-black text-text-muted uppercase px-2 py-1 select-none tracking-widest">
-                      Switch Role
-                    </div>
-                    <div className="flex gap-1.5 mt-1.5 px-2">
-                      <button 
-                        onClick={() => {
-                          setCurrentRole('Customer');
-                          setProfileDropdownOpen(false);
-                        }}
-                        className={`flex-1 text-center py-1.5 rounded-lg text-[10px] font-bold border ${
-                          currentRole === 'Customer'
-                            ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20'
-                            : 'border-border-main text-text-muted'
-                        }`}
-                      >
-                        Client
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setCurrentRole('Admin');
-                          setProfileDropdownOpen(false);
-                        }}
-                        className={`flex-1 text-center py-1.5 rounded-lg text-[10px] font-bold border ${
-                          currentRole === 'Admin'
-                            ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20'
-                            : 'border-border-main text-text-muted'
-                        }`}
-                      >
-                        Admin
-                      </button>
-                    </div>
+          <AnimatePresence>
+            {profileDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setProfileDropdownOpen(false)} />
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  className="absolute right-0 mt-2.5 w-60 rounded-xl bg-bg-surface border border-border-main shadow-2xl p-3.5 z-20 text-left"
+                >
+                  {/* Profile Header */}
+                  <div className="px-2 pb-3 mb-2 border-b border-border-main select-none">
+                    <p className="text-xs font-bold text-text-main">{user ? user.name : 'Labib'}</p>
+                    <p className="text-[10px] text-text-muted truncate mt-0.5">{user ? user.email : 'client@subly.net'}</p>
                   </div>
-                )}
 
-                {/* Profile Links */}
-                <button 
-                  onClick={() => {
-                    setActiveTab('profile');
-                    setProfileDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl text-xs font-semibold text-text-muted hover:bg-border-main/30 hover:text-text-main cursor-pointer"
-                >
-                  <User className="h-4 w-4" />
-                  <span>{t('profile')}</span>
-                </button>
 
-                {/* Logout simulation */}
-                <button 
-                  onClick={() => {
-                    logout();
-                    setProfileDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2.5 mt-1 rounded-xl text-xs font-semibold text-red-500 hover:bg-red-500/10 cursor-pointer"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>{t('logout')}</span>
-                </button>
-              </div>
-            </>
-          )}
+
+                  {/* Profile Links */}
+                  <button 
+                    onClick={() => {
+                      setActiveTab('profile');
+                      setProfileDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl text-xs font-semibold text-text-muted hover:bg-border-main/30 hover:text-text-main cursor-pointer border-none"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>{t('profile')}</span>
+                  </button>
+
+                  {/* Logout simulation */}
+                  <button 
+                    onClick={() => {
+                      logout();
+                      setProfileDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2.5 mt-1 rounded-xl text-xs font-semibold text-red-500 hover:bg-red-500/10 cursor-pointer border-none"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>{t('logout')}</span>
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
 
       </div>

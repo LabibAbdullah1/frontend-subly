@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { 
   Check, ShoppingCart, Globe, ShieldCheck, HardDrive, Database
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
 import { useToastStore } from '../../stores/useToastStore';
@@ -84,7 +85,7 @@ export const PlansPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-text-main tracking-tight uppercase">
+          <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">
             {t('pricingTitle')}
           </h1>
           <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-0.5">
@@ -99,75 +100,81 @@ export const PlansPage: React.FC = () => {
           const isNode = plan.type === 'NodeJS';
           
           return (
-            <CardPanel 
-              key={plan.id} 
-              className="flex flex-col justify-between h-full border border-border-main/50 relative overflow-hidden group hover:border-brand-primary/50 transition-all duration-300"
-              glow={true}
+            <motion.div
+              key={plan.id}
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="flex flex-col h-full"
             >
-              <div className="space-y-5">
-                {/* Plan Badge */}
-                <div className="flex justify-between items-center select-none">
-                  <span className={`text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full ${
-                    isNode 
-                      ? 'bg-green-500/10 text-green-500 border border-green-500/15' 
-                      : 'bg-brand-primary/10 text-brand-primary border border-brand-primary/15'
-                  }`}>
-                    {plan.type} RUNTIME
-                  </span>
-                </div>
-
-                {/* Plan Name & Price */}
-                <div>
-                  <h3 className="text-sm font-bold text-text-main group-hover:text-brand-primary transition-colors">
-                    {plan.name}
-                  </h3>
-                  <div className="mt-2.5 flex items-baseline">
-                    <span className="text-xl font-black text-text-main font-mono">
-                      Rp {plan.price.toLocaleString('id-ID')}
-                    </span>
-                    <span className="text-[10px] text-text-muted font-bold uppercase ml-1">
-                      / bln
+              <CardPanel 
+                className="flex flex-col justify-between h-full border border-border-main/50 relative overflow-hidden group hover:border-amber-500/50 transition-all duration-300"
+                glow={true}
+              >
+                <div className="space-y-5">
+                  {/* Plan Badge */}
+                  <div className="flex justify-between items-center select-none">
+                    <span className={`text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full ${
+                      isNode 
+                        ? 'bg-green-500/10 text-green-500 border border-green-500/15' 
+                        : 'bg-brand-primary/10 text-brand-primary border border-brand-primary/15'
+                    }`}>
+                      {plan.type} RUNTIME
                     </span>
                   </div>
+
+                  {/* Plan Name & Price */}
+                  <div>
+                    <h3 className="text-sm font-bold text-text-main group-hover:text-brand-primary transition-colors">
+                      {plan.name}
+                    </h3>
+                    <div className="mt-2.5 flex items-baseline">
+                      <span className="text-xl font-bold text-text-main font-mono">
+                        Rp {plan.price.toLocaleString('id-ID')}
+                      </span>
+                      <span className="text-[10px] text-text-muted font-bold uppercase ml-1">
+                        / bln
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-text-muted leading-relaxed min-h-12">
+                    {plan.description}
+                  </p>
+
+                  {/* Features List */}
+                  <ul className="space-y-2.5 pt-4 border-t border-border-main/50 text-[11px] font-semibold text-text-muted select-none">
+                    <li className="flex items-center gap-2">
+                      <HardDrive className="h-4 w-4 text-brand-primary shrink-0" />
+                      <span>Storage: <span className="font-mono text-text-main font-bold">{plan.max_storage_mb >= 1024 ? `${plan.max_storage_mb / 1024} GB` : `${plan.max_storage_mb} MB`}</span> NVMe</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Database className="h-4 w-4 text-brand-primary shrink-0" />
+                      <span>1 Database MySQL Terdedikasi</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-brand-primary shrink-0" />
+                      <span>SSL Let's Encrypt Otomatis</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-brand-primary shrink-0" />
+                      <span>Subdomain Gratis `.subly.host`</span>
+                    </li>
+                  </ul>
                 </div>
 
-                <p className="text-[11px] text-text-muted leading-relaxed min-h-12">
-                  {plan.description}
-                </p>
-
-                {/* Features List */}
-                <ul className="space-y-2.5 pt-4 border-t border-border-main/50 text-[11px] font-semibold text-text-muted select-none">
-                  <li className="flex items-center gap-2">
-                    <HardDrive className="h-4 w-4 text-brand-primary shrink-0" />
-                    <span>Storage: <span className="font-mono text-text-main font-bold">{plan.max_storage_mb >= 1024 ? `${plan.max_storage_mb / 1024} GB` : `${plan.max_storage_mb} MB`}</span> NVMe</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Database className="h-4 w-4 text-brand-primary shrink-0" />
-                    <span>Database: <span className="font-mono text-text-main font-bold">{plan.max_databases}</span> MySQL</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-brand-primary shrink-0" />
-                    <span>SSL Let's Encrypt Otomatis</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-brand-primary shrink-0" />
-                    <span>Subdomain Gratis `.subly.host`</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Action */}
-              <div className="mt-6 pt-4 select-none">
-                <Button 
-                  variant={isNode ? 'outline' : 'primary'} 
-                  className="w-full flex items-center justify-center gap-1.5"
-                  icon={<ShoppingCart className="h-4 w-4" />}
-                  onClick={() => handleOpenCheckout(plan)}
-                >
-                  Pilih Paket
-                </Button>
-              </div>
-            </CardPanel>
+                {/* Action */}
+                <div className="mt-6 pt-4 select-none">
+                  <Button 
+                    variant={isNode ? 'outline' : 'primary'} 
+                    className="w-full flex items-center justify-center gap-1.5"
+                    icon={<ShoppingCart className="h-4 w-4" />}
+                    onClick={() => handleOpenCheckout(plan)}
+                  >
+                    Pilih Paket
+                  </Button>
+                </div>
+              </CardPanel>
+            </motion.div>
           );
         })}
       </div>
@@ -181,10 +188,10 @@ export const PlansPage: React.FC = () => {
         {selectedPlan && (
           <form onSubmit={handleCheckoutSubmit} className="space-y-4 text-left">
             {/* Plan Info Summary */}
-            <div className="p-4 rounded-2xl bg-bg-surface border border-border-main/60 grid grid-cols-2 gap-3.5 select-none">
+            <div className="p-4 rounded-xl bg-bg-surface border border-border-main/60 grid grid-cols-2 gap-3.5 select-none">
               <div>
                 <span className="text-[9px] font-bold text-text-muted uppercase block">Paket Terpilih</span>
-                <span className="text-xs font-black text-text-main">{selectedPlan.name}</span>
+                <span className="text-xs font-bold text-text-main">{selectedPlan.name}</span>
               </div>
               <div>
                 <span className="text-[9px] font-bold text-text-muted uppercase block">Base Price</span>
@@ -225,8 +232,8 @@ export const PlansPage: React.FC = () => {
             {/* Price Calculations */}
             <div className="border-t border-border-main/50 pt-4 flex justify-between items-center select-none">
               <div>
-                <span className="text-[10px] font-black text-text-muted uppercase tracking-wider block">Total Pembayaran</span>
-                <span className="text-lg font-black text-brand-primary font-mono">
+                <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider block">Total Pembayaran</span>
+                <span className="text-lg font-bold text-brand-primary font-mono">
                   Rp {getFinalPrice().toLocaleString('id-ID')}
                 </span>
               </div>

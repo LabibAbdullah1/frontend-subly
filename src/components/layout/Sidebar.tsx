@@ -6,6 +6,7 @@ import {
   Settings, Users, ChevronLeft, ChevronRight, X,
   ShoppingBag, Percent
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { ActiveTab } from '../../types';
@@ -59,63 +60,81 @@ export const Sidebar: React.FC = () => {
         className={`h-screen sticky top-0 flex flex-col bg-bg-surface border-r border-border-main transition-all duration-300 z-30 select-none ${sidebarWidth}`}
       >
         {/* Brand Logo Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-border-main">
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-lg">
+        <div className={`h-16 flex items-center border-b border-border-main transition-all duration-300 ${
+          isSidebarCollapsed ? 'justify-center px-0' : 'justify-between px-6'
+        }`}>
+          <div className={`flex items-center transition-all duration-300 ${isSidebarCollapsed ? 'gap-0' : 'gap-2.5'}`}>
+            <div className="h-8 w-8 rounded-lg bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-lg shrink-0">
               S
             </div>
-            {!isSidebarCollapsed && (
-              <span className="font-black text-lg tracking-tight bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-                SUBLY
-              </span>
-            )}
+            <span className={`font-black text-lg tracking-tight bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent transition-all duration-300 ${
+              isSidebarCollapsed ? 'w-0 opacity-0 ml-0 overflow-hidden invisible' : 'w-auto opacity-100 visible'
+            }`}>
+              SUBLY
+            </span>
           </div>
         </div>
 
         {/* Collapsible toggle tab */}
-        <button 
+        <motion.button 
           onClick={toggleSidebar}
-          className="absolute -right-3.5 top-20 bg-bg-surface border border-border-main hover:bg-border-main/50 text-text-muted hover:text-text-main p-1 rounded-full shadow-md z-40 cursor-pointer"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="absolute -right-3 top-20 bg-bg-surface border border-border-main hover:border-brand-primary/50 text-text-muted hover:text-brand-primary h-6.5 w-6.5 rounded-full shadow-md z-40 cursor-pointer flex items-center justify-center transition-colors"
         >
-          {isSidebarCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
-        </button>
+          {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </motion.button>
 
         {/* Navigation Items list */}
-        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+        <nav className={`flex-1 py-6 space-y-1.5 overflow-y-auto transition-all duration-300 ${
+          isSidebarCollapsed ? 'px-2' : 'px-4'
+        }`}>
           {navItems.map((item) => {
             const isActive = activeTab === item.tab;
             
             return (
-              <button
+              <motion.button
                 key={item.tab}
                 onClick={() => handleTabClick(item.tab)}
-                className={`w-full flex items-center justify-between px-4.5 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                whileHover={{ scale: 1.02, x: isSidebarCollapsed ? 0 : 2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className={`w-full flex items-center rounded-xl text-sm font-semibold cursor-pointer border-none transition-colors duration-150 ${
+                  isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto' : 'justify-between px-4.5 py-3.5'
+                } ${
                   isActive 
                     ? 'bg-brand-primary/10 text-brand-primary' 
                     : 'text-text-muted hover:bg-border-main/20 hover:text-text-main'
                 }`}
               >
-                <div className="flex items-center gap-3.5 min-w-0">
+                <div className={`flex items-center min-w-0 ${isSidebarCollapsed ? 'justify-center w-full' : 'gap-3.5'}`}>
                   <span className="shrink-0">{item.icon}</span>
-                  {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
+                  <span className={`truncate text-sm font-semibold transition-all duration-300 ${
+                    isSidebarCollapsed ? 'w-0 opacity-0 ml-0 overflow-hidden invisible' : 'w-auto opacity-100 visible'
+                  }`}>
+                    {item.label}
+                  </span>
                 </div>
-                {isActive && (
+                {!isSidebarCollapsed && isActive && (
                   <span className="h-2.5 w-2.5 rounded-full bg-brand-primary shadow-[0_0_12px_var(--brand-primary)] animate-pulse shrink-0 ml-1.5" />
                 )}
-              </button>
+              </motion.button>
             );
           })}
         </nav>
 
         {/* Footer Role Indicator */}
         <div className="p-4 border-t border-border-main">
-          <div className={`flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-border-main/10 text-xs font-bold text-text-muted ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+          <div className={`flex items-center rounded-xl bg-border-main/10 text-xs font-bold text-text-muted transition-all duration-300 ${
+            isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto' : 'px-3 py-2.5 gap-3'
+          }`}>
             <ShieldAlert className="h-4.5 w-4.5 text-brand-primary shrink-0" />
-            {!isSidebarCollapsed && (
-              <span className="truncate">
-                Role: {currentRole}
-              </span>
-            )}
+            <span className={`truncate transition-all duration-300 ${
+              isSidebarCollapsed ? 'w-0 opacity-0 ml-0 overflow-hidden invisible' : 'w-auto opacity-100 visible'
+            }`}>
+              {currentRole === 'Admin' ? 'Administrator' : 'Client Account'}
+            </span>
           </div>
         </div>
       </aside>
@@ -162,10 +181,13 @@ export const Sidebar: React.FC = () => {
               (item.tab === 'dashboard' && (activeTab === 'subdomains' || activeTab === 'databases'));
             
             return (
-              <button
+              <motion.button
                 key={item.tab}
                 onClick={() => handleTabClick(item.tab)}
-                className={`w-full flex items-center justify-between px-4.5 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                whileHover={{ scale: 1.02, x: 2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className={`w-full flex items-center justify-between px-4.5 py-3.5 rounded-xl text-sm font-semibold cursor-pointer border-none ${
                   isActive 
                     ? 'bg-brand-primary/10 text-brand-primary' 
                     : 'text-text-muted hover:bg-border-main/20 hover:text-text-main'
@@ -178,16 +200,16 @@ export const Sidebar: React.FC = () => {
                 {isActive && (
                   <span className="h-2.5 w-2.5 rounded-full bg-brand-primary shadow-[0_0_12px_var(--brand-primary)] animate-pulse shrink-0 ml-1.5" />
                 )}
-              </button>
+              </motion.button>
             );
           })}
         </nav>
 
         <div className="p-4 border-t border-border-main">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-border-main/10 text-xs font-bold text-text-muted">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-border-main/10 text-xs font-bold text-text-muted">
             <ShieldAlert className="h-4.5 w-4.5 text-brand-primary shrink-0" />
             <span className="truncate">
-              Role: {currentRole}
+              {currentRole === 'Admin' ? 'Administrator' : 'Client Account'}
             </span>
           </div>
         </div>

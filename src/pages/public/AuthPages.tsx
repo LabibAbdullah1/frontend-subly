@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { KeyRound, Mail, User, AlertCircle, ShieldAlert } from 'lucide-react';
+import { KeyRound, Mail, User, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useToastStore } from '../../stores/useToastStore';
@@ -71,15 +71,7 @@ export const LoginPage: React.FC = () => {
       <CardPanel className="w-full max-w-md border shadow-2xl relative" title={t('loginTitle')}>
         <p className="text-[10px] text-text-muted mt-0.5 select-none text-left mb-6">{t('loginSub')}</p>
 
-        {/* Demo instructions */}
-        <div className="p-3 mb-5 rounded-2xl bg-brand-primary/5 border border-brand-primary/10 text-brand-primary flex items-start gap-2.5">
-          <ShieldAlert className="h-4.5 w-4.5 shrink-0 mt-0.5" />
-          <div className="text-[10px] text-left leading-normal font-semibold">
-            <p><strong>Prototype Tip:</strong></p>
-            <p>• Ketik <code className="bg-brand-primary/10 px-1 rounded">client@subly.net</code> untuk masuk sebagai Customer.</p>
-            <p>• Ketik <code className="bg-brand-primary/10 px-1 rounded">admin@subly.net</code> untuk masuk sebagai Admin.</p>
-          </div>
-        </div>
+
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Email field */}
@@ -295,26 +287,44 @@ export const RegisterPage: React.FC = () => {
 // ----------------------------------------------------
 export const VerifyEmailPage: React.FC = () => {
   const { t } = useTranslation();
-  const { verifyEmail } = useAuthStore();
+  const { verifyEmail, user } = useAuthStore();
   const { addToast } = useToastStore();
+  const { setActiveTab } = useSystemStore();
   const [loading, setLoading] = useState(false);
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+
   const handleVerify = async () => {
+    if (!token) return;
     setLoading(true);
-    await verifyEmail();
-    addToast({
-      type: 'success',
-      title: 'Email Terverifikasi',
-      message: 'Selamat! Akun Anda telah aktif sepenuhnya.',
-    });
-    setLoading(false);
+    try {
+      await verifyEmail(token);
+      addToast({
+        type: 'success',
+        title: 'Email Terverifikasi',
+        message: 'Selamat! Akun Anda telah aktif sepenuhnya.',
+      });
+      setActiveTab('login');
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Verifikasi Gagal',
+        message: err.message || 'Token verifikasi tidak valid atau kedaluwarsa.',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex-1 flex items-center justify-center px-6 py-12 select-none">
       <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title={t('verifyEmailTitle')}>
         <p className="text-xs text-text-muted leading-relaxed mt-2">
-          {t('verifyEmailSub')}
+          {token 
+            ? 'Tautan verifikasi ditemukan! Klik tombol di bawah untuk menyelesaikan proses verifikasi akun Anda.'
+            : `${t('verifyEmailSub')} (${user?.email || 'email Anda'})`
+          }
         </p>
 
         <div className="my-8 flex justify-center">
@@ -323,14 +333,20 @@ export const VerifyEmailPage: React.FC = () => {
           </div>
         </div>
 
-        <Button 
-          onClick={handleVerify} 
-          variant="primary" 
-          className="w-full"
-          isLoading={loading}
-        >
-          {t('verifyBtn')}
-        </Button>
+        {token ? (
+          <Button 
+            onClick={handleVerify} 
+            variant="primary" 
+            className="w-full"
+            isLoading={loading}
+          >
+            {t('verifyBtn')}
+          </Button>
+        ) : (
+          <div className="text-xs font-semibold text-text-muted bg-border-main/20 border border-border-main/50 p-4 rounded-xl">
+            Menunggu verifikasi... Tautan telah dikirim. Buka tautan tersebut untuk masuk ke sistem.
+          </div>
+        )}
       </CardPanel>
     </div>
   );

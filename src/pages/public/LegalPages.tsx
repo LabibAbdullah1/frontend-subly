@@ -2,12 +2,10 @@
 import React, { useState } from 'react';
 import { Shield, BookOpen, CreditCard, Key } from 'lucide-react';
 import { CardPanel } from '../../components/ui/CardPanel';
-import { useTranslation } from '../../hooks/useTranslation';
 
 type LegalTab = 'terms' | 'rules' | 'purchase' | 'privacy';
 
 export const LegalPages: React.FC = () => {
-  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<LegalTab>('terms');
 
   const tabs = [
@@ -19,7 +17,7 @@ export const LegalPages: React.FC = () => {
 
   return (
     <div className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full text-left">
-      <h1 className="text-2xl font-black text-text-main uppercase tracking-tight mb-2">Legal & Documentation</h1>
+      <h1 className="text-2xl font-bold text-text-main uppercase tracking-tight mb-2">Legal & Documentation</h1>
       <p className="text-xs text-text-muted mb-8">Informasi regulasi penggunaan server, ketentuan hosting gratis, dan transaksi cPanel Subly.</p>
 
       {/* Tab bar */}

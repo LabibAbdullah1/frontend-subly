@@ -51,7 +51,7 @@ export const ProfileSettings: React.FC = () => {
     <div className="space-y-6 w-full text-left">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-text-main tracking-tight uppercase">
+          <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">
             {t('profile')}
           </h1>
           <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-0.5">
@@ -69,7 +69,7 @@ export const ProfileSettings: React.FC = () => {
               
               {/* Name */}
               <div className="space-y-1.5 text-left">
-                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
+                <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                   {t('name')}
                 </label>
                 <div className="relative">
@@ -85,7 +85,7 @@ export const ProfileSettings: React.FC = () => {
 
               {/* Email */}
               <div className="space-y-1.5 text-left">
-                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
+                <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                   {t('email')}
                 </label>
                 <div className="relative">
@@ -101,7 +101,7 @@ export const ProfileSettings: React.FC = () => {
 
               {/* Password change */}
               <div className="space-y-1.5 text-left">
-                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
+                <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                   Ganti Kata Sandi (Kosongkan jika tidak ingin diubah)
                 </label>
                 <div className="relative">
@@ -128,7 +128,7 @@ export const ProfileSettings: React.FC = () => {
         <div className="lg:col-span-1">
           <CardPanel title="Status Keamanan">
             <div className="space-y-4 mt-2 text-xs select-none">
-              <div className="p-3 bg-emerald-500/5 dark:bg-emerald-500/2 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-start gap-2.5">
+              <div className="p-3 bg-emerald-500/5 dark:bg-emerald-500/2 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-start gap-2.5">
                 <ShieldAlert className="h-4.5 w-4.5 shrink-0 mt-0.5" />
                 <div className="text-[10px] leading-relaxed">
                   <p className="font-bold">E-mail Terverifikasi:</p>

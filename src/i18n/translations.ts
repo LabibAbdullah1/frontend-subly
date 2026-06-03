@@ -30,7 +30,7 @@ export const translations = {
     info: 'Info',
     desktop: 'Tampilan Desktop',
     mobile: 'Tampilan Mobile',
-    role: 'Peran Mock',
+    role: 'Peran',
     
     // Auth & Landing
     landingTitle: 'Managed Web Hosting Kilat & Tanpa Ribet',
@@ -53,7 +53,7 @@ export const translations = {
     resetPasswordTitle: 'Buat Sandi Baru',
     verifyEmailTitle: 'Verifikasi Email Anda',
     verifyEmailSub: 'Silakan verifikasi email Anda dengan mengklik link yang kami kirimkan ke alamat email Anda.',
-    verifyBtn: 'Verifikasi Email Sekarang (Simulasi)',
+    verifyBtn: 'Verifikasi Email Sekarang',
     
     // Dashboard Client
     welcome: 'Selamat datang kembali',
@@ -102,7 +102,7 @@ export const translations = {
     paymentSuccess: 'Pembayaran Dikonfirmasi! Paket Aktif.',
     uploadReceipt: 'Unggah Bukti Bayar (Screenshot)',
     uploadReceiptBtn: 'Unggah Bukti',
-    paySuccessBtn: 'Bayar Instan (Simulasi)',
+    paySuccessBtn: 'Bayar Instan',
     
     // Live Chat Support
     chatTitle: 'Konsol Dukungan Live Chat',
@@ -111,20 +111,20 @@ export const translations = {
     send: 'Kirim',
     
     // Admin Pages
-    adminStats: 'Statistik Global Sistem',
+    adminStats: 'Statistik Global',
     totalUsers: 'Total Pengguna',
     totalSubdomains: 'Total Subdomain Aktif',
     totalDatabases: 'Total Database',
     diskCapacity: 'Analisis Kapasitas Disk Server',
-    planManager: 'Manajemen Paket Hosting (CRUD)',
-    voucherManager: 'Manajemen Kode Voucher (CRUD)',
-    userManager: 'Manajemen Klien / Pengguna',
-    paymentConfirmation: 'Konfirmasi Pembayaran QRIS Klien',
+    planManager: 'Paket Hosting',
+    voucherManager: 'Kode Voucher',
+    userManager: 'Manajemen Klien',
+    paymentConfirmation: 'Konfirmasi Bayar',
     paymentsTitle: 'Daftar Pembayaran Masuk',
     approveBtn: 'Setujui Pembayaran',
     rejectBtn: 'Tolak',
-    systemSettings: 'Pengaturan Global Sistem',
-    adminChatTitle: 'Pusat Dukungan Room Chat Admin',
+    systemSettings: 'Pengaturan Sistem',
+    adminChatTitle: 'Pusat Dukungan',
   },
   en: {
     // Common
@@ -155,7 +155,7 @@ export const translations = {
     info: 'Info',
     desktop: 'Desktop View',
     mobile: 'Mobile View',
-    role: 'Mock Role',
+    role: 'Role',
     
     // Auth & Landing
     landingTitle: 'Fast & Effortless Managed Web Hosting',
@@ -178,7 +178,7 @@ export const translations = {
     resetPasswordTitle: 'Setup New Password',
     verifyEmailTitle: 'Verify Your Email Address',
     verifyEmailSub: 'Please verify your email address by clicking the link we sent to your email inbox.',
-    verifyBtn: 'Verify Email Now (Mock)',
+    verifyBtn: 'Verify Email Now',
     
     // Dashboard Client
     welcome: 'Welcome back',
@@ -227,7 +227,7 @@ export const translations = {
     paymentSuccess: 'Payment Confirmed! Plan Activated.',
     uploadReceipt: 'Upload Payment Receipt (Screenshot)',
     uploadReceiptBtn: 'Upload Proof',
-    paySuccessBtn: 'Instant Pay (Mock)',
+    paySuccessBtn: 'Instant Pay',
     
     // Live Chat Support
     chatTitle: 'Live Chat Support Console',
@@ -236,20 +236,20 @@ export const translations = {
     send: 'Send',
     
     // Admin Pages
-    adminStats: 'Global System Statistics',
+    adminStats: 'Global Stats',
     totalUsers: 'Total Users',
     totalSubdomains: 'Total Active Subdomains',
     totalDatabases: 'Total Databases',
     diskCapacity: 'Disk Storage Allocation Analysis',
-    planManager: 'Hosting Plans CRUD Management',
-    voucherManager: 'Discount Vouchers CRUD Management',
-    userManager: 'Client / User Directory',
-    paymentConfirmation: 'Client QRIS Payments Confirmation',
+    planManager: 'Hosting Plans',
+    voucherManager: 'Vouchers',
+    userManager: 'Manage Clients',
+    paymentConfirmation: 'Confirm Payments',
     paymentsTitle: 'Incoming Payments List',
     approveBtn: 'Approve Payment',
     rejectBtn: 'Reject',
-    systemSettings: 'Global System Settings',
-    adminChatTitle: 'Admin Support Chat Room Console',
+    systemSettings: 'System Settings',
+    adminChatTitle: 'Support Chat',
   }
 };
 export type TranslationKeys = keyof typeof translations.id;

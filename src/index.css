@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-brand-primary: var(--brand-primary);
   --color-brand-secondary: var(--brand-secondary);
@@ -11,35 +13,35 @@
   --color-border-main: var(--border-main);
   --color-glow-color: var(--glow-color);
   
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 :root {
-  /* Light Theme - Premium Minimalist White & Violet */
-  --brand-primary: #5e6ad2;       /* Premium Indigo/Violet */
-  --brand-secondary: #4f46e5;     /* Darker Indigo */
+  /* Light Theme - Premium Minimalist White & Orange Accent */
+  --brand-primary: #ea580c;       /* Premium Orange */
+  --brand-secondary: #c2410c;     /* Darker Orange */
   --bg-base: #f9fafb;             /* Pure Off-white */
   --bg-surface: #ffffff;          /* Pure White */
   --bg-card: rgba(255, 255, 255, 0.7); /* Glassmorphism Light */
   --text-main: #0f172a;           /* Dark slate */
   --text-muted: #64748b;          /* Muted gray */
   --border-main: #e5e7eb;         /* Soft Gray border */
-  --glow-color: rgba(94, 106, 210, 0.08);
+  --glow-color: rgba(245, 158, 11, 0.1);
   color-scheme: light;
 }
 
 :root[class="dark"] {
-  /* Dark Theme - Pure Black & Luminous Indigo (Mencontoh subly-v2) */
-  --brand-primary: #5e6ad2;       /* Accent Indigo */
-  --brand-secondary: #7885e7;     /* Light Indigo Accent */
+  /* Dark Theme - Pure Black & Luminous Orange Accent */
+  --brand-primary: #f97316;       /* Accent Orange */
+  --brand-secondary: #fb923c;     /* Light Orange Accent */
   --bg-base: #000000;             /* Pure Black */
   --bg-surface: #080808;          /* Charcoal Dark Surface */
   --bg-card: rgba(8, 8, 8, 0.65); /* Glassmorphism Dark */
   --text-main: #ffffff;           /* Pure White */
   --text-muted: #bcbcbc;          /* Neutral 350 body text */
   --border-main: #121212;         /* Dark Neutral 900 border */
-  --glow-color: rgba(94, 106, 210, 0.12);
+  --glow-color: rgba(245, 158, 11, 0.16);
   color-scheme: dark;
 }
 
@@ -70,7 +72,7 @@ body {
 }
 .glow-hover:hover {
   box-shadow: 0 0 24px var(--glow-color);
-  border-color: var(--brand-primary);
+  border-color: rgba(245, 158, 11, 0.4);
   transform: translateY(-2px);
 }
 

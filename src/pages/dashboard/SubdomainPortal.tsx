@@ -244,7 +244,7 @@ export const SubdomainPortal: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
         <button 
           onClick={() => setActiveTab('subdomains', null)}
-          className="text-xs font-black text-text-muted hover:text-brand-primary flex items-center gap-1.5 transition-colors cursor-pointer uppercase tracking-wider"
+          className="text-xs font-bold text-text-muted hover:text-brand-primary flex items-center gap-1.5 transition-colors cursor-pointer uppercase tracking-wider"
         >
           <ArrowLeft className="h-4 w-4" />
           Kembali ke Daftar Subdomain
@@ -261,7 +261,7 @@ export const SubdomainPortal: React.FC = () => {
 
       {/* Subdomain Portal Header */}
       <div className="select-none">
-        <h1 className="text-xl md:text-2xl font-black text-text-main tracking-tight font-mono select-all">
+        <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight font-mono select-all">
           {subdomain.name}.subly.host
         </h1>
         <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-1">
@@ -367,7 +367,7 @@ export const SubdomainPortal: React.FC = () => {
                   <RefreshCw className="h-4 w-4 shrink-0" />
                   Trigger Deploy Manual
                 </Button>
-                <div className="p-3.5 rounded-2xl bg-brand-primary/5 border border-brand-primary/10 text-brand-primary flex items-start gap-2.5">
+                <div className="p-3.5 rounded-xl bg-brand-primary/5 border border-brand-primary/10 text-brand-primary flex items-start gap-2.5">
                   <Info className="h-4.5 w-4.5 shrink-0 mt-0.5" />
                   <div className="text-[9.5px] leading-relaxed">
                     <p className="font-bold">Informasi Deployment:</p>
@@ -386,7 +386,7 @@ export const SubdomainPortal: React.FC = () => {
             <CardPanel title={t('gitIntegration')}>
               <div className="space-y-4 mt-2">
                 <div className="space-y-1.5 text-left">
-                  <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
+                  <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                     {t('gitUrl')}
                   </label>
                   <div className="flex gap-2">
@@ -417,7 +417,7 @@ export const SubdomainPortal: React.FC = () => {
                 {gitVerified && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border-main/50 animate-in fade-in duration-200">
                     <div className="space-y-1.5 text-left">
-                      <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
+                      <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                         Personal Access Token (Opsional)
                       </label>
                       <div className="relative">
@@ -433,7 +433,7 @@ export const SubdomainPortal: React.FC = () => {
                     </div>
 
                     <div className="space-y-1.5 text-left relative">
-                      <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
+                      <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                         {t('gitBranch')}
                       </label>
                       
@@ -449,7 +449,7 @@ export const SubdomainPortal: React.FC = () => {
                       {branchDropdownOpen && (
                         <>
                           <div className="fixed inset-0 z-10" onClick={() => setBranchDropdownOpen(false)} />
-                          <div className="absolute left-0 right-0 mt-1 rounded-2xl bg-bg-surface border border-border-main shadow-2xl p-2 z-20 max-h-56 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150 text-xs">
+                          <div className="absolute left-0 right-0 mt-1 rounded-xl bg-bg-surface border border-border-main shadow-2xl p-2 z-20 max-h-56 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150 text-xs">
                             <input
                               type="text"
                               value={branchSearch}
@@ -571,7 +571,7 @@ export const SubdomainPortal: React.FC = () => {
                       value={rawEnvText}
                       onChange={(e) => setRawEnvText(e.target.value)}
                       placeholder="KEY_NAME=value_setting"
-                      className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-2xl p-4 text-xs font-mono text-text-main outline-none transition-all resize-none"
+                      className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl p-4 text-xs font-mono text-text-main outline-none transition-all resize-none"
                     />
                     <p className="text-[10px] text-text-muted mt-1 select-none font-semibold">
                       Setiap baris merupakan KEY=VALUE. Karakter khusus diparsing otomatis.

@@ -438,7 +438,7 @@ export const AdminCRUDs: React.FC = () => {
               {/* QRIS Image file upload */}
               <div className="space-y-1.5 text-left">
                 <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">Foto/Gambar QRIS Baru (Opsional)</label>
-                <div className="border border-dashed border-border-main hover:border-brand-primary rounded-2xl p-4 text-center cursor-pointer transition-all">
+                <div className="border border-dashed border-border-main hover:border-amber-500/40 rounded-xl p-4 text-center cursor-pointer transition-all">
                   <input
                     type="file"
                     accept="image/*"

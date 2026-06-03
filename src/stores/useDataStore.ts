@@ -323,7 +323,7 @@ export const useDataStore = create<DataState>((set, get) => ({
 
   fetchAdminUsers: async () => {
     try {
-      const res = await apiFetch<{ success: boolean; data: any[] }>('/users');
+      const res = await apiFetch<{ success: boolean; data: any[] }>('/auth/users');
       const adminUsers = res.data.map((u: any) => ({
         id: Number(u.id),
         name: u.name,

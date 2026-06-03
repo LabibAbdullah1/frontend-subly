@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { AlertTriangle, Plus, ShieldCheck, Clock, CheckCircle2 } from 'lucide-react';
-import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
 import { useToastStore } from '../../stores/useToastStore';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -49,7 +47,7 @@ export const IssueReports: React.FC = () => {
     <div className="space-y-6 w-full text-left">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-text-main tracking-tight uppercase">
+          <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">
             {t('reports')}
           </h1>
           <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-0.5">
@@ -108,14 +106,14 @@ export const IssueReports: React.FC = () => {
 
               {/* Message Details */}
               <div className="space-y-1.5 text-left">
-                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
+                <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                   Detail Gangguan (Min. 10 Karakter)
                 </label>
                 <textarea
                   rows={4}
                   {...register('message')}
                   placeholder="Jelaskan kronologi error log, kode kesalahan, atau status website saat ini..."
-                  className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-2xl px-4 py-3.5 text-xs font-semibold text-text-main placeholder-text-muted/65 outline-none transition-all resize-none"
+                  className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-3.5 text-xs font-semibold text-text-main placeholder-text-muted/65 outline-none transition-all resize-none"
                 />
                 {errors.message && (
                   <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
@@ -138,7 +136,7 @@ export const IssueReports: React.FC = () => {
               {globalIssues.map((issue) => (
                 <div 
                   key={issue.id}
-                  className="p-4 rounded-2xl bg-bg-surface border border-border-main select-none flex flex-col gap-2"
+                  className="p-4 rounded-xl bg-bg-surface border border-border-main select-none flex flex-col gap-2"
                 >
                   <div className="flex justify-between items-start">
                     <h4 className="text-xs font-bold text-text-main truncate max-w-[180px]">{issue.subject}</h4>
@@ -150,7 +148,7 @@ export const IssueReports: React.FC = () => {
                   <p className="text-[10px] text-text-muted leading-relaxed line-clamp-2">
                     {issue.message}
                   </p>
-                  <div className="border-t border-border-main/50 pt-2 flex justify-between items-center text-[9px] font-black text-text-muted uppercase tracking-widest">
+                  <div className="border-t border-border-main/50 pt-2 flex justify-between items-center text-[9px] font-semibold text-text-muted uppercase tracking-widest">
                     <span>Subdomain ID: #{issue.subdomain_id}</span>
                     <span>{new Date(issue.created_at).toLocaleDateString()}</span>
                   </div>

@@ -97,10 +97,10 @@ export const DatabasesPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-text-main tracking-tight uppercase">
+          <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">
             {t('listDatabases')}
           </h1>
-          <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-0.5">
+          <p className="text-[10px] text-text-muted font-semibold tracking-wide uppercase mt-0.5">
             Disk &amp; kredensial database MySQL per subdomain aktif Anda.
           </p>
         </div>
@@ -146,7 +146,7 @@ export const DatabasesPage: React.FC = () => {
       {/* Per-subdomain resource cards */}
       {subdomainResources.length === 0 ? (
         <CardPanel className="max-w-md mx-auto text-center p-8">
-          <div className="h-12 w-12 rounded-3xl bg-brand-primary/10 text-brand-primary flex items-center justify-center mx-auto mb-4 select-none">
+          <div className="h-12 w-12 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center mx-auto mb-4 select-none">
             <Database className="h-6 w-6" />
           </div>
           <h3 className="text-sm font-bold text-text-main uppercase tracking-wider select-none">
@@ -172,19 +172,19 @@ export const DatabasesPage: React.FC = () => {
               {/* Card Header: subdomain identity */}
               <div className="flex items-center justify-between select-none">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-10 w-10 rounded-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                  <div className="h-10 w-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
                     <Globe className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-sm font-black text-text-main font-mono truncate select-all">
+                    <h3 className="text-sm font-bold text-text-main font-mono truncate select-all">
                       {sub.name}.subly.host
                     </h3>
-                    <p className="text-[9px] font-bold text-text-muted uppercase tracking-wide mt-0.5 truncate">
+                    <p className="text-[9px] font-semibold text-text-muted uppercase tracking-wide mt-0.5 truncate">
                       {plan?.name ?? 'Paket Hosting'} · {plan?.type ?? 'PHP'}
                     </p>
                   </div>
                 </div>
-                <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full border shrink-0 ${
+                <span className={`text-[9px] font-bold uppercase px-2.5 py-1 rounded-full border shrink-0 ${
                   sub.status === 'active'
                     ? 'bg-green-500/10 text-green-500 border-green-500/20'
                     : 'bg-text-muted/10 text-text-muted border-text-muted/20'
@@ -228,7 +228,7 @@ export const DatabasesPage: React.FC = () => {
                     Kredensial Database MySQL
                   </div>
                   {db && (
-                    <span className="text-[9px] font-black uppercase bg-green-500/10 text-green-500 border border-green-500/15 px-2 py-0.5 rounded flex items-center gap-1 select-none">
+                    <span className="text-[9px] font-bold uppercase bg-green-500/10 text-green-500 border border-green-500/15 px-2 py-0.5 rounded flex items-center gap-1 select-none">
                       <ShieldCheck className="h-3.5 w-3.5" />
                       Aktif
                     </span>
@@ -242,8 +242,7 @@ export const DatabasesPage: React.FC = () => {
                       <CredRow label="DB Name"  value={db.db_name} />
                       <CredRow label="DB User"  value={db.db_user} />
                       <CredRow label="Password" value={db.db_password ?? '(terenkripsi — lihat phpMyAdmin)'} secret={!!db.db_password} />
-                      <CredRow label="Host"     value="db.subly.my.id" />
-                      <CredRow label="Port"     value="3306" />
+                      <CredRow label="Host"     value="localhost" />
                     </div>
 
                     {/* phpMyAdmin CTA */}
@@ -251,7 +250,7 @@ export const DatabasesPage: React.FC = () => {
                       href="https://db.subly.my.id"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-primary/30 bg-brand-primary/5 hover:bg-brand-primary/10 text-brand-primary text-xs font-black uppercase tracking-widest transition-all duration-200 cursor-pointer group select-none"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-primary/30 bg-brand-primary/5 hover:bg-brand-primary/10 text-brand-primary text-xs font-bold uppercase tracking-widest transition-all duration-200 cursor-pointer group select-none"
                     >
                       <KeyRound className="h-4 w-4 shrink-0" />
                       Kelola Database di phpMyAdmin
