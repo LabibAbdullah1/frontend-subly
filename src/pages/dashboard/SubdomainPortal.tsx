@@ -27,7 +27,6 @@ export const SubdomainPortal: React.FC = () => {
     subdomains, 
     updateSubdomainGit,
     updateEnvs,
-    logs,
     triggerRealDeployment
   } = useDataStore();
 
@@ -309,7 +308,6 @@ export const SubdomainPortal: React.FC = () => {
     );
   }
 
-  const subdomainLogs = logs[subdomain.id] || [];
 
   return (
     <div className="space-y-6 w-full text-left">
@@ -950,10 +948,9 @@ export const SubdomainPortal: React.FC = () => {
         {/* LOGS & CONSOLE SUB-TAB */}
         {activeSubTab === 'logs' && (
           <div className="w-full animate-in fade-in duration-200">
-            <TerminalConsole 
-              logs={subdomainLogs} 
-              connectionStatus={subdomainLogs.length > 0 ? 'connected' : 'disconnected'}
-              onRetryConnection={handleTriggerDeploy}
+            <TerminalConsole
+              streamUrl={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subdomains/${subdomain.id}/logs/stream`}
+              title={`${subdomain.name}.${import.meta.env.VITE_ROOT_DOMAIN || 'subly.my.id'} — Live Console`}
             />
           </div>
         )}
