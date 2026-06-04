@@ -1,9 +1,10 @@
 // src/pages/dashboard/SubdomainPortal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Github, KeyRound, Terminal, 
   Settings, FolderKanban, 
-  ArrowLeft, RefreshCw, Layers, ChevronRight, Info
+  ArrowLeft, Layers, ChevronRight,
+  GitPullRequest, CheckCircle2, XCircle, Clock, Zap, RotateCcw, GitBranch, RefreshCw
 } from 'lucide-react';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
@@ -42,6 +43,15 @@ export const SubdomainPortal: React.FC = () => {
   const [selectedBranch, setSelectedBranch] = useState('main');
   const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
   const [branchesList, setBranchesList] = useState<string[]>(['main', 'master']);
+
+  // Git Pull state
+  type PullStatus = 'idle' | 'pulling' | 'success' | 'error';
+  const [pullStatus, setPullStatus] = useState<PullStatus>('idle');
+  const [pullLogs, setPullLogs] = useState<string[]>([]);
+  const [lastPullAt, setLastPullAt] = useState<Date | null>(null);
+  const [pullElapsed, setPullElapsed] = useState<number>(0);
+  const pullTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pullLogsEndRef = useRef<HTMLDivElement>(null);
 
   const filteredBranches = branchesList.filter(b => b.toLowerCase().includes(branchSearch.toLowerCase()));
 
@@ -228,6 +238,69 @@ export const SubdomainPortal: React.FC = () => {
     }
   };
 
+  // Git Pull handler — pulls latest code from connected GitHub repo
+  const handleGitPull = async () => {
+    if (!subdomain || !subdomain.git_url) return;
+
+    setPullStatus('pulling');
+    setPullElapsed(0);
+    const startTime = Date.now();
+    setPullLogs([
+      `[${new Date().toLocaleTimeString()}] 🚀 Memulai Git Pull...`,
+      `[${new Date().toLocaleTimeString()}] 🔗 Repository: ${subdomain.git_url}`,
+      `[${new Date().toLocaleTimeString()}] 🌿 Branch: ${subdomain.git_branch || 'main'}`,
+      `[${new Date().toLocaleTimeString()}] ⏳ Menghubungi server Git...`,
+    ]);
+
+    // Start elapsed timer
+    pullTimerRef.current = setInterval(() => {
+      setPullElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+
+    try {
+      // Simulate progressive log updates
+      setTimeout(() => setPullLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 📡 Fetching objects dari remote...`]), 800);
+      setTimeout(() => setPullLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 🔄 Checking out branch ${subdomain.git_branch || 'main'}...`]), 1800);
+
+      await triggerRealDeployment(subdomain.id);
+
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      if (pullTimerRef.current) clearInterval(pullTimerRef.current);
+
+      setPullLogs(prev => [
+        ...prev,
+        `[${new Date().toLocaleTimeString()}] ✅ Pull berhasil dalam ${elapsed}s`,
+        `[${new Date().toLocaleTimeString()}] 🎉 Website diperbarui dan aktif.`,
+      ]);
+      setPullStatus('success');
+      setLastPullAt(new Date());
+
+      addToast({
+        type: 'success',
+        title: 'Git Pull Berhasil',
+        message: `Kode terbaru berhasil diambil dari branch ${subdomain.git_branch || 'main'}.`,
+      });
+    } catch (err: any) {
+      if (pullTimerRef.current) clearInterval(pullTimerRef.current);
+      setPullLogs(prev => [
+        ...prev,
+        `[${new Date().toLocaleTimeString()}] ❌ Error: ${err.message || 'Pull gagal'}`,
+        `[${new Date().toLocaleTimeString()}] ⚠️ Periksa token dan URL repository.`,
+      ]);
+      setPullStatus('error');
+      addToast({
+        type: 'error',
+        title: 'Git Pull Gagal',
+        message: err.message || 'Terjadi kesalahan saat melakukan git pull.',
+      });
+    }
+  };
+
+  // Auto-scroll pull logs
+  useEffect(() => {
+    pullLogsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [pullLogs]);
+
   if (!subdomain) {
     return (
       <div className="py-12 text-center text-text-muted">
@@ -356,24 +429,151 @@ export const SubdomainPortal: React.FC = () => {
 
             <CardPanel title="Aksi Infrastruktur" className="md:col-span-1 select-none">
               <div className="space-y-4">
-                <p className="text-[11px] text-text-muted leading-relaxed">
-                  Trigger deploy ulang secara manual jika Anda melakukan perubahan file mentah di storage cPanel atau ingin menyegarkan cache virtual host.
-                </p>
-                <Button 
-                  variant="outline"
-                  className="w-full flex items-center justify-center gap-2 mt-4"
-                  onClick={handleTriggerDeploy}
-                >
-                  <RefreshCw className="h-4 w-4 shrink-0" />
-                  Trigger Deploy Manual
-                </Button>
-                <div className="p-3.5 rounded-xl bg-brand-primary/5 border border-brand-primary/10 text-brand-primary flex items-start gap-2.5">
-                  <Info className="h-4.5 w-4.5 shrink-0 mt-0.5" />
-                  <div className="text-[9.5px] leading-relaxed">
-                    <p className="font-bold">Informasi Deployment:</p>
-                    <p className="mt-0.5 text-text-muted">Proses deploy manual aman dilakukan kapan saja tanpa menghapus database MySQL Anda.</p>
-                  </div>
-                </div>
+                {/* Git Pull Button — shown when git is connected */}
+                {subdomain.git_url ? (
+                  <>
+                    {/* Git Pull Status Card */}
+                    <div
+                      style={{
+                        background:
+                          pullStatus === 'success'
+                            ? 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(16,185,129,0.04))'
+                            : pullStatus === 'error'
+                            ? 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.04))'
+                            : pullStatus === 'pulling'
+                            ? 'linear-gradient(135deg, rgba(251,146,60,0.10), rgba(249,115,22,0.05))'
+                            : 'linear-gradient(135deg, rgba(251,146,60,0.06), rgba(249,115,22,0.02))',
+                        border:
+                          pullStatus === 'success'
+                            ? '1px solid rgba(34,197,94,0.25)'
+                            : pullStatus === 'error'
+                            ? '1px solid rgba(239,68,68,0.25)'
+                            : '1px solid rgba(251,146,60,0.20)',
+                      }}
+                      className="rounded-2xl p-4 space-y-3"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`p-1.5 rounded-lg ${
+                              pullStatus === 'pulling'
+                                ? 'bg-orange-500/20'
+                                : pullStatus === 'success'
+                                ? 'bg-green-500/20'
+                                : pullStatus === 'error'
+                                ? 'bg-red-500/20'
+                                : 'bg-orange-500/10'
+                            }`}
+                          >
+                            <GitPullRequest
+                              className={`h-4 w-4 ${
+                                pullStatus === 'pulling'
+                                  ? 'text-orange-400 animate-pulse'
+                                  : pullStatus === 'success'
+                                  ? 'text-green-400'
+                                  : pullStatus === 'error'
+                                  ? 'text-red-400'
+                                  : 'text-orange-400'
+                              }`}
+                            />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-bold text-text-main">Git Pull</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <GitBranch className="h-3 w-3 text-text-muted" />
+                              <span className="text-[10px] text-text-muted font-mono">{subdomain.git_branch || 'main'}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {pullStatus === 'pulling' && (
+                            <span className="text-[10px] font-bold text-orange-400 font-mono">{pullElapsed}s</span>
+                          )}
+                          {pullStatus === 'success' && (
+                            <CheckCircle2 className="h-4 w-4 text-green-400" />
+                          )}
+                          {pullStatus === 'error' && (
+                            <XCircle className="h-4 w-4 text-red-400" />
+                          )}
+                          {pullStatus === 'idle' && lastPullAt && (
+                            <div className="text-[10px] text-text-muted flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{lastPullAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Pull logs mini console */}
+                      {pullLogs.length > 0 && (
+                        <div
+                          className="rounded-xl bg-black/30 border border-white/5 p-3 max-h-32 overflow-y-auto font-mono text-[9.5px] leading-relaxed space-y-0.5"
+                          style={{ scrollbarWidth: 'none' }}
+                        >
+                          {pullLogs.map((log, i) => (
+                            <div
+                              key={i}
+                              className={`${
+                                log.includes('✅') || log.includes('🎉')
+                                  ? 'text-green-400'
+                                  : log.includes('❌') || log.includes('⚠️')
+                                  ? 'text-red-400'
+                                  : log.includes('🚀') || log.includes('🔗') || log.includes('🌿')
+                                  ? 'text-orange-300'
+                                  : 'text-gray-400'
+                              }`}
+                            >
+                              {log}
+                            </div>
+                          ))}
+                          <div ref={pullLogsEndRef} />
+                        </div>
+                      )}
+
+                      {/* Action buttons */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleGitPull}
+                          disabled={pullStatus === 'pulling'}
+                          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                            pullStatus === 'pulling'
+                              ? 'bg-orange-500/10 text-orange-400 cursor-not-allowed'
+                              : 'bg-orange-500 hover:bg-orange-400 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-[0.98]'
+                          }`}
+                          style={{
+                            boxShadow: pullStatus !== 'pulling' ? '0 0 20px rgba(249,115,22,0.25)' : 'none'
+                          }}
+                        >
+                          {pullStatus === 'pulling' ? (
+                            <>
+                              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                              Pulling...
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="h-3.5 w-3.5" />
+                              {pullStatus === 'error' ? 'Coba Lagi' : 'Pull Sekarang'}
+                            </>
+                          )}
+                        </button>
+                        {(pullStatus === 'success' || pullStatus === 'error') && (
+                          <button
+                            onClick={() => { setPullStatus('idle'); setPullLogs([]); }}
+                            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted transition-all cursor-pointer"
+                            title="Reset"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-border-main/30" />
+                  </>
+                ) : null}
+
               </div>
             </CardPanel>
           </div>
@@ -381,7 +581,150 @@ export const SubdomainPortal: React.FC = () => {
 
         {/* GIT & ENV SUB-TAB */}
         {activeSubTab === 'git-env' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in duration-200">
+          <div className="space-y-6 animate-in fade-in duration-200">
+
+            {/* Git Pull Full Panel — shown at top when git connected */}
+            {subdomain.git_url && (
+              <div
+                className="rounded-2xl p-5 select-none"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(249,115,22,0.08) 0%, rgba(251,146,60,0.04) 50%, rgba(0,0,0,0) 100%)',
+                  border: '1px solid rgba(249,115,22,0.20)',
+                }}
+              >
+                {/* Header Row */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-orange-500/15 border border-orange-500/20">
+                      <GitPullRequest className="h-5 w-5 text-orange-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-text-main">Git Pull</h3>
+                      <div className="flex items-center gap-3 mt-1 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <Github className="h-3 w-3 text-text-muted" />
+                          <span className="text-[10px] text-text-muted font-mono truncate max-w-[200px]">{subdomain.git_url}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <GitBranch className="h-3 w-3 text-orange-400" />
+                          <span className="text-[10px] font-bold text-orange-400 font-mono">{subdomain.git_branch || 'main'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status badge */}
+                  <div className="flex items-center gap-3">
+                    {pullStatus === 'idle' && lastPullAt && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-text-muted">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+                        <span>Terakhir pull: <span className="font-bold text-text-main">{lastPullAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span></span>
+                      </div>
+                    )}
+                    {pullStatus === 'pulling' && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-orange-400 font-bold">
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                        <span>Pulling... {pullElapsed}s</span>
+                      </div>
+                    )}
+                    {pullStatus === 'success' && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-green-400 font-bold">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span>Pull Sukses!</span>
+                      </div>
+                    )}
+                    {pullStatus === 'error' && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-red-400 font-bold">
+                        <XCircle className="h-3.5 w-3.5" />
+                        <span>Pull Gagal</span>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      {(pullStatus === 'success' || pullStatus === 'error') && (
+                        <button
+                          onClick={() => { setPullStatus('idle'); setPullLogs([]); }}
+                          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted transition-all cursor-pointer"
+                          title="Reset status"
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={handleGitPull}
+                        disabled={pullStatus === 'pulling'}
+                        className={`flex items-center gap-2 py-2.5 px-5 rounded-xl text-[12px] font-bold transition-all cursor-pointer ${
+                          pullStatus === 'pulling'
+                            ? 'bg-orange-500/10 text-orange-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-orange-500 to-orange-400 text-white hover:from-orange-400 hover:to-orange-300 active:scale-[0.97]'
+                        }`}
+                        style={{
+                          boxShadow: pullStatus !== 'pulling' ? '0 0 24px rgba(249,115,22,0.35), 0 4px 12px rgba(249,115,22,0.20)' : 'none'
+                        }}
+                      >
+                        {pullStatus === 'pulling' ? (
+                          <><RefreshCw className="h-4 w-4 animate-spin" /> Sedang Pull...</>
+                        ) : (
+                          <><Zap className="h-4 w-4" /> {pullStatus === 'error' ? 'Coba Lagi' : 'Pull Sekarang'}</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Live Log Console */}
+                {pullLogs.length > 0 ? (
+                  <div
+                    className="rounded-xl border p-4 font-mono text-[10px] leading-relaxed space-y-1 max-h-48 overflow-y-auto"
+                    style={{
+                      background: 'rgba(0,0,0,0.40)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: 'rgba(249,115,22,0.3) transparent'
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                      <div className="flex gap-1">
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                      </div>
+                      <span className="text-[9px] text-white/30 font-bold tracking-wider">GIT PULL — LIVE OUTPUT</span>
+                    </div>
+                    {pullLogs.map((log, i) => (
+                      <div
+                        key={i}
+                        className={`${
+                          log.includes('✅') || log.includes('🎉')
+                            ? 'text-green-400'
+                            : log.includes('❌') || log.includes('⚠️')
+                            ? 'text-red-400'
+                            : log.includes('🚀') || log.includes('🔗') || log.includes('🌿')
+                            ? 'text-orange-300'
+                            : log.includes('📡') || log.includes('🔄')
+                            ? 'text-blue-300'
+                            : 'text-gray-400'
+                        }`}
+                      >
+                        {log}
+                      </div>
+                    ))}
+                    <div ref={pullLogsEndRef} />
+                  </div>
+                ) : (
+                  <div
+                    className="rounded-xl p-4 flex items-center justify-center gap-2 text-[10px] text-text-muted/50"
+                    style={{ background: 'rgba(0,0,0,0.25)', border: '1px dashed rgba(255,255,255,0.05)' }}
+                  >
+                    <Terminal className="h-3.5 w-3.5" />
+                    <span>Output log akan muncul di sini saat pull dijalankan</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Git Connector */}
             <CardPanel title={t('gitIntegration')}>
               <div className="space-y-4 mt-2">
@@ -590,6 +933,7 @@ export const SubdomainPortal: React.FC = () => {
                 </div>
               </div>
             </CardPanel>
+            </div>{/* end grid cols 2 */}
           </div>
         )}
 

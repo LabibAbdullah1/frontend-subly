@@ -38,6 +38,7 @@ import { ProfileSettings } from './pages/dashboard/ProfileSettings';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminCRUDs } from './pages/admin/AdminCRUDs';
 import { useDataStore } from './stores/useDataStore';
+import { GlowingGridBackground } from './components/ui/GlowingGridBackground';
 
 export const App: React.FC = () => {
   const { status, checkAuth } = useAuthStore();
@@ -69,94 +70,99 @@ export const App: React.FC = () => {
   // ----------------------------------------------------
   if (status === 'unauthenticated') {
     return (
-      <div className="min-h-screen flex flex-col bg-bg-base text-text-main transition-colors duration-300">
+      <div className="min-h-screen flex flex-col bg-bg-base text-text-main transition-colors duration-300 relative overflow-hidden">
         
-        {/* Public Landing Navbar Header */}
-        <header className="h-16 border-b border-border-main bg-bg-surface/80 backdrop-blur-md sticky top-0 flex items-center justify-between px-6 z-40 select-none">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-lg">
-              S
+        {/* Dynamic Symmetrical Glow Grid Background */}
+        <GlowingGridBackground />
+
+        <div className="relative z-10 flex flex-col flex-1">
+          {/* Public Landing Navbar Header */}
+          <header className="h-16 border-b border-border-main bg-bg-surface/80 backdrop-blur-md sticky top-0 flex items-center justify-between px-6 z-40 select-none">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-lg">
+                S
+              </div>
+              <span 
+                onClick={() => setActiveTab('dashboard')} // Go back to landing in unauth
+                className="font-black text-lg tracking-tight bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent cursor-pointer"
+              >
+                SUBLY
+              </span>
             </div>
-            <span 
-              onClick={() => setActiveTab('dashboard')} // Go back to landing in unauth
-              className="font-black text-lg tracking-tight bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent cursor-pointer"
-            >
-              SUBLY
-            </span>
+
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setActiveTab('legal')}
+                className={`text-xs font-bold transition-colors cursor-pointer ${
+                  activeTab === 'legal' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
+                }`}
+              >
+                Legal Docs
+              </button>
+              <button 
+                onClick={toggleLanguage}
+                className="p-2 rounded-lg hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer flex items-center gap-1"
+              >
+                <Languages className="h-4 w-4" />
+                <span className="text-[10px] font-bold uppercase">{language}</span>
+              </button>
+              <button 
+                onClick={toggleTheme}
+                className="p-2 rounded-lg hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer"
+              >
+                {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={() => setActiveTab('login')}
+                className={`text-xs font-bold transition-colors cursor-pointer px-3 py-1.5 rounded-xl ${
+                  activeTab === 'login' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
+                }`}
+              >
+                Sign In
+              </button>
+              <Button 
+                variant="primary" 
+                size="sm"
+                onClick={() => setActiveTab('register')}
+              >
+                Sign Up
+              </Button>
+            </div>
+          </header>
+
+          {/* Public Content pages */}
+          <main className="flex-1 flex flex-col overflow-x-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                className="flex-1 flex flex-col"
+              >
+                {activeTab === 'legal' && <LegalPages />}
+                {activeTab === 'login' && <LoginPage />}
+                {activeTab === 'register' && <RegisterPage />}
+                {activeTab !== 'legal' && activeTab !== 'login' && activeTab !== 'register' && <LandingPage />}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+
+          {/* Global Floating Toast Alerts Container */}
+          <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5">
+            {toasts.map((toast) => (
+              <Toast 
+                key={toast.id} 
+                id={toast.id} 
+                type={toast.type} 
+                title={toast.title} 
+                message={toast.message} 
+                duration={toast.duration} 
+                onClose={removeToast} 
+              />
+            ))}
           </div>
-
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setActiveTab('legal')}
-              className={`text-xs font-bold transition-colors cursor-pointer ${
-                activeTab === 'legal' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
-              }`}
-            >
-              Legal Docs
-            </button>
-            <button 
-              onClick={toggleLanguage}
-              className="p-2 rounded-lg hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer flex items-center gap-1"
-            >
-              <Languages className="h-4 w-4" />
-              <span className="text-[10px] font-bold uppercase">{language}</span>
-            </button>
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer"
-            >
-              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-            </button>
-            <button
-              onClick={() => setActiveTab('login')}
-              className={`text-xs font-bold transition-colors cursor-pointer px-3 py-1.5 rounded-xl ${
-                activeTab === 'login' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
-              }`}
-            >
-              Sign In
-            </button>
-            <Button 
-              variant="primary" 
-              size="sm"
-              onClick={() => setActiveTab('register')}
-            >
-              Sign Up
-            </Button>
-          </div>
-        </header>
-
-        {/* Public Content pages */}
-        <main className="flex-1 flex flex-col overflow-x-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ type: "spring", stiffness: 380, damping: 30 }}
-              className="flex-1 flex flex-col"
-            >
-              {activeTab === 'legal' && <LegalPages />}
-              {activeTab === 'login' && <LoginPage />}
-              {activeTab === 'register' && <RegisterPage />}
-              {activeTab !== 'legal' && activeTab !== 'login' && activeTab !== 'register' && <LandingPage />}
-            </motion.div>
-          </AnimatePresence>
-        </main>
-
-        {/* Global Floating Toast Alerts Container */}
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5">
-          {toasts.map((toast) => (
-            <Toast 
-              key={toast.id} 
-              id={toast.id} 
-              type={toast.type} 
-              title={toast.title} 
-              message={toast.message} 
-              duration={toast.duration} 
-              onClose={removeToast} 
-            />
-          ))}
         </div>
       </div>
     );
@@ -167,8 +173,13 @@ export const App: React.FC = () => {
   // ----------------------------------------------------
   if (status === 'verifying') {
     return (
-      <div className="min-h-screen flex flex-col bg-bg-base text-text-main justify-center items-center">
-        <VerifyEmailPage />
+      <div className="min-h-screen flex flex-col bg-bg-base text-text-main justify-center items-center relative overflow-hidden">
+        {/* Dynamic Symmetrical Glow Grid Background */}
+        <GlowingGridBackground />
+        
+        <div className="relative z-10 w-full">
+          <VerifyEmailPage />
+        </div>
       </div>
     );
   }
@@ -177,13 +188,16 @@ export const App: React.FC = () => {
   // Authenticated Portal Layout (Customer & Admin)
   // ----------------------------------------------------
   return (
-    <div className="min-h-screen flex bg-bg-base text-text-main transition-colors duration-300">
+    <div className="min-h-screen flex bg-bg-base text-text-main transition-colors duration-300 relative overflow-hidden">
       
+      {/* Dynamic Symmetrical Glow Grid Background */}
+      <GlowingGridBackground />
+
       {/* Collapsible/Drawer Sidebar */}
       <Sidebar />
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         
         {/* Sticky Dashboard Header */}
         <Header />
