@@ -1,6 +1,6 @@
 // src/stores/useDataStore.ts
 import { create } from 'zustand';
-import type { Subdomain, UserDatabase, SubdomainEnv, Payment, Plan, ChatMessage, LogLine } from '../types';
+import type { Subdomain, UserDatabase, SubdomainEnv, Payment, Plan, ChatMessage, LogLine, Testimonial, TestimonialStatus } from '../types';
 import { apiFetch } from '../utils/api';
 import { useAuthStore } from './useAuthStore';
 
@@ -68,6 +68,18 @@ interface DataState {
   deleteVoucher: (id: number) => Promise<void>;
   updateSubdomainStorageOverride: (subdomainId: number, limitMb: number) => Promise<void>;
   updateSetting: (key: string, value: string | null, file?: File) => Promise<void>;
+
+  // Testimonials State & Actions
+  myTestimonials: Testimonial[];
+  publicTestimonials: Testimonial[];
+  adminTestimonials: Testimonial[];
+  fetchMyTestimonials: () => Promise<void>;
+  fetchPublicTestimonials: () => Promise<void>;
+  fetchAdminTestimonials: () => Promise<void>;
+  submitTestimonial: (subdomainId: number, rating: number, title: string, content: string) => Promise<void>;
+  updateTestimonialStatus: (id: number, status: TestimonialStatus, adminNote?: string) => Promise<void>;
+  deleteTestimonial: (id: number) => Promise<void>;
+  deleteChatMessage: (chatId: number, userId: number) => Promise<void>;
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
@@ -82,6 +94,9 @@ export const useDataStore = create<DataState>((set, get) => ({
   adminUsers: [],
   settings: {},
   adminStats: null,
+  myTestimonials: [],
+  publicTestimonials: [],
+  adminTestimonials: [],
 
   fetchInitialData: async () => {
     const authStore = useAuthStore.getState();
@@ -95,10 +110,12 @@ export const useDataStore = create<DataState>((set, get) => ({
       await get().fetchSettings();
       if (authStore.user) {
         await get().fetchChats(authStore.user.id);
+        await get().fetchMyTestimonials();
         if (authStore.user.role === 'Admin') {
           await get().fetchVouchers();
           await get().fetchAdminUsers();
           await get().fetchAdminStats();
+          await get().fetchAdminTestimonials();
         }
       }
     } catch (err) {
@@ -196,7 +213,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       const logs: Record<number, LogLine[]> = {};
       subdomains.forEach((sub) => {
         const subLogs: LogLine[] = [];
-        (sub.deployments || []).slice().reverse().forEach((dep) => {
+        (sub.deployments || []).slice().reverse().forEach((dep: any) => {
           const time = dep.deployed_at ? new Date(dep.deployed_at).toLocaleTimeString() : new Date(dep.created_at).toLocaleTimeString();
           subLogs.push({
             timestamp: time,
@@ -678,5 +695,120 @@ export const useDataStore = create<DataState>((set, get) => ({
       body: formData
     });
     await get().fetchSettings();
+  },
+
+  fetchMyTestimonials: async () => {
+    try {
+      const res = await apiFetch<{ success: boolean; data: any[] }>('/testimonials/my');
+      const myTestimonials = res.data.map((t: any) => ({
+        id: Number(t.id),
+        user_id: Number(t.userId),
+        subdomain_id: t.subdomainId ? Number(t.subdomainId) : null,
+        rating: Number(t.rating),
+        title: t.title,
+        content: t.content,
+        status: t.status as TestimonialStatus,
+        admin_note: t.adminNote,
+        created_at: t.createdAt || '',
+        updated_at: t.updatedAt || '',
+        user: t.user,
+        subdomain: t.subdomain ? {
+          id: Number(t.subdomain.id),
+          name: t.subdomain.name,
+          full_domain: t.subdomain.fullDomain
+        } : null
+      }));
+      set({ myTestimonials });
+    } catch (err) {
+      console.error('Failed to fetch my testimonials:', err);
+    }
+  },
+
+  fetchPublicTestimonials: async () => {
+    try {
+      const res = await apiFetch<{ success: boolean; data: any[] }>('/testimonials/public');
+      const publicTestimonials = res.data.map((t: any) => ({
+        id: Number(t.id),
+        user_id: 0,
+        subdomain_id: t.subdomainId ? Number(t.subdomainId) : null,
+        rating: Number(t.rating),
+        title: t.title,
+        content: t.content,
+        status: t.status as TestimonialStatus,
+        admin_note: null,
+        created_at: t.createdAt || '',
+        updated_at: '',
+        user: t.user,
+        subdomain: t.subdomain ? {
+          id: Number(t.subdomain.id),
+          name: t.subdomain.name,
+          full_domain: t.subdomain.fullDomain
+        } : null
+      }));
+      set({ publicTestimonials });
+    } catch (err) {
+      console.error('Failed to fetch public testimonials:', err);
+    }
+  },
+
+  fetchAdminTestimonials: async () => {
+    try {
+      const res = await apiFetch<{ success: boolean; data: any[] }>('/admin/testimonials');
+      const adminTestimonials = res.data.map((t: any) => ({
+        id: Number(t.id),
+        user_id: Number(t.userId),
+        subdomain_id: t.subdomainId ? Number(t.subdomainId) : null,
+        rating: Number(t.rating),
+        title: t.title,
+        content: t.content,
+        status: t.status as TestimonialStatus,
+        admin_note: t.adminNote,
+        created_at: t.createdAt || '',
+        updated_at: t.updatedAt || '',
+        user: t.user,
+        subdomain: t.subdomain ? {
+          id: Number(t.subdomain.id),
+          name: t.subdomain.name,
+          full_domain: t.subdomain.fullDomain
+        } : null
+      }));
+      set({ adminTestimonials });
+    } catch (err) {
+      console.error('Failed to fetch admin testimonials:', err);
+    }
+  },
+
+  submitTestimonial: async (subdomainId, rating, title, content) => {
+    await apiFetch('/testimonials', {
+      method: 'POST',
+      body: { subdomainId, rating, title, content }
+    });
+    await get().fetchMyTestimonials();
+  },
+
+  updateTestimonialStatus: async (id, status, adminNote) => {
+    await apiFetch(`/admin/testimonials/${id}/status`, {
+      method: 'PUT',
+      body: { status, adminNote }
+    });
+    await get().fetchAdminTestimonials();
+  },
+
+  deleteTestimonial: async (id) => {
+    await apiFetch(`/admin/testimonials/${id}`, {
+      method: 'DELETE'
+    });
+    await get().fetchAdminTestimonials();
+  },
+
+  deleteChatMessage: async (chatId, userId) => {
+    try {
+      await apiFetch(`/chats/${chatId}`, {
+        method: 'DELETE'
+      });
+      await get().fetchChats(userId);
+    } catch (err) {
+      console.error('Failed to delete chat message:', err);
+    }
   }
 }));

@@ -119,7 +119,7 @@ export const DatabasesPage: React.FC = () => {
       </div>
 
       {/* Auto-provisioning notice */}
-      <div className="max-w-2xl select-none">
+      <div className="max-w-xl mx-auto select-none">
         <CardPanel className="bg-brand-primary/5 border border-brand-primary/10">
           <div className="flex items-start gap-3">
             <Info className="h-5 w-5 text-brand-primary shrink-0 mt-0.5" />
@@ -145,7 +145,7 @@ export const DatabasesPage: React.FC = () => {
 
       {/* Per-subdomain resource cards */}
       {subdomainResources.length === 0 ? (
-        <CardPanel className="max-w-md mx-auto text-center p-8">
+        <CardPanel className="max-w-xl mx-auto text-center p-8">
           <div className="h-12 w-12 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center mx-auto mb-4 select-none">
             <Database className="h-6 w-6" />
           </div>

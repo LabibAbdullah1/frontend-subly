@@ -333,7 +333,7 @@ export const SubdomainPortal: React.FC = () => {
       {/* Subdomain Portal Header */}
       <div className="select-none">
         <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight font-mono select-all">
-          {subdomain.name}.subly.host
+          {subdomain.full_domain}
         </h1>
         <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-1">
           Document root: <span className="font-mono text-text-main/80">{subdomain.doc_root}</span>
@@ -398,7 +398,7 @@ export const SubdomainPortal: React.FC = () => {
               <div className="space-y-4 text-xs select-none">
                 <div className="flex justify-between items-center py-2 border-b border-border-main/40">
                   <span className="text-text-muted font-bold uppercase tracking-wider">Domain Utama</span>
-                  <span className="font-mono text-text-main text-[11px] select-all">{subdomain.name}.subly.host</span>
+                  <span className="font-mono text-text-main text-[11px] select-all">{subdomain.full_domain}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-border-main/40">
                   <span className="text-text-muted font-bold uppercase tracking-wider">Document Root Folder</span>

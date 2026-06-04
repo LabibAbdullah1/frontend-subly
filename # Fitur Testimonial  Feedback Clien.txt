@@ -1,0 +1,122 @@
+# Fitur Testimonial / Feedback Client
+
+Membangun sistem feedback lengkap: client mengisi testimonial dari dashboard mereka, admin mereview dan memilih mana yang tampil di landing page, landing page menampilkan testimonial yang sudah disetujui dalam tampilan yang menarik.
+
+## Alur Sistem
+
+```
+Client (punya subdomain aktif)
+  → Isi form feedback di dashboard (rating + judul + komentar)
+  → Tersimpan di DB dengan status "pending"
+       ↓
+Admin Panel
+  → Lihat semua testimonial masuk
+  → Approve / Reject / Feature (tampilkan di landing page)
+       ↓
+Landing Page
+  → Tampilkan testimoni yang status = "featured" atau "approved"
+  → Carousel/grid animasi yang cantik
+```
+
+## Proposed Changes
+
+---
+
+### Database — Prisma Schema
+
+#### [MODIFY] [schema.prisma](file:///d:/backup/DATA%20LABIB/PROJECT%20BISNIS/subly-JS/backend/prisma/schema.prisma)
+
+Tambah model `Testimonial`:
+
+```prisma
+model Testimonial {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  userId      BigInt    @map("user_id") @db.UnsignedBigInt
+  user        User      @relation(fields: [userId], references: [id])
+  subdomainId BigInt?   @map("subdomain_id") @db.UnsignedBigInt
+  rating      Int       @default(5) @db.TinyInt       // 1–5
+  title       String    @db.VarChar(255)
+  content     String    @db.Text
+  status      TestimonialStatus @default(pending)      // pending | approved | featured | rejected
+  adminNote   String?   @map("admin_note") @db.Text
+  createdAt   DateTime? @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@map("testimonials")
+}
+```
+
+Juga tambah `testimonials` relation ke model `User`.
+
+---
+
+### Backend
+
+#### [NEW] `testimonialController.ts`
+
+| Fungsi | Route | Akses |
+|--------|-------|-------|
+| `submitTestimonial` | POST `/testimonials` | Client (punya subdomain) |
+| `getMyTestimonials` | GET `/testimonials/my` | Client |
+| `getPublicTestimonials` | GET `/testimonials/public` | Public (no auth) |
+| `getAllTestimonials` | GET `/admin/testimonials` | Admin |
+| `updateTestimonialStatus` | PUT `/admin/testimonials/:id/status` | Admin |
+| `deleteTestimonial` | DELETE `/admin/testimonials/:id` | Admin |
+
+#### [NEW] `testimonialRoutes.ts`
+
+#### [MODIFY] `server.ts` — register testimonialRoutes
+
+---
+
+### Frontend — Client Dashboard
+
+#### [NEW] `Testimonial.tsx` — halaman baru di dashboard client
+
+- Form: pilih subdomain, rating bintang (1–5), judul, isi pesan
+- List testimoni yang sudah dikirim + statusnya (pending/approved/featured/rejected)
+- Hanya bisa submit jika punya minimal 1 subdomain aktif
+
+#### [MODIFY] `Sidebar` — tambah menu "Testimonial" di client panel
+
+#### [MODIFY] `useDataStore.ts` — tambah action `submitTestimonial`, `fetchMyTestimonials`
+
+---
+
+### Frontend — Admin Panel
+
+#### [MODIFY] `AdminCRUDs.tsx` — tambah tab "Testimonial"
+
+- Tabel daftar semua testimonial masuk
+- Badge status (Pending / Approved / Featured / Rejected)
+- Tombol aksi: ✅ Approve / ⭐ Feature / ❌ Reject / 🗑 Delete
+- Preview isi testimonial
+
+---
+
+### Frontend — Landing Page
+
+#### [MODIFY] `LandingPage.tsx` — tambah section Testimonials
+
+- Fetch testimonial public (approved + featured)
+- Tampilan: grid card atau auto-scroll carousel
+- Card menampilkan: nama user (initial avatar), rating bintang, judul, isi, nama subdomain
+
+---
+
+## Verification Plan
+
+### Automated
+- `npx tsc --noEmit` frontend & backend setelah selesai
+
+### Flow Test
+1. Login sebagai client → buka halaman Testimonial → isi form → submit
+2. Login sebagai admin → buka panel Testimonial → approve/feature
+3. Buka landing page → testimonial muncul di section yang benar
+
+## Open Questions
+
+> [!NOTE]
+> Apakah client hanya bisa submit **1 testimonial** per subdomain, atau boleh beberapa?
+> Default rencana: **1 per subdomain** untuk menghindari spam.

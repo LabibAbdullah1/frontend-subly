@@ -1,7 +1,7 @@
 // src/App.tsx
 import React from 'react';
 import { 
-  Languages, Sun, Moon
+  Languages, Sun, Moon, Zap
 } from 'lucide-react';
 
 // Store integrations
@@ -33,6 +33,7 @@ import { PlansCheckout } from './pages/dashboard/PlansCheckout';
 import { SupportChat } from './pages/dashboard/SupportChat';
 import { IssueReports } from './pages/dashboard/IssueReports';
 import { ProfileSettings } from './pages/dashboard/ProfileSettings';
+import { TestimonialPage } from './pages/dashboard/TestimonialPage';
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -77,10 +78,10 @@ export const App: React.FC = () => {
 
         <div className="relative z-10 flex flex-col flex-1">
           {/* Public Landing Navbar Header */}
-          <header className="h-16 border-b border-border-main bg-bg-surface/80 backdrop-blur-md sticky top-0 flex items-center justify-between px-6 z-40 select-none">
+          <header className="h-16 border-b border-border-main bg-bg-surface/80 backdrop-blur-md sticky top-0 flex items-center justify-between px-4 sm:px-6 z-40 select-none">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-lg">
-                S
+                <Zap className="h-4.5 w-4.5 text-white fill-white shrink-0" />
               </div>
               <span 
                 onClick={() => setActiveTab('dashboard')} // Go back to landing in unauth
@@ -90,10 +91,10 @@ export const App: React.FC = () => {
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               <button 
                 onClick={() => setActiveTab('legal')}
-                className={`text-xs font-bold transition-colors cursor-pointer ${
+                className={`text-xs font-bold transition-colors cursor-pointer hidden sm:inline ${
                   activeTab === 'legal' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
                 }`}
               >
@@ -104,7 +105,7 @@ export const App: React.FC = () => {
                 className="p-2 rounded-lg hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer flex items-center gap-1"
               >
                 <Languages className="h-4 w-4" />
-                <span className="text-[10px] font-bold uppercase">{language}</span>
+                <span className="text-[10px] font-bold uppercase hidden sm:inline">{language}</span>
               </button>
               <button 
                 onClick={toggleTheme}
@@ -114,7 +115,7 @@ export const App: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('login')}
-                className={`text-xs font-bold transition-colors cursor-pointer px-3 py-1.5 rounded-xl ${
+                className={`text-xs font-bold transition-colors cursor-pointer px-2 sm:px-3 py-1.5 rounded-xl ${
                   activeTab === 'login' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
                 }`}
               >
@@ -228,6 +229,7 @@ export const App: React.FC = () => {
                   {activeTab === 'chat' && <SupportChat />}
                   {activeTab === 'reports' && <IssueReports />}
                   {activeTab === 'profile' && <ProfileSettings />}
+                  {activeTab === 'testimonials' && <TestimonialPage />}
                 </>
               )}
 
@@ -241,6 +243,7 @@ export const App: React.FC = () => {
                   {activeTab === 'admin-payments' && <AdminDashboard />} {/* Payment confirms inside admin dashboard overview */}
                   {activeTab === 'admin-chat' && <SupportChat />}        {/* Shared chat console component */}
                   {activeTab === 'admin-settings' && <AdminCRUDs />}
+                  {activeTab === 'admin-testimonials' && <AdminCRUDs />}
                   {activeTab === 'profile' && <ProfileSettings />}
                 </>
               )}

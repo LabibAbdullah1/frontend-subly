@@ -62,7 +62,7 @@ export const GlowingGridBackground: React.FC = () => {
 
       {/* Symmetrical Grid lines */}
       <div 
-        className="absolute inset-0 bg-[linear-gradient(to_right,rgba(249,115,22,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(249,115,22,0.04)_1px,transparent_1px)] bg-[size:48px_48px]"
+        className="absolute inset-0 bg-[linear-gradient(to_right,rgba(249,115,22,0.075)_1.5px,transparent_1.5px),linear-gradient(to_bottom,rgba(249,115,22,0.075)_1.5px,transparent_1.5px)] bg-[size:48px_48px]"
         style={{
           maskImage: 'radial-gradient(ellipse 65% 55% at 50% 35%, #000 60%, transparent 100%)',
           WebkitMaskImage: 'radial-gradient(ellipse 65% 55% at 50% 35%, #000 60%, transparent 100%)'
@@ -75,7 +75,7 @@ export const GlowingGridBackground: React.FC = () => {
           <motion.div
             key={idx}
             animate={{
-              opacity: [0, 0.45, 0],
+              opacity: [0, 0.55, 0],
               scale: [0.9, 1.05, 0.9],
             }}
             transition={{
@@ -84,7 +84,7 @@ export const GlowingGridBackground: React.FC = () => {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="absolute w-12 h-12 border border-brand-primary/10 bg-brand-primary/2 shadow-[0_0_12px_rgba(249,115,22,0.08)] rounded-sm"
+            className="absolute w-12 h-12 border border-brand-primary/20 bg-brand-primary/4 shadow-[0_0_12px_rgba(249,115,22,0.12)] rounded-sm"
             style={{
               left: cell.left,
               top: cell.top,

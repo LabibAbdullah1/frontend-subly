@@ -125,6 +125,17 @@ export const translations = {
     rejectBtn: 'Tolak',
     systemSettings: 'Pengaturan Sistem',
     adminChatTitle: 'Pusat Dukungan',
+    testimonials: 'Testimonial & Feedback',
+    adminTestimonials: 'Review Testimonial',
+    testimonialTitle: 'Beri Testimonial / Feedback Klien',
+    ratingLabel: 'Rating Bintang',
+    commentTitle: 'Judul Feedback',
+    commentContent: 'Isi Komentar / Pengalaman',
+    selectSubdomain: 'Pilih Subdomain Proyek',
+    testimonialSubmitSuccess: 'Testimonial berhasil dikirim dan sedang menunggu review admin.',
+    testimonialNoSubdomains: 'Anda harus memiliki minimal 1 subdomain aktif untuk mengirim testimonial.',
+    testimonialListTitle: 'Riwayat Testimonial Anda',
+    adminNoteLabel: 'Catatan Admin',
   },
   en: {
     // Common
@@ -250,6 +261,17 @@ export const translations = {
     rejectBtn: 'Reject',
     systemSettings: 'System Settings',
     adminChatTitle: 'Support Chat',
+    testimonials: 'Testimonials & Feedback',
+    adminTestimonials: 'Review Testimonials',
+    testimonialTitle: 'Give Client Testimonial / Feedback',
+    ratingLabel: 'Star Rating',
+    commentTitle: 'Feedback Title',
+    commentContent: 'Comment / Experience Details',
+    selectSubdomain: 'Select Project Subdomain',
+    testimonialSubmitSuccess: 'Testimonial submitted successfully and is awaiting admin review.',
+    testimonialNoSubdomains: 'You must have at least 1 active subdomain to submit a testimonial.',
+    testimonialListTitle: 'Your Testimonial History',
+    adminNoteLabel: 'Admin Note',
   }
 };
 export type TranslationKeys = keyof typeof translations.id;
@@ -259,13 +281,13 @@ export const getTranslation = (lang: LanguageType, key: TranslationKeys): string
 };
 export const getNestedTranslation = (lang: LanguageType, key: string): string => {
   const parts = key.split('.');
-  let current: any = translations[lang];
+  let current: unknown = translations[lang];
   for (const part of parts) {
-    if (current && typeof current === 'object' && part in current) {
-      current = current[part];
+    if (current && typeof current === 'object' && part in (current as Record<string, unknown>)) {
+      current = (current as Record<string, unknown>)[part];
     } else {
       return key;
     }
   }
-  return current || key;
+  return typeof current === 'string' ? current : key;
 };

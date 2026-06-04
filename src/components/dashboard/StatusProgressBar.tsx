@@ -5,6 +5,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useToastStore } from '../../stores/useToastStore';
+import { useDataStore } from '../../stores/useDataStore';
 
 export interface StatusProgressBarProps {
   used: number;
@@ -25,6 +26,9 @@ export const StatusProgressBar: React.FC<StatusProgressBarProps> = ({
 }) => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
+  const { settings } = useDataStore();
+
+  const warningLimit = settings.system_storage_warning_threshold ? parseInt(settings.system_storage_warning_threshold, 10) : showWarningAt;
 
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [requestSize, setRequestSize] = useState('1024');
@@ -36,16 +40,13 @@ export const StatusProgressBar: React.FC<StatusProgressBarProps> = ({
   // Determine adapt color
   let barColor = 'bg-brand-primary';
   let textColor = 'text-text-muted';
-  let badgeColor = 'bg-brand-primary/10 text-brand-primary';
 
   if (percentage >= 100) {
     barColor = 'bg-red-500';
     textColor = 'text-red-500 dark:text-red-400';
-    badgeColor = 'bg-red-500/10 text-red-500';
-  } else if (percentage >= showWarningAt) {
+  } else if (percentage >= warningLimit) {
     barColor = 'bg-amber-500';
     textColor = 'text-amber-500 dark:text-amber-400';
-    badgeColor = 'bg-amber-500/10 text-amber-500';
   }
 
   const handleRequestSubmit = (e: React.FormEvent) => {
@@ -97,7 +98,7 @@ export const StatusProgressBar: React.FC<StatusProgressBarProps> = ({
       </div>
 
       {/* Adaptive Buttons & Warning alerts */}
-      {percentage >= showWarningAt && (
+      {percentage >= warningLimit && (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-1.5 p-3 rounded-2xl bg-amber-500/5 dark:bg-amber-500/2 border border-amber-500/10">
           <div className="flex items-center gap-2 text-[10px] font-bold text-amber-600 dark:text-amber-400">
             <AlertTriangle className="h-4.5 w-4.5 shrink-0" />

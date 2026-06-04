@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Globe, Database, CreditCard, 
   MessageSquare, AlertTriangle, ShieldAlert, 
   Settings, Users, ChevronLeft, ChevronRight, X,
-  ShoppingBag, Percent
+  ShoppingBag, Percent, Star, Zap
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
@@ -33,6 +33,7 @@ export const Sidebar: React.FC = () => {
     { tab: 'databases' as ActiveTab, label: t('databases'), icon: <Database className="h-5 w-5" /> },
     { tab: 'plans' as ActiveTab, label: t('plans'), icon: <ShoppingBag className="h-5 w-5" /> },
     { tab: 'billing' as ActiveTab, label: t('billing'), icon: <CreditCard className="h-5 w-5" /> },
+    { tab: 'testimonials' as ActiveTab, label: t('testimonials'), icon: <Star className="h-5 w-5" /> },
     { tab: 'chat' as ActiveTab, label: t('chat'), icon: <MessageSquare className="h-5 w-5" /> },
     { tab: 'reports' as ActiveTab, label: t('reports'), icon: <AlertTriangle className="h-5 w-5" /> },
     { tab: 'profile' as ActiveTab, label: t('profile'), icon: <Settings className="h-5 w-5" /> },
@@ -45,6 +46,7 @@ export const Sidebar: React.FC = () => {
     { tab: 'admin-vouchers' as ActiveTab, label: t('voucherManager'), icon: <Percent className="h-5 w-5" /> },
     { tab: 'admin-users' as ActiveTab, label: t('userManager'), icon: <Users className="h-5 w-5" /> },
     { tab: 'admin-payments' as ActiveTab, label: t('paymentConfirmation'), icon: <CreditCard className="h-5 w-5" /> },
+    { tab: 'admin-testimonials' as ActiveTab, label: t('adminTestimonials'), icon: <Star className="h-5 w-5" /> },
     { tab: 'admin-chat' as ActiveTab, label: t('adminChatTitle'), icon: <MessageSquare className="h-5 w-5" /> },
     { tab: 'admin-settings' as ActiveTab, label: t('systemSettings'), icon: <Settings className="h-5 w-5" /> },
   ];
@@ -65,7 +67,7 @@ export const Sidebar: React.FC = () => {
         }`}>
           <div className={`flex items-center transition-all duration-300 ${isSidebarCollapsed ? 'gap-0' : 'gap-2.5'}`}>
             <div className="h-8 w-8 rounded-lg bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-lg shrink-0">
-              S
+              <Zap className="h-4.5 w-4.5 text-white fill-white shrink-0" />
             </div>
             <span className={`font-black text-lg tracking-tight bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent transition-all duration-300 ${
               isSidebarCollapsed ? 'w-0 opacity-0 ml-0 overflow-hidden invisible' : 'w-auto opacity-100 visible'

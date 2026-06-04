@@ -82,7 +82,7 @@ export const Header: React.FC = () => {
         )}
 
         {/* Breadcrumb path */}
-        <div className="flex items-center gap-1.5 text-xs font-bold text-text-muted">
+        <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-text-muted">
           {getBreadcrumbs().map((crumb, idx) => (
             <span key={idx} className="flex items-center gap-1.5">
               {idx > 0 && <span className="text-border-main">/</span>}
@@ -107,7 +107,7 @@ export const Header: React.FC = () => {
           title={t('language')}
         >
           <Languages className="h-4.5 w-4.5" />
-          <span className="text-xs font-bold uppercase">{language}</span>
+          <span className="text-xs font-bold uppercase hidden sm:inline">{language}</span>
         </button>
 
         {/* Theme switch */}

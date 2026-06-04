@@ -16,13 +16,13 @@ export const PlansCheckout: React.FC = () => {
   const { payments, uploadProof, settings, fetchSettings, fetchPayments } = useDataStore();
 
   const [activePaymentId, setActivePaymentId] = useState<number | null>(null);
-  const [pollingProgress, setPollingProgress] = useState(0);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [isUploadingProof, setIsUploadingProof] = useState(false);
 
   useEffect(() => {
     if (!proofFile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProofPreviewUrl(null);
       return;
     }
@@ -45,6 +45,7 @@ export const PlansCheckout: React.FC = () => {
 
   useEffect(() => {
     if (activePayment) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActivePaymentId(activePayment.id);
       
       // Toast notification on status change from pending -> success
@@ -64,11 +65,9 @@ export const PlansCheckout: React.FC = () => {
   useEffect(() => {
     if (!activePaymentId || activePayment?.status !== 'pending') return;
 
-    setPollingProgress(0);
     const interval = setInterval(async () => {
       try {
         await fetchPayments();
-        setPollingProgress(prev => (prev >= 100 ? 0 : prev + 25));
       } catch (err) {
         console.error('Error polling payment status:', err);
       }
@@ -90,11 +89,11 @@ export const PlansCheckout: React.FC = () => {
         message: 'Administrasi Subly akan meninjau tanda terima transaksi Anda.',
       });
       setProofFile(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       addToast({
         type: 'error',
         title: 'Gagal Mengunggah',
-        message: err.message || 'Terjadi kesalahan saat mengunggah bukti pembayaran Anda.',
+        message: (err as Error).message || 'Terjadi kesalahan saat mengunggah bukti pembayaran Anda.',
       });
     } finally {
       setIsUploadingProof(false);
@@ -131,73 +130,104 @@ export const PlansCheckout: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: QRIS Details (Span 2) */}
           <div className="lg:col-span-2 space-y-6">
-            <CardPanel title="Checkout Gateway QRIS Statis">
-              <div className="flex flex-col md:flex-row gap-6 mt-4 items-center md:items-start text-left">
-                {/* QR Code container */}
-                <div className="p-4 bg-white rounded-xl border border-border-main shrink-0 flex flex-col items-center gap-2 select-none shadow-md">
+            <CardPanel className="!p-0 overflow-hidden">
+              <div className="flex flex-col md:flex-row items-stretch w-full min-h-[380px]">
+                {/* Left Column: QRIS Image with left spacing */}
+                <div className="md:w-[260px] shrink-0 bg-transparent flex flex-col items-center justify-center relative p-4 md:pl-6 md:py-6 md:pr-0">
                   <img 
                     src={qrisImgUrl || dynamicQrUrl} 
                     alt="QRIS Code" 
-                    className="w-40 h-40 object-contain" 
+                    className="w-full h-full object-contain select-none" 
                   />
-                  <div className="px-3 py-1 rounded bg-slate-900 text-white font-bold text-[9px] tracking-wider uppercase">
+                  <div className="absolute bottom-4 px-3 py-1 rounded bg-slate-900/90 text-white font-bold text-[9px] tracking-wider uppercase backdrop-blur-xs select-none">
                     QRIS GPN
                   </div>
                 </div>
 
-                {/* Details instruction info */}
-                <div className="flex-1 space-y-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-text-main">
-                    <QrCode className="h-5 w-5 text-brand-primary" />
-                    <span>{t('payInstructions')}</span>
-                  </div>
-
-                  <p className="text-[11px] text-text-muted leading-relaxed">
-                    {t('uniqueCodeHint')}
-                  </p>
-
-                  <div className="p-4 rounded-xl bg-brand-primary/5 border border-brand-primary/10 grid grid-cols-1 md:grid-cols-2 gap-4 select-none">
-                    <div>
-                      <span className="text-[10px] font-bold text-text-muted uppercase block">
-                        Tagihan Paket
-                      </span>
-                      <span className="text-sm font-semibold text-text-main">
-                        Rp {activePayment.amount.toLocaleString('id-ID')}
-                      </span>
+                {/* Right Column: Details & Instructions with padding */}
+                <div className="flex-1 p-6 flex flex-col justify-between space-y-4">
+                  <div>
+                    <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-3">
+                      Checkout Gateway QRIS Statis
+                    </h3>
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-text-main">
+                      <QrCode className="h-5 w-5 text-brand-primary" />
+                      <span>{t('payInstructions')}</span>
                     </div>
-                    <div>
-                      <span className="text-[10px] font-bold text-text-muted uppercase block">
-                        Kode Unik Transfer
-                      </span>
-                      <span className="text-sm font-bold text-brand-primary">
-                        + Rp {activePayment.unique_code}
-                      </span>
-                    </div>
-                    <div className="md:col-span-2 border-t border-border-main/50 pt-2">
-                      <span className="text-[10px] font-bold text-text-muted uppercase block">
-                        {t('uniqueAmount')}
-                      </span>
-                      <span className="text-xl font-bold text-brand-primary">
-                        Rp {totalAmount.toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Polling progress animation */}
-                  <div className="flex items-center gap-3 py-2 text-xs font-bold text-text-muted select-none">
-                    <Clock className="h-4.5 w-4.5 animate-spin text-brand-primary shrink-0" />
-                    <div className="flex-1">
-                      <p>Menunggu verifikasi pembayaran oleh Admin...</p>
-                      <div className="w-full bg-border-main h-1 rounded-full overflow-hidden mt-1.5">
-                        <div 
-                          className="bg-brand-primary h-full transition-all duration-500"
-                          style={{ width: `${pollingProgress || 10}%` }}
-                        />
+                    <p className="text-[11px] text-text-muted leading-relaxed mt-2">
+                      {t('uniqueCodeHint')}
+                    </p>
+
+                    <div className="p-4 rounded-xl bg-brand-primary/5 border border-brand-primary/10 grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 text-left select-none">
+                      <div>
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">
+                          Tagihan Paket
+                        </span>
+                        <span className="text-sm font-semibold text-text-main">
+                          Rp {activePayment.amount.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">
+                          Kode Unik Transfer
+                        </span>
+                        <span className="text-sm font-bold text-brand-primary">
+                          + Rp {activePayment.unique_code}
+                        </span>
+                      </div>
+                      <div className="md:col-span-2 border-t border-border-main/50 pt-2">
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">
+                          {t('uniqueAmount')}
+                        </span>
+                        <span className="text-xl font-bold text-brand-primary">
+                          Rp {totalAmount.toLocaleString('id-ID')}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-border-main/50 flex flex-wrap gap-2.5 select-none">
+                  {/* Custom spinner and manual refresh button */}
+                  <div className="p-4 rounded-xl bg-bg-surface border border-border-main flex flex-col md:flex-row md:items-center justify-between gap-4 select-none">
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex items-center justify-center shrink-0">
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-primary/20 border-t-brand-primary" />
+                        <Clock className="h-3.5 w-3.5 text-brand-primary absolute" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-text-main">Menunggu Verifikasi Admin</h4>
+                        <p className="text-[10px] text-text-muted mt-0.5">Sistem memantau pembayaran secara real-time...</p>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await fetchPayments();
+                          addToast({
+                            type: 'info',
+                            title: 'Status Diperbarui',
+                            message: 'Berhasil memeriksa status pembayaran terbaru.',
+                          });
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        } catch (err) {
+                          addToast({
+                            type: 'error',
+                            title: 'Gagal Memeriksa',
+                            message: 'Terjadi kesalahan saat menghubungi server.',
+                          });
+                        }
+                      }}
+                      className="shrink-0 flex items-center gap-1.5"
+                    >
+                      Periksa Status
+                    </Button>
+                  </div>
+
+                  <div className="pt-2 border-t border-border-main/50 flex flex-wrap justify-center md:justify-start gap-2.5 select-none">
                     <button
                       onClick={() => setActiveTab('chat')}
                       className="text-xs font-semibold text-brand-primary hover:underline py-1"

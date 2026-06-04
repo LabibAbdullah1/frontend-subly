@@ -18,7 +18,9 @@ export const SubdomainsList: React.FC = () => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
   const { setActiveTab } = useSystemStore();
-  const { subdomains, deleteSubdomain, payments, addSubdomain, databases } = useDataStore();
+  const { subdomains, deleteSubdomain, payments, addSubdomain, databases, settings } = useDataStore();
+  const rootDomain = settings.system_root_domain || 'subly.host';
+  const warningThreshold = settings.system_storage_warning_threshold ? parseInt(settings.system_storage_warning_threshold, 10) : 80;
 
   const [subDeleteTarget, setSubDeleteTarget] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -57,7 +59,7 @@ export const SubdomainsList: React.FC = () => {
       addToast({
         type: 'success',
         title: 'Subdomain Berhasil Diklaim',
-        message: `Subdomain ${claimName}.subly.host dan database MySQL Anda telah aktif!`,
+        message: `Subdomain ${claimName}.${rootDomain} dan database MySQL Anda telah aktif!`,
       });
       setClaimModalOpen(false);
       setClaimTargetPaymentId(null);
@@ -224,7 +226,7 @@ export const SubdomainsList: React.FC = () => {
                   {/* Domain Name */}
                   <div className="text-left">
                     <h4 className="text-sm font-bold text-text-main tracking-tight font-mono select-all">
-                      {sub.name}.subly.host
+                      {sub.full_domain}
                     </h4>
                     <p className="text-[9px] text-text-muted mt-1 select-none font-bold uppercase">
                       Doc root: <span className="font-mono text-text-main/80">{sub.doc_root}</span>
@@ -246,7 +248,13 @@ export const SubdomainsList: React.FC = () => {
                       </div>
                       <div className="w-full bg-border-main/40 h-1.5 rounded-full overflow-hidden border border-border-main/20">
                         <div
-                          className="h-full rounded-full bg-brand-primary"
+                          className={`h-full rounded-full ${
+                            storagePercent >= 100 
+                              ? 'bg-red-500' 
+                              : storagePercent >= warningThreshold 
+                              ? 'bg-amber-500' 
+                              : 'bg-brand-primary'
+                          }`}
                           style={{ width: `${storagePercent || 1}%` }}
                         />
                       </div>
@@ -383,7 +391,7 @@ export const SubdomainsList: React.FC = () => {
                 required
               />
               <span className="bg-border-main/20 border border-border-main border-l-0 px-4 flex items-center rounded-r-xl text-xs font-bold text-text-muted select-none font-mono">
-                .subly.host
+                .{rootDomain}
               </span>
             </div>
             <p className="text-[10px] text-text-muted leading-relaxed flex items-start gap-1.5 select-none pt-1">

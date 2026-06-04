@@ -1,5 +1,5 @@
 // src/pages/dashboard/PlansPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Check, ShoppingCart, Globe, ShieldCheck, HardDrive, Database
 } from 'lucide-react';
@@ -11,20 +11,27 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
+import type { Plan } from '../../types';
 
 export const PlansPage: React.FC = () => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
   const { setActiveTab } = useSystemStore();
-  const { plans, applyVoucher, createPayment } = useDataStore();
+  const { plans, applyVoucher, createPayment, settings, fetchSettings } = useDataStore();
 
-    const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [voucherCode, setVoucherCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<number | null>(null);
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
 
-  const handleOpenCheckout = (plan: any) => {
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+  const rootDomain = settings.system_root_domain || 'subly.my.id';
+
+  const handleOpenCheckout = (plan: Plan) => {
     setSelectedPlan(plan);
     setVoucherCode('');
     setAppliedDiscount(null);
@@ -53,6 +60,7 @@ export const PlansPage: React.FC = () => {
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedPlan) return;
 
     setIsCheckoutInProgress(true);
     try {
@@ -145,7 +153,7 @@ export const PlansPage: React.FC = () => {
                   <ul className="space-y-2.5 pt-4 border-t border-border-main/50 text-[11px] font-semibold text-text-muted select-none">
                     <li className="flex items-center gap-2">
                       <HardDrive className="h-4 w-4 text-brand-primary shrink-0" />
-                      <span>Storage: <span className="font-mono text-text-main font-bold">{plan.max_storage_mb >= 1024 ? `${plan.max_storage_mb / 1024} GB` : `${plan.max_storage_mb} MB`}</span> NVMe</span>
+                      <span>Storage: <span className="font-mono text-text-main font-bold">{plan.max_storage_mb >= 1024 ? `${plan.max_storage_mb / 1024} GB` : `${plan.max_storage_mb} MB`}</span> SSD NVMe</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Database className="h-4 w-4 text-brand-primary shrink-0" />
@@ -157,7 +165,7 @@ export const PlansPage: React.FC = () => {
                     </li>
                     <li className="flex items-center gap-2">
                       <Globe className="h-4 w-4 text-brand-primary shrink-0" />
-                      <span>Subdomain Gratis `.subly.host`</span>
+                      <span>Subdomain Gratis .{rootDomain}</span>
                     </li>
                   </ul>
                 </div>

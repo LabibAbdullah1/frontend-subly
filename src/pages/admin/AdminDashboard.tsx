@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, Globe, Database, ShieldCheck, Eye
+  Users, Globe, Database, ShieldCheck, Eye, Check
 } from 'lucide-react';
 import { useDataStore } from '../../stores/useDataStore';
 import { useToastStore } from '../../stores/useToastStore';
@@ -137,7 +137,7 @@ export const AdminDashboard: React.FC = () => {
                 <tbody className="divide-y divide-border-main/30 text-xs">
                   {pendingPayments.map((p) => (
                     <tr key={p.id} className="hover:bg-border-main/5 transition-colors">
-                      <td className="py-3 font-semibold text-text-main font-mono text-[11px] select-all">
+                      <td className="py-3 font-semibold text-text-main font-mono text-[11px] select-all max-w-[90px] sm:max-w-none truncate" title={p.transaction_id}>
                         {p.transaction_id}
                       </td>
                       <td className="py-3 text-center font-bold text-text-main font-mono text-[11px]">
@@ -149,21 +149,21 @@ export const AdminDashboard: React.FC = () => {
                             onClick={() => setViewProofPath(p.proof_path)}
                             className="text-brand-primary hover:underline font-bold text-[10px] uppercase flex items-center gap-1 mx-auto cursor-pointer"
                           >
-                            <Eye className="h-3.5 w-3.5" />
-                            View
+                            <Eye className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                            <span className="hidden sm:inline">View</span>
                           </button>
                         ) : (
                           <span className="text-[10px] text-text-muted italic">No file</span>
                         )}
                       </td>
                       <td className="py-3 text-right pr-6 flex items-center justify-end gap-2">
-                        <Button 
-                          variant="primary" 
-                          size="sm"
+                        <button 
                           onClick={() => setConfirmPayId(p.id)}
+                          className="bg-text-main text-bg-base shadow-md hover:opacity-90 active:scale-[0.98] transition-all border border-transparent px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-1 cursor-pointer shrink-0"
                         >
-                          Approve
-                        </Button>
+                          <Check className="h-3.5 w-3.5 shrink-0" />
+                          <span className="hidden sm:inline">Approve</span>
+                        </button>
                       </td>
                     </tr>
                   ))}

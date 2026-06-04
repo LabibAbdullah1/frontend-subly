@@ -124,4 +124,29 @@ export type AppLanguage = 'id' | 'en';
 export type AppTheme = 'light' | 'dark';
 export type AppDevice = 'desktop' | 'mobile';
 export type AuthStatus = 'authenticated' | 'unauthenticated' | 'verifying';
-export type ActiveTab = 'dashboard' | 'subdomains' | 'databases' | 'plans' | 'billing' | 'chat' | 'reports' | 'notifications' | 'profile' | 'admin-dashboard' | 'admin-users' | 'admin-plans' | 'admin-vouchers' | 'admin-payments' | 'admin-chat' | 'admin-settings' | 'login' | 'register' | 'legal';
+export type ActiveTab = 'dashboard' | 'subdomains' | 'databases' | 'plans' | 'billing' | 'chat' | 'reports' | 'notifications' | 'profile' | 'admin-dashboard' | 'admin-users' | 'admin-plans' | 'admin-vouchers' | 'admin-payments' | 'admin-chat' | 'admin-settings' | 'login' | 'register' | 'legal' | 'testimonials' | 'admin-testimonials';
+
+export type TestimonialStatus = 'pending' | 'approved' | 'featured' | 'rejected';
+
+export interface Testimonial {
+  id: number;
+  user_id: number;
+  subdomain_id: number | null;
+  rating: number;
+  title: string;
+  content: string;
+  status: TestimonialStatus;
+  admin_note: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    name: string;
+    email?: string;
+  };
+  subdomain?: {
+    id: number;
+    name: string;
+    full_domain: string;
+  } | null;
+}
+

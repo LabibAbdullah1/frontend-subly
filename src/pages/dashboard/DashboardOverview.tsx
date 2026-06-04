@@ -10,6 +10,7 @@ import { useAuthStore } from '../../stores/useAuthStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
+import type { ActiveTab } from '../../types';
 
 export const DashboardOverview: React.FC = () => {
   const { t } = useTranslation();
@@ -251,7 +252,7 @@ export const DashboardOverview: React.FC = () => {
             {quickActions.map((action) => (
               <motion.button
                 key={action.tab}
-                onClick={() => setActiveTab(action.tab as any)}
+                onClick={() => setActiveTab(action.tab as ActiveTab)}
                 whileHover={{ scale: 1.02, y: -4 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
