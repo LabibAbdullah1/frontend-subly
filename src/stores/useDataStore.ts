@@ -63,7 +63,7 @@ interface DataState {
   addIssueReport: (subdomainId: number, subject: string, message: string) => Promise<void>;
   resolveIssue: (issueId: number) => Promise<void>;
 
-  addPlan: (name: string, price: number, type: 'PHP' | 'NodeJS', storageMb: number) => Promise<void>;
+  addPlan: (name: string, price: number, type: 'PHP' | 'NodeJS', storageMb: number, description?: string) => Promise<void>;
   deletePlan: (id: number) => Promise<void>;
   addVoucher: (code: string, discountPercent: number, maxUses: number) => Promise<void>;
   deleteVoucher: (id: number) => Promise<void>;
@@ -670,7 +670,7 @@ export const useDataStore = create<DataState>((set, get) => ({
     await get().fetchIssues();
   },
 
-  addPlan: async (name, price, type, storageMb) => {
+  addPlan: async (name, price, type, storageMb, description) => {
     await apiFetch('/plans', {
       method: 'POST',
       body: {
@@ -680,7 +680,8 @@ export const useDataStore = create<DataState>((set, get) => ({
         maxStorageMb: storageMb,
         maxDatabases: type === 'PHP' ? 3 : 5,
         durationMonths: 1,
-        isActive: true
+        isActive: true,
+        description: description || undefined
       }
     });
     await get().fetchPlans();

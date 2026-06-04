@@ -39,6 +39,7 @@ export const AdminCRUDs: React.FC = () => {
   const [newPlanPrice, setNewPlanPrice] = useState('29000');
   const [newPlanType, setNewPlanType] = useState<'PHP' | 'NodeJS'>('PHP');
   const [newPlanStorage, setNewPlanStorage] = useState('1024');
+  const [newPlanDescription, setNewPlanDescription] = useState('');
   const [isSubmittingPlan, setIsSubmittingPlan] = useState(false);
 
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
@@ -92,8 +93,9 @@ export const AdminCRUDs: React.FC = () => {
 
     setIsSubmittingPlan(true);
     try {
-      await addPlan(newPlanName, Number(newPlanPrice), newPlanType, Number(newPlanStorage));
+      await addPlan(newPlanName, Number(newPlanPrice), newPlanType, Number(newPlanStorage), newPlanDescription);
       setNewPlanName('');
+      setNewPlanDescription('');
       setPlanModalOpen(false);
       addToast({
         type: 'success',
@@ -308,7 +310,14 @@ export const AdminCRUDs: React.FC = () => {
                 {plans.map((plan) => (
                   <tr key={plan.id} className="hover:bg-border-main/5 transition-colors">
                     <td className="py-3 font-semibold text-text-main">
-                      {plan.name}
+                      <div className="flex flex-col">
+                        <span>{plan.name}</span>
+                        {plan.description && (
+                          <span className="text-[10px] text-text-muted font-normal mt-0.5 max-w-xs truncate">
+                            {plan.description}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 text-center">
                       <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
@@ -736,6 +745,17 @@ export const AdminCRUDs: React.FC = () => {
               onChange={(e) => setNewPlanStorage(e.target.value)}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
               required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Deskripsi Paket (Opsional)</label>
+            <textarea
+              value={newPlanDescription}
+              onChange={(e) => setNewPlanDescription(e.target.value)}
+              placeholder="Deskripsi singkat fitur/keunggulan paket ini"
+              rows={3}
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none resize-none"
             />
           </div>
 
