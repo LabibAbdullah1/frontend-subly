@@ -1,6 +1,6 @@
 // src/pages/admin/AdminCRUDs.tsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, HardDrive, Upload, Star, MessageSquare } from 'lucide-react';
+import { Plus, Trash2, Upload, Star, MessageSquare } from 'lucide-react';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
 import { useToastStore } from '../../stores/useToastStore';
@@ -26,7 +26,6 @@ export const AdminCRUDs: React.FC = () => {
     deletePlan,
     addVoucher,
     deleteVoucher,
-    updateSubdomainStorageOverride,
     updateSetting,
     adminTestimonials,
     fetchAdminTestimonials,
@@ -47,10 +46,7 @@ export const AdminCRUDs: React.FC = () => {
   const [newVoucherDiscount, setNewVoucherDiscount] = useState('20');
   const [isSubmittingVoucher, setIsSubmittingVoucher] = useState(false);
 
-  const [overrideUserModal, setOverrideUserModal] = useState(false);
-  const [overrideTargetId, setOverrideTargetId] = useState<number | null>(null);
-  const [overrideLimitSize, setOverrideLimitSize] = useState('2048');
-  const [isSubmittingOverride, setIsSubmittingOverride] = useState(false);
+
 
   // Settings local states
   const [merchantName, setMerchantName] = useState('');
@@ -175,41 +171,7 @@ export const AdminCRUDs: React.FC = () => {
     }
   };
 
-  // User Storage Limit Overrides
-  const handleSaveStorageOverride = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!overrideTargetId) return;
 
-    setIsSubmittingOverride(true);
-    try {
-      const client = adminUsers.find(u => u.id === overrideTargetId);
-      const activeSub = client?.subdomains?.[0];
-      if (!activeSub) {
-        addToast({
-          type: 'error',
-          title: 'Tidak Ada Subdomain',
-          message: 'Klien tidak memiliki subdomain aktif untuk di-override.',
-        });
-        return;
-      }
-
-      await updateSubdomainStorageOverride(activeSub.id, Number(overrideLimitSize));
-      addToast({
-        type: 'success',
-        title: 'Kapasitas Di-override',
-        message: `Batas storage untuk subdomain ${activeSub.name}.subly.host sukses diubah menjadi ${overrideLimitSize} MB.`,
-      });
-      setOverrideUserModal(false);
-    } catch {
-      addToast({
-        type: 'error',
-        title: 'Gagal',
-        message: 'Gagal memperbarui batas storage.',
-      });
-    } finally {
-      setIsSubmittingOverride(false);
-    }
-  };
 
   const [isSavingLimit, setIsSavingLimit] = useState(false);
 
@@ -218,8 +180,10 @@ export const AdminCRUDs: React.FC = () => {
     e.preventDefault();
     setIsSavingSettings(true);
     try {
-      await updateSetting('qris_merchant_name', merchantName);
-      await updateSetting('qris_nmid', qrisNmid, qrisImageFile || undefined);
+      await updateSetting({
+        qris_merchant_name: merchantName,
+        qris_nmid: qrisNmid
+      }, qrisImageFile || undefined);
 
       addToast({
         type: 'success',
@@ -453,8 +417,7 @@ export const AdminCRUDs: React.FC = () => {
                   <th className="py-2.5 pb-2 font-bold">Nama Klien</th>
                   <th className="py-2.5 pb-2 font-bold">Email</th>
                   <th className="py-2.5 pb-2 text-center font-bold">Subdomain Aktif</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Verifikasi</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">Override Storage</th>
+                  <th className="py-2.5 pb-2 text-center pr-6 font-bold">Verifikasi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
@@ -471,25 +434,11 @@ export const AdminCRUDs: React.FC = () => {
                       <td className="py-3 text-center font-mono text-[10px] text-text-main">
                         {activeSub ? `${activeSub.name}.subly.host` : 'None'}
                       </td>
-                      <td className="py-3 text-center select-none">
+                      <td className="py-3 text-center pr-6 select-none">
                         <Badge 
                           status={client.emailVerifiedAt ? 'success' : 'inactive'} 
                           label={client.emailVerifiedAt ? 'Verified' : 'Unverified'} 
                         />
-                      </td>
-                      <td className="py-3 text-right pr-6 select-none">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          icon={<HardDrive className="h-3.5 w-3.5" />}
-                          disabled={!activeSub}
-                          onClick={() => {
-                            setOverrideTargetId(client.id);
-                            setOverrideUserModal(true);
-                          }}
-                        >
-                          Adjust Storage
-                        </Button>
                       </td>
                     </tr>
                   );
@@ -842,35 +791,7 @@ export const AdminCRUDs: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Override User Storage Limit Modal */}
-      <Modal
-        isOpen={overrideUserModal}
-        onClose={() => setOverrideUserModal(false)}
-        title={`Adjust NVMe Storage Space: Client #${overrideTargetId}`}
-        description="Override batas disk storage default pada virtual host klien secara manual."
-      >
-        <form onSubmit={handleSaveStorageOverride} className="space-y-4 text-left">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Batas Disk Baru (MB)</label>
-            <input
-              type="number"
-              value={overrideLimitSize}
-              onChange={(e) => setOverrideLimitSize(e.target.value)}
-              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
-              required
-            />
-          </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-main">
-            <Button type="button" variant="secondary" onClick={() => setOverrideUserModal(false)}>
-              {t('cancel')}
-            </Button>
-            <Button type="submit" variant="primary" isLoading={isSubmittingOverride}>
-              Simpan Perubahan
-            </Button>
-          </div>
-        </form>
-      </Modal>
 
       {/* Review Testimonial Modal */}
       <Modal

@@ -25,8 +25,8 @@ export const CardPanel: React.FC<CardPanelProps> = ({
 
   return (
     <div
-      className={`glass-panel rounded-xl p-6 glow-hover transition-all duration-300 ${
-        glow ? 'shadow-md shadow-brand-primary/5 hover:shadow-lg' : ''
+      className={`glass-panel rounded-xl p-6 transition-all duration-300 ${
+        glow ? 'glow-hover-active shadow-md shadow-brand-primary/5 hover:shadow-lg' : 'glow-hover'
       } ${className}`}
       style={customStyle}
       {...props}

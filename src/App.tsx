@@ -237,6 +237,12 @@ export const App: React.FC = () => {
               {currentRole === 'Admin' && (
                 <>
                   {activeTab === 'admin-dashboard' && <AdminDashboard />}
+                  {activeTab === 'admin-deployment' && <AdminDashboard />}
+                  {activeTab === 'admin-subdomain' && <AdminDashboard />}
+                  {activeTab === 'admin-database' && <AdminDashboard />}
+                  {activeTab === 'admin-disk' && <AdminDashboard />}
+                  {activeTab === 'admin-notifications' && <AdminDashboard />}
+                  {activeTab === 'admin-reports' && <AdminDashboard />}
                   {activeTab === 'admin-plans' && <AdminCRUDs />}
                   {activeTab === 'admin-vouchers' && <AdminCRUDs />}
                   {activeTab === 'admin-users' && <AdminCRUDs />}

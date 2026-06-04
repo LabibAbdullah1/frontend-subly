@@ -115,6 +115,9 @@ export const DashboardOverview: React.FC = () => {
   return (
     <div className="space-y-6 w-full text-left">
       
+      {/* Client Notifications List banner */}
+      <ClientNotificationsBanner />
+
       {/* Top Welcome Title */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
         <div>
@@ -305,3 +308,38 @@ export const DashboardOverview: React.FC = () => {
   );
 };
 export default DashboardOverview;
+
+const ClientNotificationsBanner: React.FC = () => {
+  const { notifications, markNotificationAsRead } = useDataStore();
+  const unreadNotifications = notifications.filter(n => !n.isRead);
+
+  if (unreadNotifications.length === 0) return null;
+
+  return (
+    <div className="space-y-3.5 mb-6 text-left animate-in fade-in duration-300">
+      <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider pl-1 select-none">
+        Pemberitahuan Terbaru
+      </h3>
+      <div className="space-y-2.5">
+        {unreadNotifications.map((n) => (
+          <div 
+            key={n.id} 
+            className="p-4 rounded-xl bg-brand-primary/10 border border-brand-primary/20 text-left flex justify-between items-start gap-4"
+          >
+            <div className="space-y-1">
+              <h4 className="text-xs font-bold text-brand-secondary tracking-wide uppercase">{n.title}</h4>
+              <p className="text-xs text-text-main leading-relaxed font-semibold">{n.message}</p>
+              <span className="text-[9px] text-text-muted block mt-1 font-mono">{new Date(n.createdAt).toLocaleString('id-ID')}</span>
+            </div>
+            <button
+              onClick={() => markNotificationAsRead(n.id)}
+              className="text-[10px] font-bold text-brand-primary hover:text-brand-secondary hover:underline cursor-pointer uppercase shrink-0"
+            >
+              Tandai Dibaca
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

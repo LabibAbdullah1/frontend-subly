@@ -319,7 +319,7 @@ export const SubdomainsList: React.FC = () => {
           );
         })}
 
-        {subdomains.length === 0 && (
+        {subdomains.length === 0 && unclaimedSlots.length === 0 && (
           <div className="col-span-full py-16">
             <CardPanel className="max-w-md mx-auto text-center p-8">
               <div className="h-12 w-12 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center mx-auto mb-4 select-none">

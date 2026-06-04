@@ -33,6 +33,10 @@ export interface Subdomain {
   userDatabases?: UserDatabase[];
   envs?: SubdomainEnv[];
   deployments?: Deployment[];
+  user?: {
+    name: string;
+    email: string;
+  } | null;
 }
 
 export interface UserDatabase {
@@ -124,7 +128,7 @@ export type AppLanguage = 'id' | 'en';
 export type AppTheme = 'light' | 'dark';
 export type AppDevice = 'desktop' | 'mobile';
 export type AuthStatus = 'authenticated' | 'unauthenticated' | 'verifying';
-export type ActiveTab = 'dashboard' | 'subdomains' | 'databases' | 'plans' | 'billing' | 'chat' | 'reports' | 'notifications' | 'profile' | 'admin-dashboard' | 'admin-users' | 'admin-plans' | 'admin-vouchers' | 'admin-payments' | 'admin-chat' | 'admin-settings' | 'login' | 'register' | 'legal' | 'testimonials' | 'admin-testimonials';
+export type ActiveTab = 'dashboard' | 'subdomains' | 'databases' | 'plans' | 'billing' | 'chat' | 'reports' | 'notifications' | 'profile' | 'admin-dashboard' | 'admin-users' | 'admin-plans' | 'admin-vouchers' | 'admin-payments' | 'admin-chat' | 'admin-settings' | 'login' | 'register' | 'legal' | 'testimonials' | 'admin-testimonials' | 'admin-arenhost' | 'admin-deployment' | 'admin-subdomain' | 'admin-database' | 'admin-disk' | 'admin-notifications' | 'admin-reports';
 
 export type TestimonialStatus = 'pending' | 'approved' | 'featured' | 'rejected';
 
@@ -149,4 +153,19 @@ export interface Testimonial {
     full_domain: string;
   } | null;
 }
+
+export interface ClientNotification {
+  id: number;
+  userId: number | null;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  } | null;
+}
+
 

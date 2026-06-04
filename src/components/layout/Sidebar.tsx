@@ -1,18 +1,15 @@
-// src/components/layout/Sidebar.tsx
 import React from 'react';
 import { 
-  LayoutDashboard, Globe, Database, CreditCard, 
-  MessageSquare, AlertTriangle, ShieldAlert, 
-  Settings, Users, ChevronLeft, ChevronRight, X,
-  ShoppingBag, Percent, Star, Zap
+  LayoutGrid, Link2, RefreshCw, Globe, Database, HardDrive, 
+  ShoppingBag, CreditCard, Ticket, Users, MessageSquare, 
+  Star, Megaphone, HelpCircle, Settings, User, ChevronLeft, ChevronRight, Zap,
+  ShieldAlert, X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
-import { useTranslation } from '../../hooks/useTranslation';
 import type { ActiveTab } from '../../types';
 
 export const Sidebar: React.FC = () => {
-  const { t } = useTranslation();
   const { 
     isSidebarCollapsed, 
     toggleSidebar, 
@@ -22,37 +19,91 @@ export const Sidebar: React.FC = () => {
     device
   } = useSystemStore();
 
-  const handleTabClick = (tab: ActiveTab) => {
+  const handleTabClick = (tab: ActiveTab, isExternal?: boolean, url?: string) => {
+    if (isExternal && url) {
+      window.open(url, '_blank');
+      return;
+    }
     setActiveTab(tab);
   };
 
-  // Customer navigation links
-  const customerNavItems = [
-    { tab: 'dashboard' as ActiveTab, label: t('dashboard'), icon: <LayoutDashboard className="h-5 w-5" /> },
-    { tab: 'subdomains' as ActiveTab, label: t('subdomains'), icon: <Globe className="h-5 w-5" /> },
-    { tab: 'databases' as ActiveTab, label: t('databases'), icon: <Database className="h-5 w-5" /> },
-    { tab: 'plans' as ActiveTab, label: t('plans'), icon: <ShoppingBag className="h-5 w-5" /> },
-    { tab: 'billing' as ActiveTab, label: t('billing'), icon: <CreditCard className="h-5 w-5" /> },
-    { tab: 'testimonials' as ActiveTab, label: t('testimonials'), icon: <Star className="h-5 w-5" /> },
-    { tab: 'chat' as ActiveTab, label: t('chat'), icon: <MessageSquare className="h-5 w-5" /> },
-    { tab: 'reports' as ActiveTab, label: t('reports'), icon: <AlertTriangle className="h-5 w-5" /> },
-    { tab: 'profile' as ActiveTab, label: t('profile'), icon: <Settings className="h-5 w-5" /> },
+  const checkIsActive = (tab: ActiveTab, label?: string) => {
+    if (label === 'ARENHOST ID') return false;
+    return activeTab === tab;
+  };
+
+  // Customer navigation sections
+  const customerSections = [
+    {
+      items: [
+        { tab: 'dashboard' as ActiveTab, label: 'RINGKASAN', icon: <LayoutGrid className="h-5 w-5" /> }
+      ]
+    },
+    {
+      title: 'INFRASTRUKTUR',
+      items: [
+        { tab: 'subdomains' as ActiveTab, label: 'SUBDOMAIN', icon: <Globe className="h-5 w-5" /> },
+        { tab: 'databases' as ActiveTab, label: 'DATABASE', icon: <Database className="h-5 w-5" /> }
+      ]
+    },
+    {
+      title: 'TAGIHAN',
+      items: [
+        { tab: 'plans' as ActiveTab, label: 'PAKET', icon: <ShoppingBag className="h-5 w-5" /> },
+        { tab: 'billing' as ActiveTab, label: 'PEMBAYARAN', icon: <CreditCard className="h-5 w-5" /> }
+      ]
+    },
+    {
+      title: 'CRM',
+      items: [
+        { tab: 'chat' as ActiveTab, label: 'LIVE CHAT', icon: <MessageSquare className="h-5 w-5" /> },
+        { tab: 'testimonials' as ActiveTab, label: 'TESTIMONI', icon: <Star className="h-5 w-5" /> },
+        { tab: 'reports' as ActiveTab, label: 'TIKET DUKUNGAN', icon: <HelpCircle className="h-5 w-5" /> },
+        { tab: 'profile' as ActiveTab, label: 'PENGATURAN AKUN', icon: <User className="h-5 w-5" /> }
+      ]
+    }
   ];
 
-  // Admin navigation links
-  const adminNavItems = [
-    { tab: 'admin-dashboard' as ActiveTab, label: t('adminStats'), icon: <LayoutDashboard className="h-5 w-5" /> },
-    { tab: 'admin-plans' as ActiveTab, label: t('planManager'), icon: <ShoppingBag className="h-5 w-5" /> },
-    { tab: 'admin-vouchers' as ActiveTab, label: t('voucherManager'), icon: <Percent className="h-5 w-5" /> },
-    { tab: 'admin-users' as ActiveTab, label: t('userManager'), icon: <Users className="h-5 w-5" /> },
-    { tab: 'admin-payments' as ActiveTab, label: t('paymentConfirmation'), icon: <CreditCard className="h-5 w-5" /> },
-    { tab: 'admin-testimonials' as ActiveTab, label: t('adminTestimonials'), icon: <Star className="h-5 w-5" /> },
-    { tab: 'admin-chat' as ActiveTab, label: t('adminChatTitle'), icon: <MessageSquare className="h-5 w-5" /> },
-    { tab: 'admin-settings' as ActiveTab, label: t('systemSettings'), icon: <Settings className="h-5 w-5" /> },
+  // Admin navigation sections (Aligned with side bar screenshot)
+  const adminSections = [
+    {
+      items: [
+        { tab: 'admin-dashboard' as ActiveTab, label: 'RINGKASAN', icon: <LayoutGrid className="h-5 w-5" />, hasDot: true }
+      ]
+    },
+    {
+      title: 'INFRASTRUKTUR',
+      items: [
+        { tab: 'admin-dashboard' as ActiveTab, label: 'ARENHOST ID', icon: <Link2 className="h-5 w-5" />, isExternal: true, url: 'https://arenhost.id/client/clientarea.php' },
+        { tab: 'admin-deployment' as ActiveTab, label: 'DEPLOYMENT', icon: <RefreshCw className="h-5 w-5" /> },
+        { tab: 'admin-subdomain' as ActiveTab, label: 'SUBDOMAIN', icon: <Globe className="h-5 w-5" /> },
+        { tab: 'admin-database' as ActiveTab, label: 'DATABASE', icon: <Database className="h-5 w-5" /> },
+        { tab: 'admin-disk' as ActiveTab, label: 'PENGGUNAAN DISK', icon: <HardDrive className="h-5 w-5" /> }
+      ]
+    },
+    {
+      title: 'TAGIHAN',
+      items: [
+        { tab: 'admin-plans' as ActiveTab, label: 'PAKET', icon: <ShoppingBag className="h-5 w-5" /> },
+        { tab: 'admin-payments' as ActiveTab, label: 'PEMBAYARAN', icon: <CreditCard className="h-5 w-5" /> },
+        { tab: 'admin-vouchers' as ActiveTab, label: 'VOUCHER', icon: <Ticket className="h-5 w-5" /> }
+      ]
+    },
+    {
+      title: 'CRM',
+      items: [
+        { tab: 'admin-users' as ActiveTab, label: 'KLIEN', icon: <Users className="h-5 w-5" /> },
+        { tab: 'admin-chat' as ActiveTab, label: 'LIVE CHAT', icon: <MessageSquare className="h-5 w-5" /> },
+        { tab: 'admin-testimonials' as ActiveTab, label: 'TESTIMONI', icon: <Star className="h-5 w-5" /> },
+        { tab: 'admin-notifications' as ActiveTab, label: 'NOTIFIKASI', icon: <Megaphone className="h-5 w-5" /> },
+        { tab: 'admin-reports' as ActiveTab, label: 'TIKET DUKUNGAN', icon: <HelpCircle className="h-5 w-5" /> },
+        { tab: 'admin-settings' as ActiveTab, label: 'PENGATURAN', icon: <Settings className="h-5 w-5" /> },
+        { tab: 'profile' as ActiveTab, label: 'PENGATURAN AKUN', icon: <User className="h-5 w-5" /> }
+      ]
+    }
   ];
 
-  const navItems = currentRole === 'Admin' ? adminNavItems : customerNavItems;
-
+  const sections = currentRole === 'Admin' ? adminSections : customerSections;
   const sidebarWidth = isSidebarCollapsed ? 'w-20' : 'w-64';
 
   // Desktop view
@@ -89,41 +140,56 @@ export const Sidebar: React.FC = () => {
         </motion.button>
 
         {/* Navigation Items list */}
-        <nav className={`flex-1 py-6 space-y-1.5 overflow-y-auto transition-all duration-300 ${
+        <nav className={`flex-1 py-4 space-y-4 overflow-y-auto transition-all duration-300 ${
           isSidebarCollapsed ? 'px-2' : 'px-4'
         }`}>
-          {navItems.map((item) => {
-            const isActive = activeTab === item.tab;
-            
-            return (
-              <motion.button
-                key={item.tab}
-                onClick={() => handleTabClick(item.tab)}
-                whileHover={{ scale: 1.02, x: isSidebarCollapsed ? 0 : 2 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className={`w-full flex items-center rounded-xl text-sm font-semibold cursor-pointer border-none transition-colors duration-150 ${
-                  isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto' : 'justify-between px-4.5 py-3.5'
-                } ${
-                  isActive 
-                    ? 'bg-brand-primary/10 text-brand-primary' 
-                    : 'text-text-muted hover:bg-border-main/20 hover:text-text-main'
-                }`}
-              >
-                <div className={`flex items-center min-w-0 ${isSidebarCollapsed ? 'justify-center w-full' : 'gap-3.5'}`}>
-                  <span className="shrink-0">{item.icon}</span>
-                  <span className={`truncate text-sm font-semibold transition-all duration-300 ${
-                    isSidebarCollapsed ? 'w-0 opacity-0 ml-0 overflow-hidden invisible' : 'w-auto opacity-100 visible'
-                  }`}>
-                    {item.label}
-                  </span>
+          {sections.map((section, secIdx) => (
+            <div key={secIdx} className="space-y-1">
+              {section.title && !isSidebarCollapsed && (
+                <div className="px-3.5 py-1.5 text-[10px] font-extrabold text-text-muted/65 tracking-wider uppercase">
+                  {section.title}
                 </div>
-                {!isSidebarCollapsed && isActive && (
-                  <span className="h-2.5 w-2.5 rounded-full bg-brand-primary shadow-[0_0_12px_var(--brand-primary)] animate-pulse shrink-0 ml-1.5" />
-                )}
-              </motion.button>
-            );
-          })}
+              )}
+              {section.items.map((item) => {
+                const isActive = checkIsActive(item.tab, item.label);
+                
+                return (
+                  <motion.button
+                    key={item.label}
+                    onClick={() => {
+                      if ((item as any).isExternal && (item as any).url) {
+                        window.open((item as any).url, '_blank');
+                      } else {
+                        handleTabClick(item.tab);
+                      }
+                    }}
+                    whileHover={{ scale: 1.02, x: isSidebarCollapsed ? 0 : 2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className={`w-full flex items-center rounded-xl text-sm font-semibold cursor-pointer border-none transition-colors duration-150 ${
+                      isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto' : 'justify-between px-4.5 py-3'
+                    } ${
+                      isActive 
+                        ? 'bg-brand-primary/10 text-brand-primary' 
+                        : 'text-text-muted hover:bg-border-main/20 hover:text-text-main'
+                    }`}
+                  >
+                    <div className={`flex items-center min-w-0 ${isSidebarCollapsed ? 'justify-center w-full' : 'gap-3.5'}`}>
+                      <span className="shrink-0">{item.icon}</span>
+                      <span className={`truncate text-xs font-semibold transition-all duration-300 ${
+                        isSidebarCollapsed ? 'w-0 opacity-0 ml-0 overflow-hidden invisible' : 'w-auto opacity-100 visible'
+                      }`}>
+                        {item.label}
+                      </span>
+                    </div>
+                    {!isSidebarCollapsed && (isActive || (!!(item as any).hasDot)) ? (
+                      <span className={`h-2 w-2 rounded-full bg-brand-primary shadow-[0_0_12px_var(--brand-primary)] shrink-0 ml-1.5 ${isActive ? 'animate-pulse' : ''}`} />
+                    ) : null}
+                  </motion.button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* Footer Role Indicator */}
@@ -177,34 +243,48 @@ export const Sidebar: React.FC = () => {
           </button>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.tab || 
-              (item.tab === 'dashboard' && (activeTab === 'subdomains' || activeTab === 'databases'));
-            
-            return (
-              <motion.button
-                key={item.tab}
-                onClick={() => handleTabClick(item.tab)}
-                whileHover={{ scale: 1.02, x: 2 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className={`w-full flex items-center justify-between px-4.5 py-3.5 rounded-xl text-sm font-semibold cursor-pointer border-none ${
-                  isActive 
-                    ? 'bg-brand-primary/10 text-brand-primary' 
-                    : 'text-text-muted hover:bg-border-main/20 hover:text-text-main'
-                }`}
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="shrink-0">{item.icon}</span>
-                  <span className="truncate">{item.label}</span>
+        <nav className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
+          {sections.map((section, secIdx) => (
+            <div key={secIdx} className="space-y-1">
+              {section.title && (
+                <div className="px-3.5 py-1 text-[10px] font-extrabold text-text-muted/65 tracking-wider uppercase">
+                  {section.title}
                 </div>
-                {isActive && (
-                  <span className="h-2.5 w-2.5 rounded-full bg-brand-primary shadow-[0_0_12px_var(--brand-primary)] animate-pulse shrink-0 ml-1.5" />
-                )}
-              </motion.button>
-            );
-          })}
+              )}
+              {section.items.map((item) => {
+                const isActive = checkIsActive(item.tab, item.label);
+                
+                return (
+                  <motion.button
+                    key={item.label}
+                    onClick={() => {
+                      if ((item as any).isExternal && (item as any).url) {
+                        window.open((item as any).url, '_blank');
+                      } else {
+                        handleTabClick(item.tab);
+                      }
+                    }}
+                    whileHover={{ scale: 1.02, x: 2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className={`w-full flex items-center justify-between px-4.5 py-3 rounded-xl text-xs font-semibold cursor-pointer border-none ${
+                      isActive 
+                        ? 'bg-brand-primary/10 text-brand-primary' 
+                        : 'text-text-muted hover:bg-border-main/20 hover:text-text-main'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <span className="shrink-0">{item.icon}</span>
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {(isActive || (!!(item as any).hasDot)) ? (
+                      <span className={`h-2 w-2 rounded-full bg-brand-primary shadow-[0_0_12px_var(--brand-primary)] shrink-0 ml-1.5 ${isActive ? 'animate-pulse' : ''}`} />
+                    ) : null}
+                  </motion.button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="p-4 border-t border-border-main">
@@ -219,4 +299,6 @@ export const Sidebar: React.FC = () => {
     </>
   );
 };
+
 export default Sidebar;
+

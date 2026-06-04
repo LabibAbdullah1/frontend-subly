@@ -1,6 +1,6 @@
 // src/stores/useDataStore.ts
 import { create } from 'zustand';
-import type { Subdomain, UserDatabase, SubdomainEnv, Payment, Plan, ChatMessage, LogLine, Testimonial, TestimonialStatus } from '../types';
+import type { Subdomain, UserDatabase, SubdomainEnv, Payment, Plan, ChatMessage, LogLine, Testimonial, TestimonialStatus, ClientNotification } from '../types';
 import { apiFetch } from '../utils/api';
 import { useAuthStore } from './useAuthStore';
 
@@ -42,6 +42,7 @@ interface DataState {
 
   addSubdomain: (name: string, paymentId: number) => Promise<Subdomain>;
   deleteSubdomain: (id: number) => Promise<void>;
+  toggleSubdomainStatus: (id: number, status: 'active' | 'inactive') => Promise<void>;
   updateSubdomainGit: (id: number, url: string, branch: string, token?: string) => Promise<void>;
 
   addDatabase: (subdomainId: number, dbName: string, dbUser: string) => Promise<UserDatabase>;
@@ -67,7 +68,7 @@ interface DataState {
   addVoucher: (code: string, discountPercent: number, maxUses: number) => Promise<void>;
   deleteVoucher: (id: number) => Promise<void>;
   updateSubdomainStorageOverride: (subdomainId: number, limitMb: number) => Promise<void>;
-  updateSetting: (key: string, value: string | null, file?: File) => Promise<void>;
+  updateSetting: (key: string | Record<string, string | null>, value?: string | null | File, file?: File) => Promise<void>;
 
   // Testimonials State & Actions
   myTestimonials: Testimonial[];
@@ -80,6 +81,35 @@ interface DataState {
   updateTestimonialStatus: (id: number, status: TestimonialStatus, adminNote?: string) => Promise<void>;
   deleteTestimonial: (id: number) => Promise<void>;
   deleteChatMessage: (chatId: number, userId: number) => Promise<void>;
+  
+  // Admin Disk Usage State & Actions
+  adminDiskUsage: {
+    subdomains: {
+      id: string;
+      name: string;
+      fullDomain: string;
+      owner: { name: string; email: string } | null;
+      packageName: string;
+      limitMb: number;
+      filesBytes: number;
+      filesMb: number;
+      dbBytes: number;
+      dbMb: number;
+      totalBytes: number;
+      totalMb: number;
+    }[];
+    totalAccumulatedMb: number;
+    totalFilesMb: number;
+    totalDbMb: number;
+  } | null;
+  fetchAdminDiskUsage: () => Promise<void>;
+
+  // Notifications State & Actions
+  notifications: ClientNotification[];
+  fetchNotifications: () => Promise<void>;
+  createNotification: (title: string, message: string, userId?: string | null) => Promise<void>;
+  markNotificationAsRead: (id: number) => Promise<void>;
+  deleteNotification: (id: number) => Promise<void>;
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
@@ -97,51 +127,50 @@ export const useDataStore = create<DataState>((set, get) => ({
   myTestimonials: [],
   publicTestimonials: [],
   adminTestimonials: [],
+  adminDiskUsage: null,
+  notifications: [],
 
   fetchInitialData: async () => {
-    const authStore = useAuthStore.getState();
-    if (authStore.status !== 'authenticated') return;
+    const token = localStorage.getItem('subly_token');
+    if (!token) return;
 
-    try {
-      await get().fetchPlans();
-      await get().fetchSubdomains();
-      await get().fetchPayments();
-      await get().fetchIssues();
-      await get().fetchSettings();
-      if (authStore.user) {
-        await get().fetchChats(authStore.user.id);
-        await get().fetchMyTestimonials();
-        if (authStore.user.role === 'Admin') {
-          await get().fetchVouchers();
-          await get().fetchAdminUsers();
-          await get().fetchAdminStats();
-          await get().fetchAdminTestimonials();
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load initial backend data:', err);
+    try { await get().fetchPlans(); } catch (e) { console.error('Error fetching plans:', e); }
+    try { await get().fetchSettings(); } catch (e) { console.error('Error fetching settings:', e); }
+
+    const authStore = useAuthStore.getState();
+    if (authStore.user?.role === 'Admin') {
+      try { await get().fetchSubdomains(); } catch (e) { console.error('Error fetching subdomains:', e); }
+      try { await get().fetchPayments(); } catch (e) { console.error('Error fetching payments:', e); }
+      try { await get().fetchIssues(); } catch (e) { console.error('Error fetching issues:', e); }
+      try { await get().fetchVouchers(); } catch (e) { console.error('Error fetching vouchers:', e); }
+      try { await get().fetchAdminUsers(); } catch (e) { console.error('Error fetching admin users:', e); }
+      try { await get().fetchAdminStats(); } catch (e) { console.error('Error fetching admin stats:', e); }
+      try { await get().fetchAdminTestimonials(); } catch (e) { console.error('Error fetching admin testimonials:', e); }
+      try { await get().fetchAdminDiskUsage(); } catch (e) { console.error('Error fetching admin disk usage:', e); }
+      try { await get().fetchNotifications(); } catch (e) { console.error('Error fetching notifications:', e); }
+    } else {
+      try { await get().fetchSubdomains(); } catch (e) { console.error('Error fetching subdomains:', e); }
+      try { await get().fetchPayments(); } catch (e) { console.error('Error fetching payments:', e); }
+      try { await get().fetchMyTestimonials(); } catch (e) { console.error('Error fetching testimonials:', e); }
+      try { await get().fetchNotifications(); } catch (e) { console.error('Error fetching notifications:', e); }
     }
   },
 
   fetchPlans: async () => {
     try {
-      const authStore = useAuthStore.getState();
-      const isAdmin = authStore.user?.role === 'Admin';
-      const endpoint = isAdmin ? '/plans/all' : '/plans';
-
-      const res = await apiFetch<any>(endpoint);
-      const rawPlans = Array.isArray(res) ? res : (res && res.data ? res.data : []);
-      const plans = rawPlans.map((p: any) => ({
+      const res = await apiFetch<any[]>('/plans');
+      const plans = res.map((p: any) => ({
         id: Number(p.id),
         name: p.name,
         price: Number(p.price),
-        type: p.type as 'PHP' | 'NodeJS',
-        description: p.description,
+        type: p.type,
+        description: p.description || null,
         max_storage_mb: p.maxStorageMb,
         max_databases: p.maxDatabases,
         duration_months: p.durationMonths,
         is_active: p.isActive,
         created_at: p.createdAt || '',
+        updated_at: p.updatedAt || ''
       }));
       set({ plans });
     } catch (err) {
@@ -167,6 +196,7 @@ export const useDataStore = create<DataState>((set, get) => ({
         git_connected_at: sub.gitConnectedAt,
         created_at: sub.createdAt || '',
         updated_at: sub.updatedAt || '',
+        user: sub.user ? { name: sub.user.name, email: sub.user.email } : null,
         envs: (sub.envs || []).map((e: any) => ({
           id: Number(e.id),
           subdomain_id: Number(e.subdomainId),
@@ -410,6 +440,15 @@ export const useDataStore = create<DataState>((set, get) => ({
       method: 'DELETE'
     });
     await get().fetchSubdomains();
+  },
+
+  toggleSubdomainStatus: async (id, status) => {
+    await apiFetch(`/subdomains/${id}/status`, {
+      method: 'PUT',
+      body: { status }
+    });
+    await get().fetchSubdomains();
+    await get().fetchAdminDiskUsage();
   },
 
   updateSubdomainGit: async (id, url, branch, token) => {
@@ -685,9 +724,19 @@ export const useDataStore = create<DataState>((set, get) => ({
 
   updateSetting: async (key, value, file) => {
     const formData = new FormData();
-    formData.append(key, value || '');
-    if (file) {
-      formData.append('qris_image', file);
+    if (typeof key === 'object') {
+      Object.entries(key).forEach(([k, v]) => {
+        formData.append(k, v || '');
+      });
+      const fileToUpload = value instanceof File ? value : file;
+      if (fileToUpload) {
+        formData.append('qris_image', fileToUpload);
+      }
+    } else {
+      formData.append(key, (value as string) || '');
+      if (file) {
+        formData.append('qris_image', file);
+      }
     }
 
     await apiFetch('/settings', {
@@ -810,5 +859,58 @@ export const useDataStore = create<DataState>((set, get) => ({
     } catch (err) {
       console.error('Failed to delete chat message:', err);
     }
+  },
+
+  fetchAdminDiskUsage: async () => {
+    try {
+      const res = await apiFetch<{ success: boolean; data: any }>('/admin/disk-usage');
+      set({ adminDiskUsage: res.data });
+    } catch (err) {
+      console.error('Failed to fetch admin disk usage:', err);
+    }
+  },
+
+  fetchNotifications: async () => {
+    try {
+      const res = await apiFetch<{ success: boolean; data: any[] }>('/notifications');
+      const notifications = res.data.map((n: any) => ({
+        id: Number(n.id),
+        userId: n.userId ? Number(n.userId) : null,
+        title: n.title,
+        message: n.message,
+        isRead: Boolean(n.isRead),
+        createdAt: n.createdAt || '',
+        user: n.user ? {
+          id: Number(n.user.id),
+          name: n.user.name,
+          email: n.user.email
+        } : null
+      }));
+      set({ notifications });
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    }
+  },
+
+  createNotification: async (title, message, userId = null) => {
+    await apiFetch('/notifications', {
+      method: 'POST',
+      body: { title, message, userId }
+    });
+    await get().fetchNotifications();
+  },
+
+  markNotificationAsRead: async (id) => {
+    await apiFetch(`/notifications/${id}/read`, {
+      method: 'POST'
+    });
+    await get().fetchNotifications();
+  },
+
+  deleteNotification: async (id) => {
+    await apiFetch(`/notifications/${id}`, {
+      method: 'DELETE'
+    });
+    await get().fetchNotifications();
   }
 }));

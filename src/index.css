@@ -74,7 +74,7 @@ body {
 .glow-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.glow-hover:hover {
+.glow-hover-active:hover {
   box-shadow: 0 0 24px var(--glow-color);
   border-color: rgba(245, 158, 11, 0.4);
   transform: translateY(-2px);
