@@ -76,7 +76,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (name, email, password = 'password') => {
     await apiFetch('/auth/register', {
       method: 'POST',
-      body: { name, email, password }
+      body: { name, email, password, password_confirmation: password }
     });
 
     set({
