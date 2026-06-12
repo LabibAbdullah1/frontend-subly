@@ -26,6 +26,14 @@ interface DataState {
       limitGb: number;
     };
     topConsumers: { name: string; usedBytes: number; usedMb: number }[];
+    system?: {
+      cpuCores: number;
+      activeProcesses: number;
+      memoryTotalGb: number;
+      memoryUsedGb: number;
+      uptimeSeconds: number;
+      loadAverage: number[];
+    };
   } | null;
 
   // Actions

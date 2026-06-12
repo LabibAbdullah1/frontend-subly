@@ -33,7 +33,8 @@ export const AdminDashboard: React.FC = () => {
     updateSubdomainStorageOverride,
     toggleSubdomainStatus,
     fetchNotifications,
-    fetchIssues
+    fetchIssues,
+    globalIssues
   } = useDataStore();
 
   const [confirmPayId, setConfirmPayId] = useState<number | null>(null);
@@ -50,6 +51,76 @@ export const AdminDashboard: React.FC = () => {
   const [overrideSubdomainId, setOverrideSubdomainId] = useState<number | null>(null);
   const [overrideLimitSize, setOverrideLimitSize] = useState('2048');
   const [isSubmittingOverride, setIsSubmittingOverride] = useState(false);
+
+  const formatUptime = (seconds: number | undefined) => {
+    if (seconds === undefined) return '0m';
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const parts = [];
+    if (d > 0) parts.push(`${d}d`);
+    if (h > 0) parts.push(`${h}h`);
+    if (m > 0) parts.push(`${m}m`);
+    return parts.join(' ') || '0m';
+  };
+
+  const getLast6MonthsRevenue = () => {
+    const monthsData = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      const revenue = payments
+        .filter(p => {
+          if (p.status !== 'success') return false;
+          const pd = new Date(p.created_at);
+          return pd.getMonth() === m && pd.getFullYear() === y;
+        })
+        .reduce((sum, p) => sum + (p.amount + p.unique_code), 0);
+      monthsData.push({
+        label: d.toLocaleDateString('id-ID', { month: 'short' }),
+        revenue
+      });
+    }
+    return monthsData;
+  };
+
+  const getSystemLogs = () => {
+    const logsList: { type: string; message: string; time: Date }[] = [];
+    payments.forEach(p => {
+      const owner = adminUsers.find(u => u.id === p.user_id);
+      const clientName = owner ? owner.name : `Client #${p.user_id}`;
+      if (p.status === 'success') {
+        logsList.push({
+          type: 'success',
+          message: `Pembayaran lunas: ${clientName} (Rp ${(p.amount + p.unique_code).toLocaleString('id-ID')})`,
+          time: new Date(p.created_at)
+        });
+      } else if (p.status === 'pending') {
+        logsList.push({
+          type: 'pending',
+          message: `Pembayaran pending: ${clientName} mengunggah invoice`,
+          time: new Date(p.created_at)
+        });
+      }
+    });
+    subdomains.forEach(s => {
+      logsList.push({
+        type: 'info',
+        message: `Subdomain aktif: ${s.name}.subly.host (${s.user?.name || 'Client'})`,
+        time: new Date(s.created_at)
+      });
+    });
+    adminUsers.forEach(u => {
+      logsList.push({
+        type: 'user',
+        message: `Klien baru terdaftar: ${u.name} (${u.email})`,
+        time: new Date(u.createdAt || new Date())
+      });
+    });
+    return logsList.sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 5);
+  };
 
   useEffect(() => {
     fetchAdminStats();
@@ -246,6 +317,29 @@ export const AdminDashboard: React.FC = () => {
           </p>
         </div>
 
+        {/* Support Alerts if any */}
+        {globalIssues.filter(issue => issue.status !== 'resolved').length > 0 && (
+          <div className="p-4 rounded-2xl bg-red-500/5 dark:bg-red-500/2 border border-red-500/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none animate-in fade-in duration-300">
+            <div className="flex items-center gap-2.5 text-xs font-bold text-red-500 dark:text-red-400 text-left">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              <div>
+                <h4 className="font-bold uppercase tracking-wider">Terdapat Tiket Gangguan Klien Aktif</h4>
+                <p className="text-[10px] text-text-muted font-semibold mt-0.5">
+                  Ada {globalIssues.filter(issue => issue.status !== 'resolved').length} laporan kendala teknis dari klien yang membutuhkan perhatian segera.
+                </p>
+              </div>
+            </div>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setActiveTab('admin-reports')}
+              className="shrink-0 text-[10px] uppercase font-black tracking-wider border-red-500/30 hover:bg-red-500/10 text-red-500"
+            >
+              Kelola Tiket
+            </Button>
+          </div>
+        )}
+
         {/* Counter cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 select-none">
           <CardPanel className="p-5">
@@ -275,8 +369,8 @@ export const AdminDashboard: React.FC = () => {
           <CardPanel className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider block">CHAT BELUM DIBACA</span>
-                <span className="text-2xl font-bold text-text-main">0</span>
+                <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider block">TIKET AKTIF</span>
+                <span className="text-2xl font-bold text-text-main">{globalIssues.filter(i => i.status !== 'resolved').length}</span>
               </div>
               <div className="h-10 w-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
                 <MessageSquare className="h-5 w-5" />
@@ -299,9 +393,10 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Charts & Tables Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Circular Progress Data Card */}
-          <div className="lg:col-span-1">
-            <CardPanel className="p-6 flex flex-col items-center justify-center text-center h-full">
+          {/* Left Side: Circular Storage & Server Health */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Circular Storage Progress Card */}
+            <CardPanel className="p-6 flex flex-col items-center justify-center text-center">
               <h3 className="text-xs font-black uppercase text-text-muted tracking-wider mb-4">Penyimpanan Server Global</h3>
               <div className="relative h-36 w-36 flex items-center justify-center">
                 <svg className="w-full h-full transform -rotate-90">
@@ -334,10 +429,69 @@ export const AdminDashboard: React.FC = () => {
                 {overallUsedMb.toFixed(1)} MB / {totalLimitMb} MB (Limit {limitGbSetting} GB)
               </p>
             </CardPanel>
+
+            {/* Server Health & NPROC Monitor */}
+            <CardPanel title="Kesehatan Server & NPROC">
+              <div className="space-y-4 text-xs font-semibold select-none mt-2">
+                {/* Memory RAM progress bar */}
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[10px] text-text-muted uppercase tracking-wider">
+                    <span>Penggunaan RAM Memory</span>
+                    <span>
+                      {adminStats?.system 
+                        ? `${adminStats.system.memoryUsedGb.toFixed(1)} GB / ${adminStats.system.memoryTotalGb.toFixed(0)} GB (${Math.round((adminStats.system.memoryUsedGb / adminStats.system.memoryTotalGb) * 100)}%)`
+                        : '- / -'
+                      }
+                    </span>
+                  </div>
+                  <div className="w-full bg-border-main/40 h-2.5 rounded-full overflow-hidden border border-border-main/10">
+                    <div 
+                      className="h-full bg-brand-primary rounded-full transition-all duration-300"
+                      style={{ 
+                        width: `${adminStats?.system 
+                          ? Math.round((adminStats.system.memoryUsedGb / adminStats.system.memoryTotalGb) * 100) 
+                          : 0}%` 
+                      }} 
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 border-t border-border-main/30 pt-3">
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">CPU Cores</span>
+                    <span className="text-sm font-bold text-text-main">
+                      {adminStats?.system?.cpuCores ? `${adminStats.system.cpuCores} Threads` : '-'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">NPROC (Aktif)</span>
+                    <span className="text-sm font-bold text-brand-primary">
+                      {adminStats?.system?.activeProcesses ? `${adminStats.system.activeProcesses} Proses` : '-'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 border-t border-border-main/30 pt-3">
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">Uptime Server</span>
+                    <span className="text-sm font-bold text-text-main">
+                      {adminStats?.system ? formatUptime(adminStats.system.uptimeSeconds) : '-'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">Load Average (1m)</span>
+                    <span className={`text-sm font-bold ${(adminStats?.system?.loadAverage?.[0] ?? 0) > 2.0 ? 'text-amber-500' : 'text-text-main'}`}>
+                      {adminStats?.system?.loadAverage?.[0] !== undefined ? adminStats.system.loadAverage[0].toFixed(2) : '-'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardPanel>
           </div>
 
-          {/* Table deployments */}
-          <div className="lg:col-span-2">
+          {/* Right Side: Charts, Tables, and Support Issues */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Table deployments */}
             <CardPanel 
               title="Deployment Terbaru" 
               headerActions={
@@ -389,6 +543,62 @@ export const AdminDashboard: React.FC = () => {
                 </table>
               </div>
             </CardPanel>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Revenue Trends Chart */}
+              <CardPanel title="Tren Pendapatan Bulanan (6 Bln)">
+                <div className="flex items-end justify-between h-36 pt-4 px-2 select-none mt-2">
+                  {getLast6MonthsRevenue().map((data, idx) => {
+                    const maxRevenue = Math.max(...getLast6MonthsRevenue().map(d => d.revenue)) || 1;
+                    const heightPercent = Math.max(10, Math.round((data.revenue / maxRevenue) * 100));
+                    return (
+                      <div key={idx} className="flex flex-col items-center gap-2 flex-1">
+                        <div className="relative group w-full flex justify-center">
+                          {/* Tooltip on hover */}
+                          <div className="absolute bottom-full mb-1 bg-slate-900 border border-border-main text-[9px] font-bold text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none z-10">
+                            Rp {data.revenue.toLocaleString('id-ID')}
+                          </div>
+                          <div 
+                            className="w-4 sm:w-6 bg-gradient-to-t from-brand-primary/40 to-brand-primary border border-brand-primary/30 rounded-t-md hover:opacity-85 transition-opacity"
+                            style={{ height: `${heightPercent}px` }}
+                          />
+                        </div>
+                        <span className="text-[9px] font-bold text-text-muted uppercase">{data.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardPanel>
+
+              {/* Log Audit & Aktivitas Terbaru */}
+              <CardPanel title="Log Audit & Aktivitas Terbaru">
+                <div className="space-y-3 mt-2 max-h-[144px] overflow-y-auto pr-1">
+                  {getSystemLogs().map((log, idx) => {
+                    let badgeColor = 'bg-brand-primary/10 text-brand-primary border-brand-primary/20';
+                    if (log.type === 'success') badgeColor = 'bg-green-500/10 text-green-500 border-green-500/20';
+                    if (log.type === 'pending') badgeColor = 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+                    if (log.type === 'user') badgeColor = 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20';
+
+                    return (
+                      <div key={idx} className="flex items-start justify-between gap-3 text-[10px] border-b border-border-main/20 pb-2.5 last:border-0 last:pb-0 select-none">
+                        <div className="flex items-start gap-2">
+                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded border ${badgeColor}`}>
+                            {log.type}
+                          </span>
+                          <p className="text-text-main font-medium leading-relaxed">{log.message}</p>
+                        </div>
+                        <span className="text-[9px] text-text-muted font-mono shrink-0">
+                          {log.time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {getSystemLogs().length === 0 && (
+                    <p className="text-xs text-text-muted italic text-center py-6">Belum ada log aktivitas sistem.</p>
+                  )}
+                </div>
+              </CardPanel>
+            </div>
           </div>
         </div>
       </div>
