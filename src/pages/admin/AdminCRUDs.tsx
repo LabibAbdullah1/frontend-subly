@@ -99,6 +99,9 @@ export const AdminCRUDs: React.FC = () => {
   const [systemStorageWarningThreshold, setSystemStorageWarningThreshold] = useState('80');
   const [systemSupportSla, setSystemSupportSla] = useState('< 10 Menit');
   const [adminNotificationEmail, setAdminNotificationEmail] = useState('');
+  const [systemRamLimit, setSystemRamLimit] = useState('4');
+  const [systemCpuCoresLimit, setSystemCpuCoresLimit] = useState('4');
+  const [systemNprocLimit, setSystemNprocLimit] = useState('200');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   // Testimonials Review states
@@ -137,6 +140,9 @@ export const AdminCRUDs: React.FC = () => {
       setSystemStorageWarningThreshold(settings.system_storage_warning_threshold || '80');
       setSystemSupportSla(settings.system_support_sla || '< 10 Menit');
       setAdminNotificationEmail(settings.admin_notification_email || 'admin@subly.my.id');
+      setSystemRamLimit(settings.system_ram_limit_gb || '4');
+      setSystemCpuCoresLimit(settings.system_cpu_cores_limit || '4');
+      setSystemNprocLimit(settings.system_nproc_limit || '200');
       setImageError(false);
     }
   }, [settings]);
@@ -377,6 +383,9 @@ export const AdminCRUDs: React.FC = () => {
       await updateSetting('system_storage_warning_threshold', systemStorageWarningThreshold);
       await updateSetting('system_support_sla', systemSupportSla);
       await updateSetting('admin_notification_email', adminNotificationEmail);
+      await updateSetting('system_ram_limit_gb', systemRamLimit);
+      await updateSetting('system_cpu_cores_limit', systemCpuCoresLimit);
+      await updateSetting('system_nproc_limit', systemNprocLimit);
       addToast({
         type: 'success',
         title: 'Pengaturan Disimpan',
@@ -838,6 +847,42 @@ export const AdminCRUDs: React.FC = () => {
                   placeholder="admin@subly.my.id"
                   className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-bold text-text-main outline-none" 
                   required
+                />
+              </div>
+
+              <div className="space-y-1.5 text-left">
+                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">Dedicated RAM cPanel (GB)</label>
+                <input 
+                  type="number" 
+                  value={systemRamLimit}
+                  onChange={(e) => setSystemRamLimit(e.target.value)}
+                  className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-bold text-text-main outline-none" 
+                  required
+                  min="1"
+                />
+              </div>
+
+              <div className="space-y-1.5 text-left">
+                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">Jatah CPU Cores cPanel (Cores)</label>
+                <input 
+                  type="number" 
+                  value={systemCpuCoresLimit}
+                  onChange={(e) => setSystemCpuCoresLimit(e.target.value)}
+                  className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-bold text-text-main outline-none" 
+                  required
+                  min="1"
+                />
+              </div>
+
+              <div className="space-y-1.5 text-left">
+                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">Limit NPROC Proses cPanel</label>
+                <input 
+                  type="number" 
+                  value={systemNprocLimit}
+                  onChange={(e) => setSystemNprocLimit(e.target.value)}
+                  className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-bold text-text-main outline-none" 
+                  required
+                  min="1"
                 />
               </div>
 
