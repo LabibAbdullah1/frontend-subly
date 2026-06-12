@@ -860,6 +860,9 @@ export const AdminCRUDs: React.FC = () => {
                   required
                   min="1"
                 />
+                <p className="text-[10px] text-text-muted leading-relaxed">
+                  Isi sesuai batas RAM dedicated akun cPanel Anda (bukan total RAM server). Cek di cPanel → Resource Usage. Contoh: <span className="font-bold text-brand-primary">4</span> untuk 4 GB.
+                </p>
               </div>
 
               <div className="space-y-1.5 text-left">
@@ -872,6 +875,9 @@ export const AdminCRUDs: React.FC = () => {
                   required
                   min="1"
                 />
+                <p className="text-[10px] text-text-muted leading-relaxed">
+                  Jumlah CPU cores yang dialokasikan untuk akun cPanel Anda. Pada shared hosting CloudLinux ini biasanya <span className="font-bold">1–8 cores</span>. Cek di cPanel → Resource Usage → CPU.
+                </p>
               </div>
 
               <div className="space-y-1.5 text-left">
@@ -884,6 +890,9 @@ export const AdminCRUDs: React.FC = () => {
                   required
                   min="1"
                 />
+                <p className="text-[10px] text-text-muted leading-relaxed">
+                  Batas maksimal proses (NPROC) untuk akun cPanel Anda — bukan limit server global. Cek di cPanel → Resource Usage → NPROC. Nilai ini menjadi denominator di widget monitor dashboard. Contoh: <span className="font-bold text-brand-primary">200</span>.
+                </p>
               </div>
 
               <Button type="submit" variant="primary" isLoading={isSavingLimit}>Simpan Parameter Sistem</Button>
