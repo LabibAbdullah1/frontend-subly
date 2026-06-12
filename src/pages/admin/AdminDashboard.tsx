@@ -431,7 +431,7 @@ export const AdminDashboard: React.FC = () => {
             </CardPanel>
 
             {/* Server Health & NPROC Monitor */}
-            <CardPanel title="Kesehatan Server & NPROC">
+            <CardPanel title="Resource & Spesifikasi Hosting (cPanel)">
               <div className="space-y-4 text-xs font-semibold select-none mt-2">
                 {/* Memory RAM progress bar */}
                 <div className="space-y-1">
@@ -439,7 +439,7 @@ export const AdminDashboard: React.FC = () => {
                     <span>Penggunaan RAM Memory</span>
                     <span>
                       {adminStats?.system 
-                        ? `${adminStats.system.memoryUsedGb.toFixed(1)} GB / ${adminStats.system.memoryTotalGb.toFixed(0)} GB (${Math.round((adminStats.system.memoryUsedGb / adminStats.system.memoryTotalGb) * 100)}%)`
+                        ? `${adminStats.system.memoryUsedMb.toFixed(1)} MB / ${adminStats.system.memoryTotalMb >= 1024 ? `${(adminStats.system.memoryTotalMb / 1024).toFixed(0)} GB` : `${adminStats.system.memoryTotalMb.toFixed(0)} MB`} (${Math.round((adminStats.system.memoryUsedMb / adminStats.system.memoryTotalMb) * 100)}%)`
                         : '- / -'
                       }
                     </span>
@@ -449,8 +449,29 @@ export const AdminDashboard: React.FC = () => {
                       className="h-full bg-brand-primary rounded-full transition-all duration-300"
                       style={{ 
                         width: `${adminStats?.system 
-                          ? Math.round((adminStats.system.memoryUsedGb / adminStats.system.memoryTotalGb) * 100) 
+                          ? Math.round((adminStats.system.memoryUsedMb / adminStats.system.memoryTotalMb) * 100) 
                           : 0}%` 
+                      }} 
+                    />
+                  </div>
+                </div>
+
+                {/* CPU Usage progress bar */}
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[10px] text-text-muted uppercase tracking-wider">
+                    <span>Penggunaan CPU (Core Allocation)</span>
+                    <span>
+                      {adminStats?.system 
+                        ? `${adminStats.system.cpuUsagePercent}% / 100%`
+                        : '- / -'
+                      }
+                    </span>
+                  </div>
+                  <div className="w-full bg-border-main/40 h-2.5 rounded-full overflow-hidden border border-border-main/10">
+                    <div 
+                      className="h-full bg-brand-primary rounded-full transition-all duration-300"
+                      style={{ 
+                        width: `${adminStats?.system ? adminStats.system.cpuUsagePercent : 0}%` 
                       }} 
                     />
                   </div>
@@ -464,7 +485,7 @@ export const AdminDashboard: React.FC = () => {
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">NPROC (Aktif)</span>
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">NPROC (Limit Proses)</span>
                     <span className="text-sm font-bold text-brand-primary">
                       {adminStats?.system?.activeProcesses 
                         ? `${adminStats.system.activeProcesses} / ${adminStats.system.maxProcesses || 200} (${Math.round((adminStats.system.activeProcesses / (adminStats.system.maxProcesses || 200)) * 100)}%)` 
@@ -476,15 +497,39 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4 border-t border-border-main/30 pt-3">
                   <div>
-                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">Uptime Server</span>
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">Entry Processes (EP)</span>
+                    <span className="text-sm font-bold text-text-main">
+                      {adminStats?.system 
+                        ? `${adminStats.system.entryProcesses} / ${adminStats.system.maxEntryProcesses} (${Math.round((adminStats.system.entryProcesses / adminStats.system.maxEntryProcesses) * 100)}%)`
+                        : '-'
+                      }
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">Uptime Aplikasi</span>
                     <span className="text-sm font-bold text-text-main">
                       {adminStats?.system ? formatUptime(adminStats.system.uptimeSeconds) : '-'}
                     </span>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 border-t border-border-main/30 pt-3">
                   <div>
-                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">Load Average (1m)</span>
-                    <span className={`text-sm font-bold ${(adminStats?.system?.loadAverage?.[0] ?? 0) > 2.0 ? 'text-amber-500' : 'text-text-main'}`}>
-                      {adminStats?.system?.loadAverage?.[0] !== undefined ? adminStats.system.loadAverage[0].toFixed(2) : '-'}
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">I/O Usage Speed</span>
+                    <span className="text-sm font-bold text-text-main">
+                      {adminStats?.system 
+                        ? `${adminStats.system.ioSpeedKb > 0 ? `${adminStats.system.ioSpeedKb} KB/s` : '0 bytes/s'} / ${adminStats.system.maxIoSpeedMb} MB/s`
+                        : '-'
+                      }
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider block">IOPS Limit</span>
+                    <span className="text-sm font-bold text-text-main">
+                      {adminStats?.system 
+                        ? `${adminStats.system.iops} / ${adminStats.system.maxIops.toLocaleString('id-ID')} (${Math.round((adminStats.system.iops / adminStats.system.maxIops) * 100)}%)`
+                        : '-'
+                      }
                     </span>
                   </div>
                 </div>

@@ -28,12 +28,21 @@ interface DataState {
     topConsumers: { name: string; usedBytes: number; usedMb: number }[];
     system?: {
       cpuCores: number;
+      cpuUsagePercent: number;
       activeProcesses: number;
       maxProcesses?: number;
+      entryProcesses: number;
+      maxEntryProcesses: number;
       memoryTotalGb: number;
       memoryUsedGb: number;
+      memoryTotalMb: number;
+      memoryUsedMb: number;
       uptimeSeconds: number;
       loadAverage: number[];
+      ioSpeedKb: number;
+      maxIoSpeedMb: number;
+      iops: number;
+      maxIops: number;
     };
   } | null;
 
