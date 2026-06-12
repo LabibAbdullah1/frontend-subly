@@ -21,12 +21,15 @@ interface SystemState {
   setActiveTab: (tab: ActiveTab, subdomainId?: number | null) => void;
 }
 
-// Initialize default language and theme
-const initialTheme: AppTheme = (typeof window !== 'undefined' && localStorage.getItem('subly-theme') as AppTheme) || 'light';
+const initialTheme: AppTheme = (typeof window !== 'undefined' && localStorage.getItem('subly-theme') as AppTheme) || 'dark';
 const initialLang: AppLanguage = (typeof window !== 'undefined' && localStorage.getItem('subly-lang') as AppLanguage) || 'id';
 
 if (typeof window !== 'undefined') {
-  document.documentElement.className = initialTheme;
+  if (initialTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
 }
 
 export const useSystemStore = create<SystemState>((set, get) => ({
@@ -41,13 +44,17 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   setTheme: (theme) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('subly-theme', theme);
-      document.documentElement.className = theme;
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
     set({ theme });
   },
 
   toggleTheme: () => {
-    const nextTheme = get().theme === 'light' ? 'dark' : 'light';
+    const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
     get().setTheme(nextTheme);
   },
 

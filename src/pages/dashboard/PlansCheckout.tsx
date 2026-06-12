@@ -19,6 +19,7 @@ export const PlansCheckout: React.FC = () => {
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [isUploadingProof, setIsUploadingProof] = useState(false);
+  const [qrisImageError, setQrisImageError] = useState(false);
 
   useEffect(() => {
     if (!proofFile) {
@@ -42,6 +43,10 @@ export const PlansCheckout: React.FC = () => {
   useEffect(() => {
     fetchSettings();
   }, [fetchSettings]);
+
+  useEffect(() => {
+    setQrisImageError(false);
+  }, [settings?.qris_image_path]);
 
   useEffect(() => {
     if (activePayment) {
@@ -100,17 +105,11 @@ export const PlansCheckout: React.FC = () => {
     }
   };
 
-  const totalAmount = activePayment ? activePayment.amount + activePayment.unique_code : 0;
+  const totalAmount = activePayment ? activePayment.amount : 0;
   
   // QRIS Image URL Configuration
   const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
   const qrisImgUrl = settings.qris_image_path ? `${settings.qris_image_path.startsWith('http') ? '' : UPLOADS_BASE}/${settings.qris_image_path}` : null;
-
-  // Dynamic QRIS Payload Fallback
-  const qrisNmid = settings.qris_nmid || 'ID102027381928';
-  const qrisMerchant = settings.qris_merchant_name || 'SUBLY HOSTING INDONESIA';
-  const dynamicQrData = `00020101021138590016${qrisNmid}520400005303360540${totalAmount}.005802ID59${qrisMerchant.length.toString().padStart(2, '0')}${qrisMerchant}6005DEPOK610516424620707031236304`;
-  const dynamicQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(dynamicQrData)}`;
 
   return (
     <div className="space-y-6 w-full text-left">
@@ -134,14 +133,25 @@ export const PlansCheckout: React.FC = () => {
               <div className="flex flex-col md:flex-row items-stretch w-full min-h-[380px]">
                 {/* Left Column: QRIS Image with left spacing */}
                 <div className="md:w-[260px] shrink-0 bg-transparent flex flex-col items-center justify-center relative p-4 md:pl-6 md:py-6 md:pr-0">
-                  <img 
-                    src={qrisImgUrl || dynamicQrUrl} 
-                    alt="QRIS Code" 
-                    className="w-full h-full object-contain select-none" 
-                  />
-                  <div className="absolute bottom-4 px-3 py-1 rounded bg-slate-900/90 text-white font-bold text-[9px] tracking-wider uppercase backdrop-blur-xs select-none">
-                    QRIS GPN
-                  </div>
+                  {qrisImgUrl && !qrisImageError ? (
+                    <img 
+                      src={qrisImgUrl} 
+                      onError={() => setQrisImageError(true)}
+                      alt="QRIS Code" 
+                      className="w-full h-full object-contain select-none" 
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center p-6 border border-dashed border-border-main/50 rounded-2xl w-[212px] h-[212px] select-none text-text-muted">
+                      <QrCode className="h-10 w-10 mb-2 text-text-muted/60" />
+                      <span className="text-[11px] font-bold text-text-main">QRIS Belum Diunggah</span>
+                      <span className="text-[9px] opacity-75 mt-0.5">Silakan hubungi Administrator</span>
+                    </div>
+                  )}
+                  {qrisImgUrl && !qrisImageError && (
+                    <div className="absolute bottom-4 px-3 py-1 rounded bg-slate-900/90 text-white font-bold text-[9px] tracking-wider uppercase backdrop-blur-xs select-none">
+                      QRIS GPN
+                    </div>
+                  )}
                 </div>
 
                 {/* Right Column: Details & Instructions with padding */}
@@ -165,7 +175,7 @@ export const PlansCheckout: React.FC = () => {
                           Tagihan Paket
                         </span>
                         <span className="text-sm font-semibold text-text-main">
-                          Rp {activePayment.amount.toLocaleString('id-ID')}
+                          Rp {(activePayment.amount - activePayment.unique_code).toLocaleString('id-ID')}
                         </span>
                       </div>
                       <div>
@@ -257,7 +267,10 @@ export const PlansCheckout: React.FC = () => {
                   <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
                     Unggah Bukti Bayar
                   </label>
-                  <div className="border border-dashed border-border-main hover:border-amber-500/40 rounded-xl p-4 text-center cursor-pointer transition-all relative overflow-hidden">
+                  <label 
+                    htmlFor="receipt-file-input"
+                    className="block border border-dashed border-border-main hover:border-brand-primary/45 rounded-xl p-4 text-center cursor-pointer transition-all relative overflow-hidden"
+                  >
                     <input
                       type="file"
                       accept="image/jpeg, image/png, image/jpg, image/webp"
@@ -266,7 +279,7 @@ export const PlansCheckout: React.FC = () => {
                       id="receipt-file-input"
                     />
                     {proofPreviewUrl ? (
-                      <div className="relative group">
+                      <div className="relative group" onClick={(e) => e.stopPropagation()}>
                         <img 
                           src={proofPreviewUrl} 
                           alt="Preview Bukti Bayar" 
@@ -292,14 +305,14 @@ export const PlansCheckout: React.FC = () => {
                         </div>
                       </div>
                     ) : (
-                      <label htmlFor="receipt-file-input" className="cursor-pointer flex flex-col items-center gap-1.5">
+                      <div className="flex flex-col items-center gap-1.5">
                         <Upload className="h-6 w-6 text-text-muted" />
                         <span className="text-[10px] font-bold text-text-main truncate max-w-full">
                           Pilih file bukti bayar (PNG, JPG, WEBP)
                         </span>
-                      </label>
+                      </div>
                     )}
-                  </div>
+                  </label>
                 </div>
 
                 <Button 
@@ -350,7 +363,7 @@ export const PlansCheckout: React.FC = () => {
                       {p.plan?.name || 'Hosting Plan'}
                     </td>
                     <td className="py-3 text-center font-bold text-text-main font-mono text-[11px]">
-                      Rp {(p.amount + p.unique_code).toLocaleString('id-ID')}
+                      Rp {p.amount.toLocaleString('id-ID')}
                     </td>
                     <td className="py-3 text-center select-none">
                       <Badge 

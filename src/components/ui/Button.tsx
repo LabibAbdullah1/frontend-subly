@@ -21,22 +21,22 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   // Base styles
-  let baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] cursor-pointer';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] cursor-pointer';
 
   // Variant styles
   const variants = {
-    primary: 'bg-text-main text-bg-base shadow-md hover:opacity-90 transition-all border border-transparent',
-    secondary: 'bg-bg-surface hover:bg-border-main/40 text-text-muted hover:text-text-main border border-border-main',
-    danger: 'bg-red-600 hover:bg-red-700 text-white shadow-md hover:brightness-105 border border-transparent',
-    outline: 'bg-transparent border border-border-main hover:bg-border-main/25 text-text-main',
-    ghost: 'bg-transparent hover:bg-border-main/20 text-text-muted hover:text-text-main border border-transparent',
+    primary: 'bg-brand-primary text-white hover:bg-brand-secondary active:bg-[#5e69d1] border border-transparent shadow-[0_1px_2px_rgba(0,0,0,0.4)]',
+    secondary: 'bg-bg-surface text-text-main hover:bg-bg-card border border-border-main shadow-[0_1px_2px_rgba(0,0,0,0.2)]',
+    danger: 'bg-red-600 hover:bg-red-700 text-white border border-transparent',
+    outline: 'bg-transparent border border-border-main hover:bg-bg-surface text-text-main',
+    ghost: 'bg-transparent hover:bg-bg-surface text-text-muted hover:text-text-main border border-transparent',
   };
 
   // Size styles
   const sizes = {
-    sm: 'px-3 py-1.5 text-xs rounded-lg gap-1.5',
-    md: 'px-4.5 py-2.5 text-sm gap-2',
-    lg: 'px-6 py-3.5 text-base gap-2.5 rounded-xl',
+    sm: 'px-3 py-1.5 text-xs rounded-md gap-1.5',
+    md: 'px-3.5 py-2 text-sm gap-2', // 8px 14px padding
+    lg: 'px-5 py-3 text-sm gap-2.5 rounded-md', // Linear buttons stay compact even at large
   };
 
   return (

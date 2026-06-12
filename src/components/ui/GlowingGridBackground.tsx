@@ -17,33 +17,33 @@ export const GlowingGridBackground: React.FC = () => {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none">
-      {/* Dynamic Orange/Amber Light Blobs */}
+      {/* Dynamic Lavender/Blue Light Blobs */}
       <motion.div
         animate={{
           x: [-60, 160, -60],
           y: [-30, 90, -30],
-          opacity: [0.7, 0.95, 0.7],
+          opacity: [0.6, 0.8, 0.6],
         }}
         transition={{
           duration: 18,
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle,_rgba(249,115,22,0.13)_0%,_rgba(249,115,22,0)_70%)] blur-3xl"
+        className="absolute w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle,_rgba(94,106,210,0.11)_0%,_rgba(94,106,210,0)_70%)] blur-3xl"
         style={{ left: '15%', top: '12%' }}
       />
       <motion.div
         animate={{
           x: [120, -120, 120],
           y: [60, -90, 60],
-          opacity: [0.65, 0.85, 0.65],
+          opacity: [0.55, 0.75, 0.55],
         }}
         transition={{
           duration: 22,
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,_rgba(245,158,11,0.11)_0%,_rgba(245,158,11,0)_70%)] blur-3xl"
+        className="absolute w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,_rgba(94,106,210,0.09)_0%,_rgba(94,106,210,0)_70%)] blur-3xl"
         style={{ right: '12%', top: '28%' }}
       />
       <motion.div
@@ -56,13 +56,13 @@ export const GlowingGridBackground: React.FC = () => {
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,_rgba(234,88,12,0.08)_0%,_rgba(234,88,12,0)_70%)] blur-3xl"
+        className="absolute w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,_rgba(94,106,210,0.07)_0%,_rgba(94,106,210,0)_70%)] blur-3xl"
         style={{ left: '38%', bottom: '22%' }}
       />
 
       {/* Symmetrical Grid lines */}
       <div 
-        className="absolute inset-0 bg-[linear-gradient(to_right,rgba(249,115,22,0.075)_1.5px,transparent_1.5px),linear-gradient(to_bottom,rgba(249,115,22,0.075)_1.5px,transparent_1.5px)] bg-[size:48px_48px]"
+        className="absolute inset-0 bg-[linear-gradient(to_right,rgba(94,106,210,0.05)_1.5px,transparent_1.5px),linear-gradient(to_bottom,rgba(94,106,210,0.05)_1.5px,transparent_1.5px)] bg-[size:48px_48px]"
         style={{
           maskImage: 'radial-gradient(ellipse 65% 55% at 50% 35%, #000 60%, transparent 100%)',
           WebkitMaskImage: 'radial-gradient(ellipse 65% 55% at 50% 35%, #000 60%, transparent 100%)'
@@ -75,7 +75,7 @@ export const GlowingGridBackground: React.FC = () => {
           <motion.div
             key={idx}
             animate={{
-              opacity: [0, 0.55, 0],
+              opacity: [0, 0.45, 0],
               scale: [0.9, 1.05, 0.9],
             }}
             transition={{
@@ -84,7 +84,7 @@ export const GlowingGridBackground: React.FC = () => {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="absolute w-12 h-12 border border-brand-primary/20 bg-brand-primary/4 shadow-[0_0_12px_rgba(249,115,22,0.12)] rounded-sm"
+            className="absolute w-12 h-12 border border-brand-primary/10 bg-brand-primary/2 shadow-[0_0_12px_rgba(94,106,210,0.08)] rounded-sm"
             style={{
               left: cell.left,
               top: cell.top,

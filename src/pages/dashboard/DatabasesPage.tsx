@@ -30,11 +30,11 @@ const CredRow: React.FC<{
   const display = secret && !revealed ? '••••••••••••' : value;
 
   return (
-    <div className="flex items-center justify-between px-4 py-2.5 gap-3">
-      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider shrink-0 w-20">
+    <div className="flex items-center justify-between px-4.5 py-3.5 gap-3">
+      <span className="text-[10px] font-bold text-text-subtle uppercase tracking-wider shrink-0 w-24">
         {label}
       </span>
-      <span className="font-mono text-[11px] font-bold text-text-main flex-1 truncate select-all">
+      <span className="font-mono text-[11px] font-semibold text-text-main flex-1 truncate select-all">
         {display}
       </span>
       <div className="flex items-center gap-1 shrink-0">
@@ -42,7 +42,7 @@ const CredRow: React.FC<{
           <button
             onClick={() => setRevealed((r) => !r)}
             title={revealed ? 'Sembunyikan' : 'Tampilkan'}
-            className="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-border-main/30 transition-all cursor-pointer"
+            className="p-1.5 rounded-md text-text-subtle hover:text-text-main hover:bg-border-main/30 transition-all cursor-pointer"
           >
             {revealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
           </button>
@@ -50,7 +50,7 @@ const CredRow: React.FC<{
         <button
           onClick={handleCopy}
           title="Salin"
-          className="p-1.5 rounded-lg text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-all cursor-pointer"
+          className="p-1.5 rounded-md text-text-subtle hover:text-brand-primary hover:bg-brand-primary/10 transition-all cursor-pointer"
         >
           {copied
             ? <Check className="h-3.5 w-3.5 text-green-500" />
@@ -193,7 +193,7 @@ export const DatabasesPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="border-t border-border-main/50" />
+              <div className="border-t border-border-main/50 my-4.5" />
 
               {/* Disk Storage */}
               <div className="space-y-2.5 select-none">
@@ -218,7 +218,7 @@ export const DatabasesPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="border-t border-border-main/50" />
+              <div className="border-t border-border-main/50 my-4.5" />
 
               {/* Database Credentials */}
               <div className="space-y-3">
@@ -236,9 +236,9 @@ export const DatabasesPage: React.FC = () => {
                 </div>
 
                 {db ? (
-                  <>
+                  <div className="flex flex-col gap-4 mt-2.5">
                     {/* Credentials table */}
-                    <div className="rounded-xl border border-border-main overflow-hidden text-[11px] divide-y divide-border-main/40">
+                    <div className="rounded-md border border-border-main overflow-hidden text-[11px] divide-y divide-border-main/40 bg-bg-base/20">
                       <CredRow label="DB Name"  value={db.db_name} />
                       <CredRow label="DB User"  value={db.db_user} />
                       <CredRow label="Password" value={db.db_password ?? '(terenkripsi — lihat phpMyAdmin)'} secret={!!db.db_password} />
@@ -250,13 +250,13 @@ export const DatabasesPage: React.FC = () => {
                       href="https://db.subly.my.id"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-primary/30 bg-brand-primary/5 hover:bg-brand-primary/10 text-brand-primary text-xs font-bold uppercase tracking-widest transition-all duration-200 cursor-pointer group select-none"
+                      className="w-full flex items-center justify-center gap-2 px-4.5 py-2.5 rounded-md border border-border-main bg-bg-surface hover:bg-bg-card hover:text-text-main text-text-subtle text-xs font-semibold transition-all duration-150 cursor-pointer select-none group"
                     >
                       <KeyRound className="h-4 w-4 shrink-0" />
                       Kelola Database di phpMyAdmin
                       <ExternalLink className="h-3.5 w-3.5 shrink-0 group-hover:translate-x-0.5 transition-transform" />
                     </a>
-                  </>
+                  </div>
                 ) : (
                   <div className="rounded-xl border border-dashed border-border-main/40 bg-border-main/5 px-4 py-5 text-center select-none">
                     <Database className="h-7 w-7 text-text-muted/40 mx-auto mb-2" />

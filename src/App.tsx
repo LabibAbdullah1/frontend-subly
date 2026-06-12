@@ -1,7 +1,7 @@
 // src/App.tsx
 import React from 'react';
 import { 
-  Languages, Sun, Moon, Zap
+  Languages, Zap, Sun, Moon
 } from 'lucide-react';
 
 // Store integrations
@@ -44,8 +44,8 @@ import { GlowingGridBackground } from './components/ui/GlowingGridBackground';
 export const App: React.FC = () => {
   const { status, checkAuth } = useAuthStore();
   const { 
-    theme, 
-    toggleTheme, 
+    theme,
+    toggleTheme,
     language, 
     toggleLanguage, 
     activeTab, 
@@ -78,14 +78,15 @@ export const App: React.FC = () => {
 
         <div className="relative z-10 flex flex-col flex-1">
           {/* Public Landing Navbar Header */}
-          <header className="h-16 border-b border-border-main bg-bg-surface/80 backdrop-blur-md sticky top-0 flex items-center justify-between px-4 sm:px-6 z-40 select-none">
+          <header className="h-14 border-b border-border-main bg-bg-base/80 backdrop-blur-md sticky top-0 flex items-center justify-between px-4 sm:px-6 z-40 select-none">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-lg">
+              <div className="h-8 w-8 rounded-md bg-brand-primary flex items-center justify-center text-white font-black text-lg">
                 <Zap className="h-4.5 w-4.5 text-white fill-white shrink-0" />
               </div>
               <span 
                 onClick={() => setActiveTab('dashboard')} // Go back to landing in unauth
-                className="font-black text-lg tracking-tight bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent cursor-pointer"
+                className="font-bold text-lg tracking-tighter text-text-main cursor-pointer hover:opacity-90"
+                style={{ letterSpacing: '-0.6px' }}
               >
                 SUBLY
               </span>
@@ -95,28 +96,29 @@ export const App: React.FC = () => {
               <button 
                 onClick={() => setActiveTab('legal')}
                 className={`text-xs font-bold transition-colors cursor-pointer hidden sm:inline ${
-                  activeTab === 'legal' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
+                  activeTab === 'legal' ? 'text-brand-primary' : 'text-text-subtle hover:text-text-main'
                 }`}
               >
                 Legal Docs
               </button>
               <button 
                 onClick={toggleLanguage}
-                className="p-2 rounded-lg hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer flex items-center gap-1"
+                className="p-2 rounded-lg hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer flex items-center gap-1"
               >
-                <Languages className="h-4 w-4" />
+                <Languages className="h-4.5 w-4.5" />
                 <span className="text-[10px] font-bold uppercase hidden sm:inline">{language}</span>
               </button>
               <button 
                 onClick={toggleTheme}
-                className="p-2 rounded-lg hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer"
+                className="p-2 rounded-lg hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer"
+                title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
               >
-                {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </button>
               <button
                 onClick={() => setActiveTab('login')}
-                className={`text-xs font-bold transition-colors cursor-pointer px-2 sm:px-3 py-1.5 rounded-xl ${
-                  activeTab === 'login' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
+                className={`text-xs font-bold transition-colors cursor-pointer px-2 sm:px-3 py-1.5 rounded-md ${
+                  activeTab === 'login' ? 'text-brand-primary' : 'text-text-subtle hover:text-text-main'
                 }`}
               >
                 Sign In

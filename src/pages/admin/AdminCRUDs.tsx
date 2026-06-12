@@ -51,8 +51,9 @@ export const AdminCRUDs: React.FC = () => {
 
   // Settings local states
   const [merchantName, setMerchantName] = useState('');
-  const [qrisNmid, setQrisNmid] = useState('');
   const [qrisImageFile, setQrisImageFile] = useState<File | null>(null);
+  const [qrisPreviewUrl, setQrisPreviewUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
   const [systemStorageLimit, setSystemStorageLimit] = useState('256');
   const [systemRootDomain, setSystemRootDomain] = useState('subly.my.id');
   const [systemStorageWarningThreshold, setSystemStorageWarningThreshold] = useState('80');
@@ -68,6 +69,20 @@ export const AdminCRUDs: React.FC = () => {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   useEffect(() => {
+    if (!qrisImageFile) {
+      setQrisPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(qrisImageFile);
+    setQrisPreviewUrl(url);
+    setImageError(false);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [qrisImageFile]);
+
+  useEffect(() => {
     fetchAdminUsers();
     fetchSettings();
     fetchAdminTestimonials();
@@ -77,12 +92,12 @@ export const AdminCRUDs: React.FC = () => {
     if (settings) { 
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setMerchantName(settings.qris_merchant_name || 'SUBLY HOSTING INDONESIA');
-      setQrisNmid(settings.qris_nmid || 'ID102027381928');
       setSystemStorageLimit(settings.system_storage_limit_gb || '256');
       setSystemRootDomain(settings.system_root_domain || 'subly.my.id');
       setSystemStorageWarningThreshold(settings.system_storage_warning_threshold || '80');
       setSystemSupportSla(settings.system_support_sla || '< 10 Menit');
       setAdminNotificationEmail(settings.admin_notification_email || 'admin@subly.my.id');
+      setImageError(false);
     }
   }, [settings]);
 
@@ -184,7 +199,6 @@ export const AdminCRUDs: React.FC = () => {
     try {
       await updateSetting({
         qris_merchant_name: merchantName,
-        qris_nmid: qrisNmid
       }, qrisImageFile || undefined);
 
       addToast({
@@ -475,27 +489,32 @@ export const AdminCRUDs: React.FC = () => {
                   required
                 />
               </div>
-              <div className="space-y-1.5 text-left">
-                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">NMID QRIS</label>
-                <input 
-                  type="text" 
-                  value={qrisNmid}
-                  onChange={(e) => setQrisNmid(e.target.value)}
-                  className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-text-main outline-none" 
-                  required
-                />
-              </div>
 
               {/* Two Column Grid for QRIS Image display & Upload */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border-main/50">
                 {/* Left Column: Current QRIS display */}
                 <div className="space-y-2 text-left">
-                  <span className="text-[10px] font-black uppercase text-text-muted tracking-wider block">Foto QRIS Aktif Saat Ini</span>
+                  <span className="text-[10px] font-black uppercase text-text-muted tracking-wider block">
+                    {qrisPreviewUrl ? 'Pratinjau QRIS Baru' : 'Foto QRIS Aktif Saat Ini'}
+                  </span>
                   <div className="p-3 bg-white border border-border-main rounded-2xl w-full h-36 flex items-center justify-center overflow-hidden shadow-xs">
-                    {currentQrisImg ? (
-                      <img src={currentQrisImg} alt="Active QRIS" className="max-w-full max-h-full object-contain" />
+                    {qrisPreviewUrl ? (
+                      <img 
+                        src={qrisPreviewUrl} 
+                        alt="Preview QRIS" 
+                        className="max-w-full max-h-full object-contain" 
+                      />
+                    ) : currentQrisImg && !imageError ? (
+                      <img 
+                        src={currentQrisImg} 
+                        onError={() => setImageError(true)}
+                        alt="Active QRIS" 
+                        className="max-w-full max-h-full object-contain" 
+                      />
                     ) : (
-                      <span className="text-[10px] text-text-muted italic">Belum ada QRIS aktif</span>
+                      <span className="text-[10px] text-text-muted italic">
+                        {currentQrisImg ? 'Gambar QRIS Tidak Ditemukan di Server' : 'Belum ada QRIS aktif'}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -504,7 +523,10 @@ export const AdminCRUDs: React.FC = () => {
                 <div className="space-y-2 text-left flex flex-col justify-between">
                   <div>
                     <label className="text-[10px] font-black uppercase text-text-muted tracking-wider block mb-2">Upload/Ganti QRIS (Opsional)</label>
-                    <div className="border border-dashed border-border-main hover:border-amber-500/40 rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center h-36 relative">
+                    <label 
+                      htmlFor="qris-image-input"
+                      className="block border border-dashed border-border-main hover:border-brand-primary/45 rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center h-36 relative"
+                    >
                       <input
                         type="file"
                         accept="image/*"
@@ -512,13 +534,13 @@ export const AdminCRUDs: React.FC = () => {
                         className="hidden"
                         id="qris-image-input"
                       />
-                      <label htmlFor="qris-image-input" className="cursor-pointer flex flex-col items-center gap-1.5 w-full h-full justify-center">
+                      <div className="flex flex-col items-center gap-1.5 w-full h-full justify-center">
                         <Upload className="h-6 w-6 text-text-muted" />
                         <span className="text-[10px] font-bold text-text-main block truncate max-w-full px-2">
                           {qrisImageFile ? qrisImageFile.name : 'Upload file gambar QRIS'}
                         </span>
-                      </label>
-                    </div>
+                      </div>
+                    </label>
                   </div>
                 </div>
               </div>

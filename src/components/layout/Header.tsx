@@ -1,8 +1,9 @@
 // src/components/layout/Header.tsx
 import React, { useState } from 'react';
 import { 
-  Menu, Sun, Moon, Bell, ChevronDown, 
-  User, LogOut, Languages
+  Menu, Bell, ChevronDown, 
+  User, LogOut, Languages,
+  Sun, Moon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
@@ -13,8 +14,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 export const Header: React.FC = () => {
   const { t } = useTranslation();
   const { 
-    theme, 
-    toggleTheme, 
+    theme,
+    toggleTheme,
     language, 
     toggleLanguage, 
     toggleSidebar, 
@@ -103,31 +104,20 @@ export const Header: React.FC = () => {
         {/* Language switch */}
         <button 
           onClick={toggleLanguage}
-          className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer flex items-center gap-1.5"
+          className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer flex items-center gap-1.5"
           title={t('language')}
         >
           <Languages className="h-4.5 w-4.5" />
           <span className="text-xs font-bold uppercase hidden sm:inline">{language}</span>
         </button>
-
-        {/* Theme switch */}
+        {/* Theme toggle */}
         <button 
           onClick={toggleTheme}
-          className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer"
-          title={t('theme')}
+          className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer"
+          title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
         >
-          <motion.div
-            key={theme}
-            initial={{ rotate: -90, scale: 0.8, opacity: 0 }}
-            animate={{ rotate: 0, scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-          >
-            {theme === 'light' ? <Moon className="h-4.5 w-4.5" /> : <Sun className="h-4.5 w-4.5" />}
-          </motion.div>
+          {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
         </button>
-
-
-
         {/* Notifications */}
         <button 
           onClick={() => activeTab !== 'admin-chat' && activeTab !== 'chat' && setActiveTab(currentRole === 'Admin' ? 'admin-dashboard' : 'dashboard')}

@@ -84,7 +84,7 @@ export const LoginPage: React.FC = () => {
               type="text"
               {...register('email')}
               placeholder="nama@email.com"
-              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
+              className="premium-input w-full"
             />
             {errors.email && (
               <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
@@ -113,7 +113,7 @@ export const LoginPage: React.FC = () => {
               type="password"
               {...register('password')}
               placeholder="••••••••"
-              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
+              className="premium-input w-full"
             />
             {errors.password && (
               <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
@@ -193,7 +193,7 @@ export const RegisterPage: React.FC = () => {
               type="text"
               {...register('name')}
               placeholder="Nama Lengkap Anda"
-              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
+              className="premium-input w-full"
             />
             {errors.name && (
               <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
@@ -213,7 +213,7 @@ export const RegisterPage: React.FC = () => {
               type="text"
               {...register('email')}
               placeholder="nama@email.com"
-              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
+              className="premium-input w-full"
             />
             {errors.email && (
               <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
@@ -233,7 +233,7 @@ export const RegisterPage: React.FC = () => {
               type="password"
               {...register('password')}
               placeholder="Minimal 8 Karakter"
-              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
+              className="premium-input w-full"
             />
             {errors.password && (
               <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
@@ -253,7 +253,7 @@ export const RegisterPage: React.FC = () => {
               type="password"
               {...register('password_confirmation')}
               placeholder="Konfirmasi kata sandi"
-              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
+              className="premium-input w-full"
             />
             {errors.password_confirmation && (
               <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
@@ -343,7 +343,7 @@ export const VerifyEmailPage: React.FC = () => {
             {t('verifyBtn')}
           </Button>
         ) : (
-          <div className="text-xs font-semibold text-text-muted bg-border-main/20 border border-border-main/50 p-4 rounded-xl">
+          <div className="text-xs font-semibold text-text-muted bg-border-main/20 border border-border-main/50 p-4 rounded-md">
             Menunggu verifikasi... Tautan telah dikirim. Buka tautan tersebut untuk masuk ke sistem.
           </div>
         )}

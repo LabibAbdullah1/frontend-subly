@@ -117,10 +117,10 @@ export const Sidebar: React.FC = () => {
           isSidebarCollapsed ? 'justify-center px-0' : 'justify-between px-6'
         }`}>
           <div className={`flex items-center transition-all duration-300 ${isSidebarCollapsed ? 'gap-0' : 'gap-2.5'}`}>
-            <div className="h-8 w-8 rounded-lg bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-lg shrink-0">
+            <div className="h-8 w-8 rounded-md bg-brand-primary flex items-center justify-center text-white font-black text-lg shrink-0">
               <Zap className="h-4.5 w-4.5 text-white fill-white shrink-0" />
             </div>
-            <span className={`font-black text-lg tracking-tight bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent transition-all duration-300 ${
+            <span className={`font-bold text-lg tracking-tighter text-text-main transition-all duration-300 ${
               isSidebarCollapsed ? 'w-0 opacity-0 ml-0 overflow-hidden invisible' : 'w-auto opacity-100 visible'
             }`}>
               SUBLY
@@ -166,12 +166,12 @@ export const Sidebar: React.FC = () => {
                     whileHover={{ scale: 1.02, x: isSidebarCollapsed ? 0 : 2 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className={`w-full flex items-center rounded-xl text-sm font-semibold cursor-pointer border-none transition-colors duration-150 ${
-                      isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto' : 'justify-between px-4.5 py-3'
+                    className={`w-full flex items-center rounded-md text-sm font-medium cursor-pointer border-none transition-colors duration-150 ${
+                      isSidebarCollapsed ? 'justify-center px-0 h-9 w-9 mx-auto' : 'justify-between px-3 py-2'
                     } ${
                       isActive 
                         ? 'bg-brand-primary/10 text-brand-primary' 
-                        : 'text-text-muted hover:bg-border-main/20 hover:text-text-main'
+                        : 'text-text-subtle hover:bg-border-main/20 hover:text-text-main'
                     }`}
                   >
                     <div className={`flex items-center min-w-0 ${isSidebarCollapsed ? 'justify-center w-full' : 'gap-3.5'}`}>
@@ -194,8 +194,8 @@ export const Sidebar: React.FC = () => {
 
         {/* Footer Role Indicator */}
         <div className="p-4 border-t border-border-main">
-          <div className={`flex items-center rounded-xl bg-border-main/10 text-xs font-bold text-text-muted transition-all duration-300 ${
-            isSidebarCollapsed ? 'justify-center px-0 h-11 w-11 mx-auto' : 'px-3 py-2.5 gap-3'
+          <div className={`flex items-center rounded-md bg-border-main/10 text-xs font-medium text-text-subtle transition-all duration-300 ${
+            isSidebarCollapsed ? 'justify-center px-0 h-9 w-9 mx-auto' : 'px-3 py-2 gap-2.5'
           }`}>
             <ShieldAlert className="h-4.5 w-4.5 text-brand-primary shrink-0" />
             <span className={`truncate transition-all duration-300 ${
@@ -228,10 +228,10 @@ export const Sidebar: React.FC = () => {
       >
         <div className="h-16 flex items-center justify-between px-6 border-b border-border-main">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-black text-lg">
+            <div className="h-8 w-8 rounded-md bg-brand-primary flex items-center justify-center text-white font-bold text-lg">
               S
             </div>
-            <span className="font-black text-lg tracking-tight bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+            <span className="font-bold text-lg tracking-tighter text-text-main">
               SUBLY
             </span>
           </div>
@@ -267,10 +267,10 @@ export const Sidebar: React.FC = () => {
                     whileHover={{ scale: 1.02, x: 2 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className={`w-full flex items-center justify-between px-4.5 py-3 rounded-xl text-xs font-semibold cursor-pointer border-none ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium cursor-pointer border-none ${
                       isActive 
                         ? 'bg-brand-primary/10 text-brand-primary' 
-                        : 'text-text-muted hover:bg-border-main/20 hover:text-text-main'
+                        : 'text-text-subtle hover:bg-border-main/20 hover:text-text-main'
                     }`}
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
@@ -288,7 +288,7 @@ export const Sidebar: React.FC = () => {
         </nav>
 
         <div className="p-4 border-t border-border-main">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-border-main/10 text-xs font-bold text-text-muted">
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-md bg-border-main/10 text-xs font-medium text-text-subtle">
             <ShieldAlert className="h-4.5 w-4.5 text-brand-primary shrink-0" />
             <span className="truncate">
               {currentRole === 'Admin' ? 'Administrator' : 'Client Account'}

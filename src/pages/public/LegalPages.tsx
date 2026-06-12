@@ -26,10 +26,10 @@ export const LegalPages: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border transition-all duration-200 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-md text-xs font-medium flex items-center gap-2 border transition-all duration-150 cursor-pointer ${
               activeTab === tab.id
-                ? 'bg-brand-primary text-white border-transparent shadow-md shadow-brand-primary/15'
-                : 'border-border-main text-text-muted hover:bg-border-main/20 hover:text-text-main'
+                ? 'bg-brand-primary text-white border-transparent shadow-[0_1px_2px_rgba(0,0,0,0.4)]'
+                : 'bg-transparent border-border-main text-text-subtle hover:bg-bg-surface hover:text-text-main'
             }`}
           >
             {tab.icon}
