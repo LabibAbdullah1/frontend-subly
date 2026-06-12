@@ -260,7 +260,7 @@ export const App: React.FC = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.35 }}
-          className="min-h-screen flex bg-bg-base text-text-main transition-colors duration-300 relative overflow-hidden w-full"
+          className="h-screen flex bg-bg-base text-text-main transition-colors duration-300 relative overflow-hidden w-full"
         >
           {/* Dynamic Symmetrical Glow Grid Background */}
           <GlowingGridBackground />
@@ -269,13 +269,13 @@ export const App: React.FC = () => {
           <Sidebar />
 
           {/* Main Container */}
-          <div className="flex-1 flex flex-col min-w-0 relative z-10">
+          <div className="flex-1 flex flex-col min-w-0 min-h-0 relative z-10">
             
             {/* Sticky Dashboard Header */}
             <Header />
 
             {/* Main Dashboard Pages router content wrapper */}
-            <main className="flex-1 p-4 md:p-6 overflow-y-auto w-full max-w-7xl mx-auto overflow-x-hidden">
+            <main className="flex-1 p-4 md:p-6 overflow-y-auto w-full max-w-7xl mx-auto overflow-x-hidden min-h-0">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${currentRole}-${activeTab}-${currentSubdomainId}`}

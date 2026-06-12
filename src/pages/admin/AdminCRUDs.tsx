@@ -648,7 +648,7 @@ export const AdminCRUDs: React.FC = () => {
       {/* ---------------------------------------------------- */}
       {activeTab === 'admin-users' && (
         <CardPanel title={t('userManager')}>
-          <div className="overflow-x-auto w-full mt-2 overflow-y-scroll max-h-[calc(100vh-200px)]">
+          <div className="overflow-x-auto w-full mt-2">
             <table className="w-full text-left min-w-[700px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest select-none">
