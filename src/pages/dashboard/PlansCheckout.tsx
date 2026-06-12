@@ -339,14 +339,14 @@ export const PlansCheckout: React.FC = () => {
           }
         >
           <div className="overflow-x-auto w-full mt-2">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[650px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest select-none">
-                  <th className="py-2.5 pb-2 font-bold">Transaction ID</th>
-                  <th className="py-2.5 pb-2 font-bold">Plan</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Total</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Status</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">Tanggal</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Transaction ID</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Plan</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Total</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Status</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">Tanggal</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
@@ -356,22 +356,22 @@ export const PlansCheckout: React.FC = () => {
                     className="hover:bg-border-main/5 transition-colors cursor-pointer"
                     onClick={() => p.status === 'pending' && setActivePaymentId(p.id)}
                   >
-                    <td className="py-3 font-semibold text-text-main font-mono text-[11px] select-all">
+                    <td className="py-3 px-4 font-semibold text-text-main font-mono text-[11px] select-all">
                       {p.transaction_id}
                     </td>
-                    <td className="py-3 text-text-muted select-none">
+                    <td className="py-3 px-4 text-text-muted select-none">
                       {p.plan?.name || 'Hosting Plan'}
                     </td>
-                    <td className="py-3 text-center font-bold text-text-main font-mono text-[11px]">
+                    <td className="py-3 px-4 text-center font-bold text-text-main font-mono text-[11px]">
                       Rp {p.amount.toLocaleString('id-ID')}
                     </td>
-                    <td className="py-3 text-center select-none">
+                    <td className="py-3 px-4 text-center select-none">
                       <Badge 
                         status={p.status === 'success' ? 'success' : p.status === 'pending' ? 'pending' : 'failed'} 
                         label={p.status === 'success' ? 'Paid' : p.status === 'pending' ? 'Unpaid' : 'Failed'} 
                       />
                     </td>
-                    <td className="py-3 text-right pr-6 text-[10px] text-text-muted font-semibold select-none">
+                    <td className="py-3 px-4 text-right text-[10px] text-text-muted font-semibold select-none">
                       {new Date(p.created_at).toLocaleDateString()}
                     </td>
                   </tr>

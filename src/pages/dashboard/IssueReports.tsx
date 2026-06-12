@@ -9,6 +9,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { Select } from '../../components/ui/Select';
 
 const issueSchema = z.object({
   subdomain_id: z.coerce.number().min(1, 'Pilih subdomain terkait'),
@@ -68,17 +69,14 @@ export const IssueReports: React.FC = () => {
                 <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">
                   Subdomain Terkait
                 </label>
-                <select
+                <Select
                   {...register('subdomain_id')}
-                  className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-3 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
-                >
-                  <option value="">Pilih Subdomain...</option>
-                  {subdomains.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.name}.subly.host
-                    </option>
-                  ))}
-                </select>
+                  options={subdomains.map((sub) => ({
+                    value: sub.id,
+                    label: `${sub.name}.subly.host`
+                  }))}
+                  placeholder="Pilih Subdomain..."
+                />
                 {errors.subdomain_id && (
                   <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
                     {errors.subdomain_id.message}

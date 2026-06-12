@@ -358,7 +358,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
         </div>
 
         <div className="overflow-x-auto w-full">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[600px]">
             <thead>
               <tr className="bg-bg-surface/60 text-[9px] text-text-muted uppercase tracking-widest border-b border-border-main/40">
                 <th className="py-3 px-6 font-bold">Nama</th>

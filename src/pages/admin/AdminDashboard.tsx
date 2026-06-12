@@ -10,6 +10,7 @@ import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Badge } from '../../components/ui/Badge';
+import { Select } from '../../components/ui/Select';
 
 export const AdminDashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -27,6 +28,7 @@ export const AdminDashboard: React.FC = () => {
     adminDiskUsage,
     fetchAdminDiskUsage,
     settings,
+    databases,
     addSubdomain,
     updateSubdomainStorageOverride,
     toggleSubdomainStatus,
@@ -196,19 +198,18 @@ export const AdminDashboard: React.FC = () => {
   const activeQueueDeployments = allDeployments.filter(d => d.status === 'queued' || d.status === 'processing');
 
   // Flatten all databases with size lookup
-  const allDatabases = subdomains.flatMap(sub => 
-    ((sub as any).databases || []).map((db: any) => {
-      const diskSub = adminDiskUsage?.subdomains.find(s => Number(s.id) === sub.id || s.name === sub.name);
-      const dbSizeMb = diskSub ? diskSub.dbMb : 0;
-      return {
-        ...db,
-        subdomainName: sub.full_domain || `${sub.name}.subly.host`,
-        ownerName: sub.user?.name || 'Client',
-        ownerEmail: sub.user?.email || '',
-        dbSizeMb
-      };
-    })
-  );
+  const allDatabases = databases.map((db) => {
+    const sub = subdomains.find(s => s.id === db.subdomain_id);
+    const diskSub = adminDiskUsage?.subdomains.find(s => Number(s.id) === db.subdomain_id || (sub && s.name === sub.name));
+    const dbSizeMb = diskSub ? diskSub.dbMb : 0;
+    return {
+      ...db,
+      subdomainName: sub ? (sub.full_domain || `${sub.name}.subly.host`) : 'Unknown Subdomain',
+      ownerName: sub?.user?.name || 'Client',
+      ownerEmail: sub?.user?.email || '',
+      dbSizeMb
+    };
+  });
 
   // Remaining time format helper
   const getRemainingTime = (expiryStr: string | null) => {
@@ -346,19 +347,19 @@ export const AdminDashboard: React.FC = () => {
               }
             >
               <div className="overflow-x-auto w-full mt-2">
-                <table className="w-full text-left">
+                <table className="w-full text-left min-w-[500px]">
                   <thead>
                     <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                      <th className="py-2.5 pb-2 font-bold">KLIEN</th>
-                      <th className="py-2.5 pb-2 font-bold">SUBDOMAIN</th>
-                      <th className="py-2.5 pb-2 text-right pr-6 font-bold">STATUS</th>
+                      <th className="py-2.5 pb-2 px-4 font-bold">KLIEN</th>
+                      <th className="py-2.5 pb-2 px-4 font-bold">SUBDOMAIN</th>
+                      <th className="py-2.5 pb-2 px-4 text-right font-bold">STATUS</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-main/30 text-xs">
                     {allDeployments.slice(0, 5).map((dep, idx) => (
                       <tr key={idx} className="hover:bg-border-main/5 transition-colors">
-                        <td className="py-3 font-semibold text-text-main">{dep.ownerName}</td>
-                        <td className="py-3 text-text-muted font-mono text-[10px]">
+                        <td className="py-3 px-4 font-semibold text-text-main">{dep.ownerName}</td>
+                        <td className="py-3 px-4 text-text-muted font-mono text-[10px]">
                           <div className="flex items-center gap-1">
                             <span>{dep.subdomainName}</span>
                             <span className="text-[8px] px-1 bg-brand-primary/15 text-brand-primary border border-brand-primary/20 rounded">
@@ -371,7 +372,7 @@ export const AdminDashboard: React.FC = () => {
                             )}
                           </div>
                         </td>
-                        <td className="py-3 text-right pr-6">
+                        <td className="py-3 px-4 text-right">
                           <Badge 
                             status={dep.status === 'success' ? 'success' : dep.status === 'error' ? 'inactive' : 'pending'} 
                             label={dep.status.toUpperCase()} 
@@ -419,25 +420,25 @@ export const AdminDashboard: React.FC = () => {
           }
         >
           <div className="overflow-x-auto w-full mt-2">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[550px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                  <th className="py-2.5 pb-2 font-bold">Trx ID</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Total</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Bukti</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">Aksi</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Trx ID</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Total</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Bukti</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
                 {pendingPayments.map((p) => (
                   <tr key={p.id} className="hover:bg-border-main/5 transition-colors">
-                    <td className="py-3 font-semibold text-text-main font-mono text-[11px] select-all max-w-[90px] sm:max-w-none truncate" title={p.transaction_id}>
+                    <td className="py-3 px-4 font-semibold text-text-main font-mono text-[11px] select-all max-w-[90px] sm:max-w-none truncate" title={p.transaction_id}>
                       {p.transaction_id}
                     </td>
-                    <td className="py-3 text-center font-bold text-text-main font-mono text-[11px]">
+                    <td className="py-3 px-4 text-center font-bold text-text-main font-mono text-[11px]">
                       Rp {(p.amount + p.unique_code).toLocaleString('id-ID')}
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="py-3 px-4 text-center">
                       {p.proof_path ? (
                         <button
                           onClick={() => setViewProofPath(p.proof_path)}
@@ -450,7 +451,7 @@ export const AdminDashboard: React.FC = () => {
                         <span className="text-[10px] text-text-muted italic">No file</span>
                       )}
                     </td>
-                    <td className="py-3 text-right pr-6 flex items-center justify-end gap-2">
+                    <td className="py-3 px-4 text-right flex items-center justify-end gap-2">
                       <button 
                         onClick={() => setConfirmPayId(p.id)}
                         className="bg-text-main text-bg-base shadow-md hover:opacity-90 active:scale-[0.98] transition-all border border-transparent px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-1 cursor-pointer shrink-0"
@@ -474,14 +475,14 @@ export const AdminDashboard: React.FC = () => {
         {/* Payment History Card */}
         <CardPanel title="Semua Riwayat Transaksi Klien">
           <div className="overflow-x-auto w-full mt-2">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[600px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                  <th className="py-2.5 pb-2 font-bold">Tanggal</th>
-                  <th className="py-2.5 pb-2 font-bold">Trx ID</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Total</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Status</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">Bukti</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Tanggal</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Trx ID</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Total</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Status</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">Bukti</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
@@ -490,22 +491,22 @@ export const AdminDashboard: React.FC = () => {
                   .slice(0, 15)
                   .map((p) => (
                     <tr key={p.id} className="hover:bg-border-main/5 transition-colors">
-                      <td className="py-3 font-semibold text-text-muted text-[10px] font-mono">
+                      <td className="py-3 px-4 font-semibold text-text-muted text-[10px] font-mono">
                         {new Date(p.created_at).toLocaleDateString('id-ID')}
                       </td>
-                      <td className="py-3 font-semibold text-text-main font-mono text-[11px] truncate" title={p.transaction_id}>
+                      <td className="py-3 px-4 font-semibold text-text-main font-mono text-[11px] truncate" title={p.transaction_id}>
                         {p.transaction_id}
                       </td>
-                      <td className="py-3 text-center font-bold text-text-main font-mono text-[11px]">
+                      <td className="py-3 px-4 text-center font-bold text-text-main font-mono text-[11px]">
                         Rp {(p.amount + p.unique_code).toLocaleString('id-ID')}
                       </td>
-                      <td className="py-3 text-center">
+                      <td className="py-3 px-4 text-center">
                         <Badge 
                           status={p.status === 'success' ? 'success' : 'inactive'} 
                           label={p.status.toUpperCase()} 
                         />
                       </td>
-                      <td className="py-3 text-right pr-6">
+                      <td className="py-3 px-4 text-right">
                         {p.proof_path ? (
                           <button
                             onClick={() => setViewProofPath(p.proof_path)}
@@ -593,18 +594,18 @@ export const AdminDashboard: React.FC = () => {
           <div className="lg:col-span-2">
             <CardPanel title="RIWAYAT DEPLOYMENT">
               <div className="overflow-x-auto w-full mt-2">
-                <table className="w-full text-left">
+                <table className="w-full text-left min-w-[650px]">
                   <thead>
                     <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                      <th className="py-2.5 pb-2 font-bold">ARTEFAK</th>
-                      <th className="py-2.5 pb-2 text-center font-bold">STATUS</th>
-                      <th className="py-2.5 pb-2 text-right pr-6 font-bold">TANGGAL</th>
+                      <th className="py-2.5 pb-2 px-4 font-bold">ARTEFAK</th>
+                      <th className="py-2.5 pb-2 px-4 text-center font-bold">STATUS</th>
+                      <th className="py-2.5 pb-2 px-4 text-right font-bold">TANGGAL</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-main/30 text-xs">
                     {allDeployments.map((dep, idx) => (
                       <tr key={idx} className="hover:bg-border-main/5 transition-colors">
-                        <td className="py-3 font-semibold text-text-main">
+                        <td className="py-3 px-4 font-semibold text-text-main">
                           <div className="flex flex-col">
                             <span className="font-mono text-xs">{dep.subdomainName}</span>
                             <span className="text-[10px] text-text-muted font-normal">Pemilik: {dep.ownerName}</span>
@@ -624,13 +625,13 @@ export const AdminDashboard: React.FC = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 text-center">
+                        <td className="py-3 px-4 text-center">
                           <Badge 
                             status={dep.status === 'success' ? 'success' : dep.status === 'error' ? 'inactive' : 'pending'} 
                             label={dep.status.toUpperCase()} 
                           />
                         </td>
-                        <td className="py-3 text-right pr-6 font-mono text-[10px] text-text-muted">
+                        <td className="py-3 px-4 text-right font-mono text-[10px] text-text-muted">
                           {new Date(dep.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}, {new Date(dep.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                         </td>
                       </tr>
@@ -672,40 +673,40 @@ export const AdminDashboard: React.FC = () => {
 
         <CardPanel title="Direktori Subdomain">
           <div className="overflow-x-auto w-full mt-2">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[850px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                  <th className="py-2.5 pb-2 font-bold">PEMILIK</th>
-                  <th className="py-2.5 pb-2 font-bold">SUBDOMAIN</th>
-                  <th className="py-2.5 pb-2 font-bold">URL LENGKAP</th>
-                  <th className="py-2.5 pb-2 font-bold">SISA WAKTU</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">STATUS</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">AKSI</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">PEMILIK</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">SUBDOMAIN</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">URL LENGKAP</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">SISA WAKTU</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">STATUS</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">AKSI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
                 {subdomains.map((sub, idx) => (
                   <tr key={sub.id || idx} className="hover:bg-border-main/5 transition-colors">
-                    <td className="py-3">
+                    <td className="py-3 px-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-text-main">{sub.user?.name || 'Client'}</span>
                         <span className="text-[10px] text-text-muted font-mono">{sub.user?.email || ''}</span>
                       </div>
                     </td>
-                    <td className="py-3 font-mono font-bold text-brand-primary">{sub.name}</td>
-                    <td className="py-3">
+                    <td className="py-3 px-4 font-mono font-bold text-brand-primary">{sub.name}</td>
+                    <td className="py-3 px-4">
                       <a href={`http://${sub.full_domain}`} target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-brand-primary underline truncate font-mono block max-w-xs">
                         {sub.full_domain}
                       </a>
                     </td>
-                    <td className="py-3 font-mono text-[10px] text-text-muted">{getRemainingTime(sub.expired_at)}</td>
-                    <td className="py-3 text-center">
+                    <td className="py-3 px-4 font-mono text-[10px] text-text-muted">{getRemainingTime(sub.expired_at)}</td>
+                    <td className="py-3 px-4 text-center">
                       <Badge 
                         status={sub.status === 'active' ? 'success' : 'inactive'} 
                         label={sub.status.toUpperCase()} 
                       />
                     </td>
-                    <td className="py-3 text-right pr-6">
+                    <td className="py-3 px-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button 
                           className={`p-1.5 rounded-lg border transition-all cursor-pointer active:scale-95 flex items-center justify-center ${
@@ -744,28 +745,25 @@ export const AdminDashboard: React.FC = () => {
               <label className="text-xs font-bold text-text-main">
                 Pilih Transaksi & Klien
               </label>
-              <select
+              <Select
                 value={selectedPaymentId || ''}
                 onChange={(e) => setSelectedPaymentId(e.target.value ? Number(e.target.value) : null)}
-                className="w-full premium-input font-sans text-xs bg-bg-surface border border-border-main text-text-main rounded-xl p-2.5 outline-none"
-                required
-              >
-                <option value="">-- Pilih Slot Transaksi Klien (Success & Belum Ada Subdomain) --</option>
-                {payments
+                options={payments
                   .filter(p => p.status === 'success' && !p.subdomain_id)
                   .map(p => {
                     const owner = adminUsers.find(u => u.id === p.user_id);
                     const clientName = owner ? owner.name : `Client ID #${p.user_id}`;
                     const clientEmail = owner ? owner.email : '';
                     const planName = p.plan?.name || 'Hosting Plan';
-                    return (
-                      <option key={p.id} value={p.id} className="bg-bg-surface text-text-main">
-                        {clientName} ({clientEmail}) - {planName} - Invoice #{p.transaction_id || p.id}
-                      </option>
-                    );
+                    return {
+                      value: p.id,
+                      label: `${clientName} (${clientEmail}) - ${planName} - Invoice #${p.transaction_id || p.id}`
+                    };
                   })
                 }
-              </select>
+                placeholder="-- Pilih Slot Transaksi Klien (Success & Belum Ada Subdomain) --"
+                required
+              />
               {payments.filter(p => p.status === 'success' && !p.subdomain_id).length === 0 && (
                 <p className="text-[10px] text-amber-500 font-semibold select-none pt-1">
                   * Tidak ada transaksi pembayaran berstatus 'Success' yang belum terhubung ke subdomain.
@@ -835,29 +833,29 @@ export const AdminDashboard: React.FC = () => {
 
         <CardPanel title="Kredensial Database & Ukuran">
           <div className="overflow-x-auto w-full mt-2">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[750px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                  <th className="py-2.5 pb-2 font-bold">KLIEN</th>
-                  <th className="py-2.5 pb-2 font-bold">SUBDOMAIN</th>
-                  <th className="py-2.5 pb-2 font-bold">NAMA DATABASE</th>
-                  <th className="py-2.5 pb-2 font-bold">USERNAME</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">UKURAN DATABASE</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">KLIEN</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">SUBDOMAIN</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">NAMA DATABASE</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">USERNAME</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">UKURAN DATABASE</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
                 {allDatabases.map((db, idx) => (
                   <tr key={db.id || idx} className="hover:bg-border-main/5 transition-colors">
-                    <td className="py-3">
+                    <td className="py-3 px-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-text-main">{db.ownerName}</span>
                         <span className="text-[10px] text-text-muted font-mono">{db.ownerEmail}</span>
                       </div>
                     </td>
-                    <td className="py-3 font-mono text-[11px] text-text-muted">{db.subdomainName}</td>
-                    <td className="py-3 font-mono font-bold text-brand-primary">{db.db_name}</td>
-                    <td className="py-3 font-mono text-[11px] text-text-main">{db.db_user}</td>
-                    <td className="py-3 text-right pr-6 font-mono font-bold text-text-muted">
+                    <td className="py-3 px-4 font-mono text-[11px] text-text-muted">{db.subdomainName}</td>
+                    <td className="py-3 px-4 font-mono font-bold text-brand-primary">{db.db_name}</td>
+                    <td className="py-3 px-4 font-mono text-[11px] text-text-main">{db.db_user}</td>
+                    <td className="py-3 px-4 text-right font-mono font-bold text-text-muted">
                       {(db as any).dbSizeMb ? `${(db as any).dbSizeMb.toFixed(2)} MB` : '0.00 MB'}
                     </td>
                   </tr>
@@ -956,15 +954,15 @@ export const AdminDashboard: React.FC = () => {
 
         <CardPanel title="DAFTAR SUBDOMAIN & KAPASITAS PENYIMPANAN">
           <div className="overflow-x-auto w-full mt-2">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[850px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                  <th className="py-2.5 pb-2 font-bold">SUBDOMAIN / KLIEN</th>
-                  <th className="py-2.5 pb-2 font-bold">PAKET</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">UKURAN FILE</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">UKURAN DATABASE</th>
-                  <th className="py-2.5 pb-2 font-bold">RASIO PENGGUNAAN DISK (TOTAL)</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">AKSI</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">SUBDOMAIN / KLIEN</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">PAKET</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">UKURAN FILE</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">UKURAN DATABASE</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">RASIO PENGGUNAAN DISK (TOTAL)</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">AKSI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
@@ -972,21 +970,21 @@ export const AdminDashboard: React.FC = () => {
                   const ratio = Math.min(100, Math.round((sub.totalMb / sub.limitMb) * 100));
                   return (
                     <tr key={sub.id || idx} className="hover:bg-border-main/5 transition-colors">
-                      <td className="py-3">
+                      <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className="font-mono font-bold text-brand-primary">{sub.fullDomain}</span>
                           <span className="text-[10px] text-text-muted">{sub.owner?.name || 'Client'} ({sub.owner?.email || ''})</span>
                         </div>
                       </td>
-                      <td className="py-3">
+                      <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-text-main">{sub.packageName}</span>
                           <span className="text-[9px] text-text-muted uppercase tracking-wider">BATAS: {sub.limitMb} MB</span>
                         </div>
                       </td>
-                      <td className="py-3 text-center font-mono text-[10px] text-text-muted">{sub.filesMb.toFixed(2)} MB</td>
-                      <td className="py-3 text-center font-mono text-[10px] text-text-muted">{sub.dbMb.toFixed(2)} MB</td>
-                      <td className="py-3 max-w-[200px]">
+                      <td className="py-3 px-4 text-center font-mono text-[10px] text-text-muted">{sub.filesMb.toFixed(2)} MB</td>
+                      <td className="py-3 px-4 text-center font-mono text-[10px] text-text-muted">{sub.dbMb.toFixed(2)} MB</td>
+                      <td className="py-3 px-4 max-w-[200px]">
                         <div className="flex flex-col gap-1">
                           <div className="flex justify-between text-[10px] font-mono font-bold text-text-muted">
                             <span>{sub.totalMb.toFixed(2)} MB / {sub.limitMb} MB</span>
@@ -1144,16 +1142,17 @@ const AdminNotificationsView: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4 text-left mt-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-text-main">Target Klien</label>
-                <select
+                <Select
                   value={targetUser}
                   onChange={(e) => setTargetUser(e.target.value)}
-                  className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-3 py-2.5 text-xs font-semibold text-text-main outline-none"
-                >
-                  <option value="all">Broadcast (Semua Klien)</option>
-                  {adminUsers.map((u) => (
-                    <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-                  ))}
-                </select>
+                  options={[
+                    { value: 'all', label: 'Broadcast (Semua Klien)' },
+                    ...adminUsers.map((u) => ({
+                      value: u.id,
+                      label: `${u.name} (${u.email})`
+                    }))
+                  ]}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -1190,25 +1189,25 @@ const AdminNotificationsView: React.FC = () => {
         <div className="lg:col-span-2">
           <CardPanel title="RIWAYAT NOTIFIKASI">
             <div className="overflow-x-auto w-full mt-2">
-              <table className="w-full text-left">
+              <table className="w-full text-left min-w-[600px]">
                 <thead>
                   <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                    <th className="py-2.5 pb-2 font-bold">Judul & Pesan</th>
-                    <th className="py-2.5 pb-2 font-bold">Penerima</th>
-                    <th className="py-2.5 pb-2 text-right pr-6 font-bold">Aksi</th>
+                    <th className="py-2.5 pb-2 px-4 font-bold">Judul & Pesan</th>
+                    <th className="py-2.5 pb-2 px-4 font-bold">Penerima</th>
+                    <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-main/30 text-xs">
                   {notifications.map((n) => (
                     <tr key={n.id} className="hover:bg-border-main/5 transition-colors">
-                      <td className="py-3 pr-4">
+                      <td className="py-3 px-4">
                         <div className="flex flex-col gap-0.5">
                           <span className="font-bold text-text-main">{n.title}</span>
                           <span className="text-[10px] text-text-muted leading-relaxed">{n.message}</span>
                           <span className="text-[9px] text-text-muted/60 mt-1">{new Date(n.createdAt).toLocaleString('id-ID')}</span>
                         </div>
                       </td>
-                      <td className="py-3">
+                      <td className="py-3 px-4">
                         {n.user ? (
                           <div className="flex flex-col">
                             <span className="font-semibold">{n.user.name}</span>
@@ -1218,7 +1217,7 @@ const AdminNotificationsView: React.FC = () => {
                           <span className="text-[10px] bg-brand-primary/10 text-brand-primary font-bold px-2 py-0.5 rounded border border-brand-primary/20">SEMUA KLIEN</span>
                         )}
                       </td>
-                      <td className="py-3 text-right pr-6">
+                      <td className="py-3 px-4 text-right">
                         <button
                           onClick={() => handleDelete(n.id)}
                           className="text-text-muted hover:text-red-500 p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer transition-colors active:scale-95 inline-flex"
@@ -1278,35 +1277,35 @@ const AdminReportsView: React.FC = () => {
 
       <CardPanel title="TIKET MASUK">
         <div className="overflow-x-auto w-full mt-2">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[700px]">
             <thead>
               <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                <th className="py-2.5 pb-2 font-bold">Klien</th>
-                <th className="py-2.5 pb-2 font-bold">Subjek / Masalah</th>
-                <th className="py-2.5 pb-2 text-center font-bold">Status</th>
-                <th className="py-2.5 pb-2 text-right pr-6 font-bold">Aksi</th>
+                <th className="py-2.5 pb-2 px-4 font-bold">Klien</th>
+                <th className="py-2.5 pb-2 px-4 font-bold">Subjek / Masalah</th>
+                <th className="py-2.5 pb-2 px-4 text-center font-bold">Status</th>
+                <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-main/30 text-xs">
               {globalIssues.map((issue) => (
                 <tr key={issue.id} className="hover:bg-border-main/5 transition-colors">
-                  <td className="py-3 font-semibold text-text-main">
+                  <td className="py-3 px-4 font-semibold text-text-main">
                     {issue.user_name}
                   </td>
-                  <td className="py-3 max-w-md pr-4">
+                  <td className="py-3 px-4 max-w-md">
                     <div className="flex flex-col gap-0.5">
                       <span className="font-bold text-brand-primary">{issue.subject}</span>
                       <span className="text-text-muted leading-relaxed mt-0.5">"{issue.message}"</span>
                       <span className="text-[9px] text-text-muted/60 mt-1">{new Date(issue.created_at).toLocaleString('id-ID')}</span>
                     </div>
                   </td>
-                  <td className="py-3 text-center">
+                  <td className="py-3 px-4 text-center">
                     <Badge
                       status={issue.status === 'resolved' ? 'success' : 'pending'}
                       label={issue.status === 'resolved' ? 'SELESAI' : 'BUKA'}
                     />
                   </td>
-                  <td className="py-3 text-right pr-6">
+                  <td className="py-3 px-4 text-right">
                     {issue.status !== 'resolved' && (
                       <Button
                         size="sm"

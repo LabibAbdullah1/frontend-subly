@@ -9,6 +9,7 @@ import { useToastStore } from '../../stores/useToastStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
+import { Modal } from '../../components/ui/Modal';
 
 const profileSchema = z.object({
   name: z.string().min(3, 'Nama minimal 3 karakter'),
@@ -19,8 +20,34 @@ const profileSchema = z.object({
 export const ProfileSettings: React.FC = () => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
-  const { user, updateProfile } = useAuthStore();
+  const { user, updateProfile, deleteAccount } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  const handleDeleteAccountClick = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const handleExecuteDeleteAccount = async () => {
+    setDeleteModalOpen(false);
+    setLoading(true);
+    try {
+      await deleteAccount();
+      addToast({
+        type: 'success',
+        title: 'Akun Dihapus',
+        message: 'Akun Anda berhasil dihapus secara permanen dari sistem.',
+      });
+    } catch {
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal memproses penghapusan akun Anda.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(profileSchema),
@@ -125,7 +152,7 @@ export const ProfileSettings: React.FC = () => {
         </div>
 
         {/* Right Column: Security overview */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-6">
           <CardPanel title="Status Keamanan">
             <div className="space-y-4 mt-2 text-xs select-none">
               <div className="p-3 bg-emerald-500/5 dark:bg-emerald-500/2 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-start gap-2.5">
@@ -146,9 +173,59 @@ export const ProfileSettings: React.FC = () => {
               </div>
             </div>
           </CardPanel>
+
+          <CardPanel title="Zona Bahaya (Danger Zone)">
+            <div className="space-y-4 mt-2 text-xs">
+              <p className="text-[10px] text-text-muted leading-relaxed">
+                Penghapusan akun bersifat permanen. Semua data Anda akan dihapus secara menyeluruh dari sistem dan tidak dapat dipulihkan kembali.
+              </p>
+              <Button
+                type="button"
+                onClick={handleDeleteAccountClick}
+                className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 hover:border-red-500/30 text-[10px] font-bold py-2 rounded-xl transition-all"
+                isLoading={loading}
+              >
+                Hapus Akun Permanen
+              </Button>
+            </div>
+          </CardPanel>
         </div>
 
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Hapus Akun Secara Permanen"
+        size="sm"
+      >
+        <div className="space-y-4 text-left">
+          <div className="p-3 bg-red-500/5 dark:bg-red-500/2 border border-red-500/10 text-red-500 rounded-xl flex items-start gap-2.5">
+            <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
+            <div className="text-xs leading-relaxed text-text-muted">
+              <p className="font-bold text-red-500 mb-0.5">PERINGATAN KERAS!</p>
+              <p>Apakah Anda yakin ingin menghapus akun Anda secara permanen? Seluruh subdomain, database MySQL, riwayat pembayaran, dan log deployment Anda akan dihapus selamanya dari sistem dan tidak dapat dipulihkan.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-main">
+            <Button type="button" variant="secondary" onClick={() => setDeleteModalOpen(false)}>
+              Batal
+            </Button>
+            <Button 
+              type="button" 
+              variant="primary" 
+              className="bg-red-500 hover:bg-red-600 text-white font-bold transition-all border-none"
+              onClick={handleExecuteDeleteAccount}
+              isLoading={loading}
+            >
+              Hapus Akun Selamanya
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
     </div>
   );
 };

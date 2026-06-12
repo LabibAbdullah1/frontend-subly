@@ -15,11 +15,12 @@ interface AuthState {
   resetPassword: (email: string, token: string, password?: string, passwordConfirmation?: string) => Promise<boolean>;
   updateProfile: (name: string, email: string) => Promise<void>;
   checkAuth: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  status: 'unauthenticated',
+  status: (typeof window !== 'undefined' && localStorage.getItem('subly_token')) ? 'loading' : 'unauthenticated',
 
   login: async (email, password = 'password') => {
     try {
@@ -47,11 +48,18 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       set({
         user: loggedInUser,
-        status: 'authenticated',
+        status: 'loading',
       });
 
       // Synchronize role in system store
       useSystemStore.getState().setCurrentRole(loggedInUser.role);
+
+      // Delay for 2.5 seconds to display the smooth logo outline animation
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+
+      set({
+        status: 'authenticated',
+      });
 
       return true;
     } catch (error: any) {
@@ -202,5 +210,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.removeItem('subly_token');
       set({ user: null, status: 'unauthenticated' });
     }
+  },
+
+  deleteAccount: async () => {
+    await apiFetch('/auth/me', {
+      method: 'DELETE'
+    });
+    localStorage.removeItem('subly_token');
+    set({ user: null, status: 'unauthenticated' });
+    useSystemStore.getState().setActiveTab('dashboard');
   }
 }));

@@ -235,3 +235,17 @@ body {
   animation: signal-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
+/* Running outline logo animation styles */
+@keyframes running-outline {
+  0% {
+    stroke-dashoffset: 368;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-running-outline {
+  animation: running-outline 2.5s linear infinite;
+}
+

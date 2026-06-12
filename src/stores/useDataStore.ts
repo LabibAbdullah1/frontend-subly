@@ -64,9 +64,13 @@ interface DataState {
   resolveIssue: (issueId: number) => Promise<void>;
 
   addPlan: (name: string, price: number, type: 'PHP' | 'NodeJS', storageMb: number, description?: string) => Promise<void>;
+  updatePlan: (id: number, name: string, price: number, type: 'PHP' | 'NodeJS', storageMb: number, description?: string) => Promise<void>;
   deletePlan: (id: number) => Promise<void>;
   addVoucher: (code: string, discountPercent: number, maxUses: number) => Promise<void>;
+  updateVoucher: (id: number, code: string, discountPercent: number, maxUses: number) => Promise<void>;
   deleteVoucher: (id: number) => Promise<void>;
+  updateUser: (id: number, name: string, email: string, role: string, password?: string) => Promise<void>;
+  deleteUser: (id: number) => Promise<void>;
   updateSubdomainStorageOverride: (subdomainId: number, limitMb: number) => Promise<void>;
   updateSetting: (key: string | Record<string, string | null>, value?: string | null | File, file?: File) => Promise<void>;
 
@@ -218,6 +222,15 @@ export const useDataStore = create<DataState>((set, get) => ({
           deployed_at: d.deployedAt,
           created_at: d.createdAt || '',
           updated_at: d.updatedAt || ''
+        })),
+        userDatabases: (sub.databases || []).map((db: any) => ({
+          id: Number(db.id),
+          subdomain_id: Number(db.subdomainId),
+          db_name: db.dbName,
+          db_user: db.dbUser,
+          db_password: db.dbPassword ?? undefined,
+          created_at: db.createdAt || '',
+          updated_at: db.updatedAt || ''
         }))
       }));
 
@@ -687,6 +700,23 @@ export const useDataStore = create<DataState>((set, get) => ({
     await get().fetchPlans();
   },
 
+  updatePlan: async (id, name, price, type, storageMb, description) => {
+    await apiFetch(`/plans/${id}`, {
+      method: 'PUT',
+      body: {
+        name,
+        price,
+        type,
+        maxStorageMb: storageMb,
+        maxDatabases: type === 'PHP' ? 3 : 5,
+        durationMonths: 1,
+        isActive: true,
+        description: description || undefined
+      }
+    });
+    await get().fetchPlans();
+  },
+
   deletePlan: async (id) => {
     await apiFetch(`/plans/${id}`, {
       method: 'DELETE'
@@ -708,11 +738,45 @@ export const useDataStore = create<DataState>((set, get) => ({
     await get().fetchVouchers();
   },
 
+  updateVoucher: async (id, code, discountPercent, maxUses) => {
+    await apiFetch(`/vouchers/${id}`, {
+      method: 'PUT',
+      body: {
+        code: code.toUpperCase().replace(/\s+/g, ''),
+        type: 'percent',
+        rewardAmount: discountPercent,
+        usageLimit: maxUses,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days active
+      }
+    });
+    await get().fetchVouchers();
+  },
+
   deleteVoucher: async (id) => {
     await apiFetch(`/vouchers/${id}`, {
       method: 'DELETE'
     });
     await get().fetchVouchers();
+  },
+
+  updateUser: async (id, name, email, role, password) => {
+    await apiFetch(`/auth/users/${id}`, {
+      method: 'PUT',
+      body: {
+        name,
+        email,
+        role,
+        password: password || undefined
+      }
+    });
+    await get().fetchAdminUsers();
+  },
+
+  deleteUser: async (id) => {
+    await apiFetch(`/auth/users/${id}`, {
+      method: 'DELETE'
+    });
+    await get().fetchAdminUsers();
   },
 
   updateSubdomainStorageOverride: async (subdomainId, limitMb) => {

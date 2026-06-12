@@ -7,6 +7,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { Select } from '../../components/ui/Select';
 
 export const TestimonialPage: React.FC = () => {
   const { t } = useTranslation();
@@ -108,18 +109,15 @@ export const TestimonialPage: React.FC = () => {
                   <label className="text-[10px] font-black uppercase text-text-muted tracking-wider block">
                     {t('selectSubdomain')}
                   </label>
-                  <select
+                  <Select
                     value={selectedSubdomainId || (activeSubdomains[0]?.id.toString() || '')}
                     onChange={(e) => setSelectedSubdomainId(e.target.value)}
-                    className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-3 py-2.5 text-xs font-semibold text-text-main outline-none"
+                    options={activeSubdomains.map((sub) => ({
+                      value: sub.id,
+                      label: `${sub.name}.subly.host`
+                    }))}
                     required
-                  >
-                    {activeSubdomains.map((sub) => (
-                      <option key={sub.id} value={sub.id}>
-                        {sub.name}.subly.host
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 {/* Star Rating Select */}
@@ -228,7 +226,13 @@ export const TestimonialPage: React.FC = () => {
                           {t.title}
                         </h4>
                         <span className="text-[10px] text-text-muted block font-mono">
-                          Subdomain: {t.subdomain ? `${t.subdomain.name}.subly.host` : 'Semua Subdomain'}
+                          Subdomain: {t.subdomain 
+                            ? `${t.subdomain.name}.subly.my.id` 
+                            : (subdomains?.[0] 
+                                ? `${subdomains[0].name}.subly.my.id` 
+                                : 'Semua Subdomain'
+                              )
+                          }
                         </span>
                       </div>
                       <Badge

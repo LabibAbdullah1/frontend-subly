@@ -1,6 +1,6 @@
 // src/pages/admin/AdminCRUDs.tsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Upload, Star, MessageSquare } from 'lucide-react';
+import { Plus, Trash2, Upload, Star, MessageSquare, Edit, ShieldAlert } from 'lucide-react';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
 import { useToastStore } from '../../stores/useToastStore';
@@ -9,6 +9,7 @@ import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
+import { Select } from '../../components/ui/Select';
 
 export const AdminCRUDs: React.FC = () => {
   const { t } = useTranslation();
@@ -23,9 +24,13 @@ export const AdminCRUDs: React.FC = () => {
     fetchAdminUsers,
     fetchSettings,
     addPlan,
+    updatePlan,
     deletePlan,
     addVoucher,
+    updateVoucher,
     deleteVoucher,
+    updateUser,
+    deleteUser,
     updateSetting,
     adminTestimonials,
     fetchAdminTestimonials,
@@ -42,10 +47,45 @@ export const AdminCRUDs: React.FC = () => {
   const [newPlanDescription, setNewPlanDescription] = useState('');
   const [isSubmittingPlan, setIsSubmittingPlan] = useState(false);
 
+  // Edit Plan states
+  const [editPlanModalOpen, setEditPlanModalOpen] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [editPlanName, setEditPlanName] = useState('');
+  const [editPlanPrice, setEditPlanPrice] = useState('');
+  const [editPlanType, setEditPlanType] = useState<'PHP' | 'NodeJS'>('PHP');
+  const [editPlanStorage, setEditPlanStorage] = useState('');
+  const [editPlanDescription, setEditPlanDescription] = useState('');
+  const [isSubmittingEditPlan, setIsSubmittingEditPlan] = useState(false);
+
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [newVoucherCode, setNewVoucherCode] = useState('');
   const [newVoucherDiscount, setNewVoucherDiscount] = useState('20');
   const [isSubmittingVoucher, setIsSubmittingVoucher] = useState(false);
+
+  // Edit Voucher states
+  const [editVoucherModalOpen, setEditVoucherModalOpen] = useState(false);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
+  const [editVoucherCode, setEditVoucherCode] = useState('');
+  const [editVoucherDiscount, setEditVoucherDiscount] = useState('');
+  const [editVoucherMaxUses, setEditVoucherMaxUses] = useState('');
+  const [isSubmittingEditVoucher, setIsSubmittingEditVoucher] = useState(false);
+
+  // Edit User states
+  const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [editUserName, setEditUserName] = useState('');
+  const [editUserEmail, setEditUserEmail] = useState('');
+  const [editUserRole, setEditUserRole] = useState<'Admin' | 'Client'>('Client');
+  const [editUserPassword, setEditUserPassword] = useState('');
+  const [isSubmittingEditUser, setIsSubmittingEditUser] = useState(false);
+
+  // Global Delete Confirmation states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [deleteTargetType, setDeleteTargetType] = useState<'plan' | 'voucher' | 'user' | 'testimonial' | null>(null);
+  const [deleteModalTitle, setDeleteModalTitle] = useState('');
+  const [deleteModalMessage, setDeleteModalMessage] = useState('');
+  const [isConfirmDeleting, setIsConfirmDeleting] = useState(false);
 
 
 
@@ -128,21 +168,12 @@ export const AdminCRUDs: React.FC = () => {
     }
   };
 
-  const handleDeletePlan = async (id: number) => {
-    try {
-      await deletePlan(id);
-      addToast({
-        type: 'success',
-        title: 'Paket Dihapus',
-        message: 'Paket hosting berhasil dihapus.',
-      });
-    } catch {
-      addToast({
-        type: 'error',
-        title: 'Gagal',
-        message: 'Gagal menghapus paket hosting.',
-      });
-    }
+  const handleDeletePlan = (id: number) => {
+    setDeleteTargetId(id);
+    setDeleteTargetType('plan');
+    setDeleteModalTitle('Konfirmasi Hapus Paket');
+    setDeleteModalMessage('Apakah Anda yakin ingin menghapus paket hosting ini secara permanen?');
+    setDeleteConfirmOpen(true);
   };
 
   // Vouchers Actions
@@ -171,21 +202,140 @@ export const AdminCRUDs: React.FC = () => {
     }
   };
 
-  const handleDeleteVoucher = async (id: number) => {
+  const handleDeleteVoucher = (id: number) => {
+    setDeleteTargetId(id);
+    setDeleteTargetType('voucher');
+    setDeleteModalTitle('Konfirmasi Hapus Voucher');
+    setDeleteModalMessage('Apakah Anda yakin ingin menghapus voucher ini secara permanen? Kode diskon ini tidak akan bisa digunakan lagi.');
+    setDeleteConfirmOpen(true);
+  };
+
+  // Plan Edit Actions
+  const handleEditPlanClick = (plan: any) => {
+    setSelectedPlanId(plan.id);
+    setEditPlanName(plan.name);
+    setEditPlanPrice(plan.price.toString());
+    setEditPlanType(plan.type);
+    setEditPlanStorage(plan.max_storage_mb.toString());
+    setEditPlanDescription(plan.description || '');
+    setEditPlanModalOpen(true);
+  };
+
+  const handleUpdatePlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPlanId || !editPlanName) return;
+
+    setIsSubmittingEditPlan(true);
     try {
-      await deleteVoucher(id);
+      await updatePlan(
+        selectedPlanId,
+        editPlanName,
+        Number(editPlanPrice),
+        editPlanType,
+        Number(editPlanStorage),
+        editPlanDescription
+      );
+      setEditPlanModalOpen(false);
       addToast({
         type: 'success',
-        title: 'Voucher Dihapus',
-        message: 'Kode diskon dinonaktifkan.',
+        title: 'Paket Diperbarui',
+        message: `Paket hosting ${editPlanName} berhasil diperbarui.`,
       });
     } catch {
       addToast({
         type: 'error',
         title: 'Gagal',
-        message: 'Gagal menghapus voucher.',
+        message: 'Gagal memperbarui paket hosting.',
       });
+    } finally {
+      setIsSubmittingEditPlan(false);
     }
+  };
+
+  // Voucher Edit Actions
+  const handleEditVoucherClick = (vc: any) => {
+    setSelectedVoucherId(vc.id);
+    setEditVoucherCode(vc.code);
+    setEditVoucherDiscount(vc.discount_percent.toString());
+    setEditVoucherMaxUses(vc.max_uses.toString());
+    setEditVoucherModalOpen(true);
+  };
+
+  const handleUpdateVoucher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedVoucherId || !editVoucherCode) return;
+
+    setIsSubmittingEditVoucher(true);
+    try {
+      await updateVoucher(
+        selectedVoucherId,
+        editVoucherCode,
+        Number(editVoucherDiscount),
+        Number(editVoucherMaxUses)
+      );
+      setEditVoucherModalOpen(false);
+      addToast({
+        type: 'success',
+        title: 'Voucher Diperbarui',
+        message: `Voucher ${editVoucherCode} berhasil diperbarui.`,
+      });
+    } catch {
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal memperbarui voucher.',
+      });
+    } finally {
+      setIsSubmittingEditVoucher(false);
+    }
+  };
+
+  // User Edit Actions
+  const handleEditUserClick = (user: any) => {
+    setSelectedUserId(user.id);
+    setEditUserName(user.name);
+    setEditUserEmail(user.email);
+    setEditUserRole(user.role as 'Admin' | 'Client');
+    setEditUserPassword('');
+    setEditUserModalOpen(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUserId || !editUserName || !editUserEmail) return;
+
+    setIsSubmittingEditUser(true);
+    try {
+      await updateUser(
+        selectedUserId,
+        editUserName,
+        editUserEmail,
+        editUserRole,
+        editUserPassword || undefined
+      );
+      setEditUserModalOpen(false);
+      addToast({
+        type: 'success',
+        title: 'User Diperbarui',
+        message: `User ${editUserName} berhasil diperbarui.`,
+      });
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: err.message || 'Gagal memperbarui data user.',
+      });
+    } finally {
+      setIsSubmittingEditUser(false);
+    }
+  };
+
+  const handleDeleteUser = (id: number) => {
+    setDeleteTargetId(id);
+    setDeleteTargetType('user');
+    setDeleteModalTitle('Konfirmasi Hapus Pengguna');
+    setDeleteModalMessage('Apakah Anda yakin ingin menghapus user ini secara permanen? PERINGATAN: Semua data relasi seperti subdomain, database cPanel, dan riwayat pembayaran akan ikut terhapus secara permanen.');
+    setDeleteConfirmOpen(true);
   };
 
 
@@ -268,21 +418,58 @@ export const AdminCRUDs: React.FC = () => {
     }
   };
 
-  const handleDeleteTestimonial = async (id: number) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus testimonial ini?')) return;
+  const handleDeleteTestimonial = (id: number) => {
+    setDeleteTargetId(id);
+    setDeleteTargetType('testimonial');
+    setDeleteModalTitle('Konfirmasi Hapus Testimonial');
+    setDeleteModalMessage('Apakah Anda yakin ingin menghapus testimonial ini secara permanen? Ulasan pelanggan ini akan dihapus dari data feedback admin.');
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleExecuteDelete = async () => {
+    if (!deleteTargetId || !deleteTargetType) return;
+    setIsConfirmDeleting(true);
     try {
-      await deleteTestimonial(id);
-      addToast({
-        type: 'success',
-        title: 'Dihapus',
-        message: 'Testimonial berhasil dihapus.',
-      });
-    } catch {
+      if (deleteTargetType === 'plan') {
+        await deletePlan(deleteTargetId);
+        addToast({
+          type: 'success',
+          title: 'Paket Dihapus',
+          message: 'Paket hosting berhasil dihapus.',
+        });
+      } else if (deleteTargetType === 'voucher') {
+        await deleteVoucher(deleteTargetId);
+        addToast({
+          type: 'success',
+          title: 'Voucher Dihapus',
+          message: 'Kode diskon dinonaktifkan.',
+        });
+      } else if (deleteTargetType === 'user') {
+        await deleteUser(deleteTargetId);
+        addToast({
+          type: 'success',
+          title: 'User Dihapus',
+          message: 'User berhasil dihapus secara permanen.',
+        });
+      } else if (deleteTargetType === 'testimonial') {
+        await deleteTestimonial(deleteTargetId);
+        addToast({
+          type: 'success',
+          title: 'Testimonial Dihapus',
+          message: 'Testimonial berhasil dihapus.',
+        });
+      }
+      setDeleteConfirmOpen(false);
+    } catch (err: any) {
       addToast({
         type: 'error',
         title: 'Gagal',
-        message: 'Gagal menghapus testimonial.',
+        message: err.message || 'Gagal menghapus data.',
       });
+    } finally {
+      setIsConfirmDeleting(false);
+      setDeleteTargetId(null);
+      setDeleteTargetType(null);
     }
   };
 
@@ -311,20 +498,20 @@ export const AdminCRUDs: React.FC = () => {
           }
         >
           <div className="overflow-x-auto w-full mt-2 select-none">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[650px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                  <th className="py-2.5 pb-2 font-bold">Nama Paket</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Runtime</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">NVMe Storage</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Price</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">Aksi</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Nama Paket</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Runtime</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">NVMe Storage</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Price</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
                 {plans.map((plan) => (
                   <tr key={plan.id} className="hover:bg-border-main/5 transition-colors">
-                    <td className="py-3 font-semibold text-text-main">
+                    <td className="py-3 px-4 font-semibold text-text-main">
                       <div className="flex flex-col">
                         <span>{plan.name}</span>
                         {plan.description && (
@@ -334,7 +521,7 @@ export const AdminCRUDs: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="py-3 px-4 text-center">
                       <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
                         plan.type === 'NodeJS'
                           ? 'bg-green-500/10 text-green-500 border border-green-500/15'
@@ -343,20 +530,29 @@ export const AdminCRUDs: React.FC = () => {
                         {plan.type}
                       </span>
                     </td>
-                    <td className="py-3 text-center font-mono text-[10px] text-text-muted">
+                    <td className="py-3 px-4 text-center font-mono text-[10px] text-text-muted">
                       {plan.max_storage_mb} MB
                     </td>
-                    <td className="py-3 text-center font-bold text-text-main font-mono">
+                    <td className="py-3 px-4 text-center font-bold text-text-main font-mono">
                       Rp {plan.price.toLocaleString('id-ID')}
                     </td>
-                    <td className="py-3 text-right pr-6">
-                      <button
-                        onClick={() => handleDeletePlan(plan.id)}
-                        className="text-text-muted hover:text-red-500 p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-95 inline-flex"
-                        title="Hapus Paket"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => handleEditPlanClick(plan)}
+                          className="text-text-muted hover:text-brand-primary p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex"
+                          title="Edit Paket"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePlan(plan.id)}
+                          className="text-text-muted hover:text-red-500 p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-95 inline-flex"
+                          title="Hapus Paket"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -384,42 +580,51 @@ export const AdminCRUDs: React.FC = () => {
           }
         >
           <div className="overflow-x-auto w-full mt-2 select-none">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[600px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                  <th className="py-2.5 pb-2 font-bold">Kode Voucher</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Diskon</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Maks Penggunaan</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Status</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">Aksi</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Kode Voucher</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Diskon</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Maks Penggunaan</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Status</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
                 {vouchers.map((vc) => (
                   <tr key={vc.id} className="hover:bg-border-main/5 transition-colors">
-                    <td className="py-3 font-mono font-bold text-brand-primary">
+                    <td className="py-3 px-4 font-mono font-bold text-brand-primary">
                       {vc.code}
                     </td>
-                    <td className="py-3 text-center text-text-main font-bold">
+                    <td className="py-3 px-4 text-center text-text-main font-bold">
                       {vc.discount_percent}%
                     </td>
-                    <td className="py-3 text-center font-mono text-[10px] text-text-muted">
+                    <td className="py-3 px-4 text-center font-mono text-[10px] text-text-muted">
                       {vc.max_uses}
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="py-3 px-4 text-center">
                       <Badge 
                         status={vc.is_active ? 'success' : 'inactive'} 
                         label={vc.is_active ? 'Aktif' : 'Expired'} 
                       />
                     </td>
-                    <td className="py-3 text-right pr-6">
-                      <button
-                        onClick={() => handleDeleteVoucher(vc.id)}
-                        className="text-text-muted hover:text-red-500 p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-95 inline-flex"
-                        title="Hapus Voucher"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => handleEditVoucherClick(vc)}
+                          className="text-text-muted hover:text-brand-primary p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex"
+                          title="Edit Voucher"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteVoucher(vc.id)}
+                          className="text-text-muted hover:text-red-500 p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-95 inline-flex"
+                          title="Hapus Voucher"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -435,13 +640,14 @@ export const AdminCRUDs: React.FC = () => {
       {activeTab === 'admin-users' && (
         <CardPanel title={t('userManager')}>
           <div className="overflow-x-auto w-full mt-2 overflow-y-scroll max-h-[calc(100vh-200px)]">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[700px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest select-none">
-                  <th className="py-2.5 pb-2 font-bold">Nama Klien</th>
-                  <th className="py-2.5 pb-2 font-bold">Email</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Subdomain Aktif</th>
-                  <th className="py-2.5 pb-2 text-center pr-6 font-bold">Verifikasi</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Nama Klien</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Email</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Subdomain Aktif</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Verifikasi</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
@@ -449,20 +655,38 @@ export const AdminCRUDs: React.FC = () => {
                   const activeSub = client.subdomains?.[0];
                   return (
                     <tr key={client.id} className="hover:bg-border-main/5 transition-colors">
-                      <td className="py-3 font-semibold text-text-main">
+                      <td className="py-3 px-4 font-semibold text-text-main">
                         {client.name}
                       </td>
-                      <td className="py-3 text-text-muted select-all">
+                      <td className="py-3 px-4 text-text-muted select-all">
                         {client.email}
                       </td>
-                      <td className="py-3 text-center font-mono text-[10px] text-text-main">
+                      <td className="py-3 px-4 text-center font-mono text-[10px] text-text-main">
                         {activeSub ? `${activeSub.name}.subly.host` : 'None'}
                       </td>
-                      <td className="py-3 text-center pr-6 select-none">
+                      <td className="py-3 px-4 text-center select-none">
                         <Badge 
                           status={client.emailVerifiedAt ? 'success' : 'inactive'} 
                           label={client.emailVerifiedAt ? 'Verified' : 'Unverified'} 
                         />
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => handleEditUserClick(client)}
+                            className="text-text-muted hover:text-brand-primary p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex"
+                            title="Edit User"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(client.id)}
+                            className="text-text-muted hover:text-red-500 p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-95 inline-flex"
+                            title="Hapus User"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -629,30 +853,38 @@ export const AdminCRUDs: React.FC = () => {
       {activeTab === 'admin-testimonials' && (
         <CardPanel title={t('adminTestimonials')}>
           <div className="overflow-x-auto w-full mt-2 select-none">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[800px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                  <th className="py-2.5 pb-2 font-bold">Klien</th>
-                  <th className="py-2.5 pb-2 font-bold">Subdomain</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Rating</th>
-                  <th className="py-2.5 pb-2 font-bold">Feedback</th>
-                  <th className="py-2.5 pb-2 text-center font-bold">Status</th>
-                  <th className="py-2.5 pb-2 text-right pr-6 font-bold">Aksi</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Klien</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Subdomain</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Rating</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">Feedback</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Status</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
                 {adminTestimonials.map((t) => (
                   <tr key={t.id} className="hover:bg-border-main/5 transition-colors">
-                    <td className="py-3 font-semibold text-text-main">
+                    <td className="py-3 px-4 font-semibold text-text-main">
                       <div className="flex flex-col">
                         <span>{t.user?.name}</span>
                         <span className="text-[10px] text-text-muted font-normal">{t.user?.email}</span>
                       </div>
                     </td>
-                    <td className="py-3 text-text-muted font-mono text-[10px]">
-                      {t.subdomain ? `${t.subdomain.name}.subly.host` : 'None'}
+                    <td className="py-3 px-4 text-text-muted font-mono text-[10px]">
+                      {t.subdomain 
+                        ? `${t.subdomain.name}.subly.my.id` 
+                        : (() => {
+                            const owner = adminUsers.find(u => u.id === t.user_id);
+                            return owner?.subdomains?.[0] 
+                              ? `${owner.subdomains[0].name}.subly.my.id` 
+                              : 'None';
+                          })()
+                      }
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
@@ -664,7 +896,7 @@ export const AdminCRUDs: React.FC = () => {
                         ))}
                       </div>
                     </td>
-                    <td className="py-3 max-w-xs">
+                    <td className="py-3 px-4 max-w-xs">
                       <div className="flex flex-col gap-0.5">
                         <span className="font-bold text-text-main line-clamp-1">{t.title}</span>
                         <span className="text-[10px] text-text-muted line-clamp-2 leading-relaxed">
@@ -677,7 +909,7 @@ export const AdminCRUDs: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="py-3 px-4 text-center">
                       <Badge
                         status={
                           t.status === 'approved' || t.status === 'featured'
@@ -689,7 +921,7 @@ export const AdminCRUDs: React.FC = () => {
                         label={t.status.toUpperCase()}
                       />
                     </td>
-                    <td className="py-3 text-right pr-6">
+                    <td className="py-3 px-4 text-right">
                       <div className="flex justify-end gap-1">
                         <button
                           onClick={() => {
@@ -742,14 +974,14 @@ export const AdminCRUDs: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-text-main">Runtime Type</label>
-              <select
+              <Select
                 value={newPlanType}
                 onChange={(e) => setNewPlanType(e.target.value as 'PHP' | 'NodeJS')}
-                className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-3 py-2.5 text-xs font-semibold text-text-main outline-none"
-              >
-                <option value="PHP">PHP & Laravel</option>
-                <option value="NodeJS">Node.js Runtimes</option>
-              </select>
+                options={[
+                  { value: 'PHP', label: 'PHP & Laravel' },
+                  { value: 'NodeJS', label: 'Node.js Runtimes' }
+                ]}
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -850,16 +1082,16 @@ export const AdminCRUDs: React.FC = () => {
         <form onSubmit={handleSaveReview} className="space-y-4 text-left">
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-text-main">Status Testimonial</label>
-            <select
+            <Select
               value={reviewStatus}
               onChange={(e) => setReviewStatus(e.target.value as 'pending' | 'approved' | 'featured' | 'rejected')}
-              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-3 py-2.5 text-xs font-semibold text-text-main outline-none"
-            >
-              <option value="pending">Pending (Menunggu Review)</option>
-              <option value="approved">Approved (Disetujui)</option>
-              <option value="featured">Featured (Tampilkan Utama di Landing Page)</option>
-              <option value="rejected">Rejected (Ditolak)</option>
-            </select>
+              options={[
+                { value: 'pending', label: 'Pending (Menunggu Review)' },
+                { value: 'approved', label: 'Approved (Disetujui)' },
+                { value: 'featured', label: 'Featured (Tampilkan Utama di Landing Page)' },
+                { value: 'rejected', label: 'Rejected (Ditolak)' }
+              ]}
+            />
           </div>
 
           <div className="space-y-1.5">
@@ -882,6 +1114,231 @@ export const AdminCRUDs: React.FC = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Edit Plan Modal */}
+      <Modal
+        isOpen={editPlanModalOpen}
+        onClose={() => setEditPlanModalOpen(false)}
+        title="Edit Paket Hosting"
+      >
+        <form onSubmit={handleUpdatePlan} className="space-y-4 text-left">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Nama Paket</label>
+            <input
+              type="text"
+              value={editPlanName}
+              onChange={(e) => setEditPlanName(e.target.value)}
+              placeholder="Subly PHP Enterprise"
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-text-main">Runtime Type</label>
+              <Select
+                value={editPlanType}
+                onChange={(e) => setEditPlanType(e.target.value as 'PHP' | 'NodeJS')}
+                options={[
+                  { value: 'PHP', label: 'PHP & Laravel' },
+                  { value: 'NodeJS', label: 'Node.js Runtimes' }
+                ]}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-text-main">Harga Bulanan (Rp)</label>
+              <input
+                type="number"
+                value={editPlanPrice}
+                onChange={(e) => setEditPlanPrice(e.target.value)}
+                className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">NVMe Storage Limit (MB)</label>
+            <input
+              type="number"
+              value={editPlanStorage}
+              onChange={(e) => setEditPlanStorage(e.target.value)}
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
+              required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Deskripsi Paket (Opsional)</label>
+            <textarea
+              value={editPlanDescription}
+              onChange={(e) => setEditPlanDescription(e.target.value)}
+              placeholder="Deskripsi singkat fitur/keunggulan paket ini"
+              rows={3}
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none resize-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-main">
+            <Button type="button" variant="secondary" onClick={() => setEditPlanModalOpen(false)}>
+              {t('cancel')}
+            </Button>
+            <Button type="submit" variant="primary" isLoading={isSubmittingEditPlan}>
+              Perbarui Paket
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Voucher Modal */}
+      <Modal
+        isOpen={editVoucherModalOpen}
+        onClose={() => setEditVoucherModalOpen(false)}
+        title="Edit Voucher Diskon"
+      >
+        <form onSubmit={handleUpdateVoucher} className="space-y-4 text-left">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Kode Diskon</label>
+            <input
+              type="text"
+              value={editVoucherCode}
+              onChange={(e) => setEditVoucherCode(e.target.value.toUpperCase())}
+              placeholder="SUBLYSUPER"
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-text-main outline-none"
+              required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Persentase Diskon (%)</label>
+            <input
+              type="number"
+              value={editVoucherDiscount}
+              onChange={(e) => setEditVoucherDiscount(e.target.value)}
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
+              required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Batas Penggunaan</label>
+            <input
+              type="number"
+              value={editVoucherMaxUses}
+              onChange={(e) => setEditVoucherMaxUses(e.target.value)}
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
+              required
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-main">
+            <Button type="button" variant="secondary" onClick={() => setEditVoucherModalOpen(false)}>
+              {t('cancel')}
+            </Button>
+            <Button type="submit" variant="primary" isLoading={isSubmittingEditVoucher}>
+              Perbarui Voucher
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit User Modal */}
+      <Modal
+        isOpen={editUserModalOpen}
+        onClose={() => setEditUserModalOpen(false)}
+        title="Edit User Akun"
+      >
+        <form onSubmit={handleUpdateUser} className="space-y-4 text-left">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Nama Lengkap</label>
+            <input
+              type="text"
+              value={editUserName}
+              onChange={(e) => setEditUserName(e.target.value)}
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
+              required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Email</label>
+            <input
+              type="email"
+              value={editUserEmail}
+              onChange={(e) => setEditUserEmail(e.target.value)}
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
+              required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Role Hak Akses</label>
+            <Select
+              value={editUserRole}
+              onChange={(e) => setEditUserRole(e.target.value as 'Admin' | 'Client')}
+              options={[
+                { value: 'Client', label: 'Client (Pelanggan)' },
+                { value: 'Admin', label: 'Admin (Sistem)' }
+              ]}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-text-main">Password Baru (Kosongkan jika tidak ingin ganti)</label>
+            <input
+              type="password"
+              value={editUserPassword}
+              onChange={(e) => setEditUserPassword(e.target.value)}
+              placeholder="Minimal 8 karakter"
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-main">
+            <Button type="button" variant="secondary" onClick={() => setEditUserModalOpen(false)}>
+              {t('cancel')}
+            </Button>
+            <Button type="submit" variant="primary" isLoading={isSubmittingEditUser}>
+              Perbarui User
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Global Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        title={deleteModalTitle}
+        size="sm"
+      >
+        <div className="space-y-4 text-left">
+          <div className="p-3 bg-red-500/5 dark:bg-red-500/2 border border-red-500/10 text-red-500 rounded-xl flex items-start gap-2.5">
+            <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
+            <div className="text-xs leading-relaxed text-text-muted">
+              <p className="font-bold text-red-500 mb-0.5">Tindakan Tidak Dapat Dibatalkan!</p>
+              <p>{deleteModalMessage}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-main">
+            <Button type="button" variant="secondary" onClick={() => setDeleteConfirmOpen(false)}>
+              Batal
+            </Button>
+            <Button 
+              type="button" 
+              variant="primary" 
+              className="bg-red-500 hover:bg-red-600 text-white font-bold transition-all border-none"
+              onClick={handleExecuteDelete}
+              isLoading={isConfirmDeleting}
+            >
+              Hapus Secara Permanen
+            </Button>
+          </div>
+        </div>
       </Modal>
 
     </div>

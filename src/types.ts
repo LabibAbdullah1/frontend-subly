@@ -127,7 +127,7 @@ export interface ChatMessage {
 export type AppLanguage = 'id' | 'en';
 export type AppTheme = 'light' | 'dark';
 export type AppDevice = 'desktop' | 'mobile';
-export type AuthStatus = 'authenticated' | 'unauthenticated' | 'verifying';
+export type AuthStatus = 'authenticated' | 'unauthenticated' | 'verifying' | 'loading';
 export type ActiveTab = 'dashboard' | 'subdomains' | 'databases' | 'plans' | 'billing' | 'chat' | 'reports' | 'notifications' | 'profile' | 'admin-dashboard' | 'admin-users' | 'admin-plans' | 'admin-vouchers' | 'admin-payments' | 'admin-chat' | 'admin-settings' | 'login' | 'register' | 'legal' | 'testimonials' | 'admin-testimonials' | 'admin-arenhost' | 'admin-deployment' | 'admin-subdomain' | 'admin-database' | 'admin-disk' | 'admin-notifications' | 'admin-reports' | 'forgot-password' | 'reset-password';
 
 export type TestimonialStatus = 'pending' | 'approved' | 'featured' | 'rejected';

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { AlertTriangle, HardDrive, PlusCircle } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { Select } from '../ui/Select';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useToastStore } from '../../stores/useToastStore';
 import { useDataStore } from '../../stores/useDataStore';
@@ -133,16 +134,16 @@ export const StatusProgressBar: React.FC<StatusProgressBarProps> = ({
             <label className="text-xs font-bold text-text-main">
               Ukuran Preset Tambahan
             </label>
-            <select
+            <Select
               value={requestSize}
               onChange={(e) => setRequestSize(e.target.value)}
-              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4.5 py-3 text-xs font-semibold text-text-main outline-none transition-all"
-            >
-              <option value="512">512 MB</option>
-              <option value="1024">1024 MB (1 GB) - Recommended</option>
-              <option value="2048">2048 MB (2 GB)</option>
-              <option value="5120">5120 MB (5 GB)</option>
-            </select>
+              options={[
+                { value: '512', label: '512 MB' },
+                { value: '1024', label: '1024 MB (1 GB) - Recommended' },
+                { value: '2048', label: '2048 MB (2 GB)' },
+                { value: '5120', label: '5120 MB (5 GB)' }
+              ]}
+            />
           </div>
 
           {/* Reason text */}
