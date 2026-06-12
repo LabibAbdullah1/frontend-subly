@@ -1,5 +1,6 @@
 // src/pages/public/AuthPages.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../utils/api';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -475,21 +476,46 @@ export const ResetPasswordPage: React.FC = () => {
   const { addToast } = useToastStore();
   const { setActiveTab } = useSystemStore();
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [tokenError, setTokenError] = useState<string | null>(null);
 
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token') || '';
   const email = urlParams.get('email') || '';
+
+  useEffect(() => {
+    if (!token || !email) {
+      setTokenError('Tautan reset password tidak valid atau tidak lengkap.');
+      setChecking(false);
+      return;
+    }
+
+    const checkToken = async () => {
+      try {
+        await apiFetch(`/auth/validate-reset-token?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`, {
+          method: 'GET'
+        });
+        setTokenError(null);
+      } catch (err: any) {
+        setTokenError(err.message || 'Tautan reset kata sandi tidak valid atau telah kedaluwarsa.');
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    checkToken();
+  }, [token, email]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema)
   });
 
   const onSubmit = async (data: z.infer<typeof resetPasswordSchema>) => {
-    if (!token || !email) {
+    if (!token || !email || tokenError) {
       addToast({
         type: 'error',
         title: 'Reset Gagal',
-        message: 'Token reset atau email tidak valid.',
+        message: tokenError || 'Tautan reset kata sandi tidak valid.',
       });
       return;
     }
@@ -518,12 +544,27 @@ export const ResetPasswordPage: React.FC = () => {
     }
   };
 
-  if (!token || !email) {
+  if (checking) {
     return (
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title="Reset Link Tidak Valid">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 select-none">
+        <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title="Memvalidasi Tautan">
           <p className="text-xs text-text-muted leading-relaxed mt-2 mb-6">
-            Tautan reset password ini tidak valid atau tidak lengkap. Silakan minta tautan baru.
+            Mohon tunggu, sedang memverifikasi keabsahan tautan reset kata sandi Anda...
+          </p>
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-brand-primary"></div>
+          </div>
+        </CardPanel>
+      </div>
+    );
+  }
+
+  if (tokenError) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-6 py-12 select-none">
+        <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title="Tautan Tidak Valid">
+          <p className="text-xs text-red-500 font-semibold leading-relaxed mt-2 mb-6">
+            {tokenError}
           </p>
           <Button
             onClick={() => setActiveTab('login')}
