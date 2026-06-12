@@ -20,7 +20,7 @@ import { Header } from './components/layout/Header';
 
 // Public Pages
 import { LandingPage } from './pages/public/LandingPage';
-import { LoginPage, RegisterPage, VerifyEmailPage } from './pages/public/AuthPages';
+import { LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage, ResetPasswordPage } from './pages/public/AuthPages';
 import { LegalPages } from './pages/public/LegalPages';
 
 // Client Pages
@@ -58,7 +58,15 @@ export const App: React.FC = () => {
 
   React.useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    
+    // Detect special paths on initial mount
+    const path = window.location.pathname;
+    if (path === '/verify-email') {
+      useAuthStore.setState({ status: 'verifying' });
+    } else if (path === '/reset-password') {
+      setActiveTab('reset-password');
+    }
+  }, [checkAuth, setActiveTab]);
 
   React.useEffect(() => {
     if (status === 'authenticated') {
@@ -147,7 +155,9 @@ export const App: React.FC = () => {
                 {activeTab === 'legal' && <LegalPages />}
                 {activeTab === 'login' && <LoginPage />}
                 {activeTab === 'register' && <RegisterPage />}
-                {activeTab !== 'legal' && activeTab !== 'login' && activeTab !== 'register' && <LandingPage />}
+                {activeTab === 'forgot-password' && <ForgotPasswordPage />}
+                {activeTab === 'reset-password' && <ResetPasswordPage />}
+                {activeTab !== 'legal' && activeTab !== 'login' && activeTab !== 'register' && activeTab !== 'forgot-password' && activeTab !== 'reset-password' && <LandingPage />}
               </motion.div>
             </AnimatePresence>
           </main>

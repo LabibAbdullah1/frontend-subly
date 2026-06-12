@@ -286,8 +286,9 @@ export const AdminCRUDs: React.FC = () => {
     }
   };
 
-  const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+  const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') : 'http://localhost:5000';
   const currentQrisImg = settings.qris_image_path ? `${settings.qris_image_path.startsWith('http') ? '' : UPLOADS_BASE}/${settings.qris_image_path}` : null;
+  const hasQrisImage = !!qrisPreviewUrl || (!!currentQrisImg && !imageError);
 
   return (
     <div className="space-y-6 w-full text-left">
@@ -497,19 +498,23 @@ export const AdminCRUDs: React.FC = () => {
                   <span className="text-[10px] font-black uppercase text-text-muted tracking-wider block">
                     {qrisPreviewUrl ? 'Pratinjau QRIS Baru' : 'Foto QRIS Aktif Saat Ini'}
                   </span>
-                  <div className="p-3 bg-white border border-border-main rounded-2xl w-full h-36 flex items-center justify-center overflow-hidden shadow-xs">
+                  <div className={`bg-white border border-border-main rounded-2xl overflow-hidden shadow-xs transition-all duration-200 ${
+                    hasQrisImage 
+                      ? 'w-fit h-fit p-0' 
+                      : 'w-full sm:w-60 min-h-[144px] flex items-center justify-center p-4 text-center'
+                  }`}>
                     {qrisPreviewUrl ? (
                       <img 
                         src={qrisPreviewUrl} 
                         alt="Preview QRIS" 
-                        className="max-w-full max-h-full object-contain" 
+                        className="block max-w-full sm:max-w-xs max-h-72 w-auto h-auto" 
                       />
                     ) : currentQrisImg && !imageError ? (
                       <img 
                         src={currentQrisImg} 
                         onError={() => setImageError(true)}
                         alt="Active QRIS" 
-                        className="max-w-full max-h-full object-contain" 
+                        className="block max-w-full sm:max-w-xs max-h-72 w-auto h-auto" 
                       />
                     ) : (
                       <span className="text-[10px] text-text-muted italic">

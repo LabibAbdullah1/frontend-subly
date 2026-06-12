@@ -54,6 +54,9 @@ export const translations = {
     verifyEmailTitle: 'Verifikasi Email Anda',
     verifyEmailSub: 'Silakan verifikasi email Anda dengan mengklik link yang kami kirimkan ke alamat email Anda.',
     verifyBtn: 'Verifikasi Email Sekarang',
+    forgotPasswordSub: 'Masukkan email Anda untuk menerima link reset kata sandi.',
+    resetPasswordSub: 'Masukkan kata sandi baru Anda di bawah ini.',
+    backToLogin: 'Kembali ke Login',
     
     // Dashboard Client
     welcome: 'Selamat datang kembali',
@@ -190,6 +193,9 @@ export const translations = {
     verifyEmailTitle: 'Verify Your Email Address',
     verifyEmailSub: 'Please verify your email address by clicking the link we sent to your email inbox.',
     verifyBtn: 'Verify Email Now',
+    forgotPasswordSub: 'Enter your email to receive a password reset link.',
+    resetPasswordSub: 'Enter your new password below.',
+    backToLogin: 'Back to Login',
     
     // Dashboard Client
     welcome: 'Welcome back',

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { KeyRound, Mail, User, AlertCircle } from 'lucide-react';
+import { KeyRound, Mail, User, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useToastStore } from '../../stores/useToastStore';
@@ -22,6 +22,18 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   name: z.string().min(3, 'Nama minimal 3 karakter'),
   email: z.string().min(1, 'Email wajib diisi').email('Format email tidak valid'),
+  password: z.string().min(8, 'Kata sandi minimal 8 karakter'),
+  password_confirmation: z.string().min(1, 'Konfirmasi sandi wajib diisi'),
+}).refine((data) => data.password === data.password_confirmation, {
+  message: "Konfirmasi sandi harus cocok",
+  path: ["password_confirmation"],
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().min(1, 'Email wajib diisi').email('Format email tidak valid'),
+});
+
+const resetPasswordSchema = z.object({
   password: z.string().min(8, 'Kata sandi minimal 8 karakter'),
   password_confirmation: z.string().min(1, 'Konfirmasi sandi wajib diisi'),
 }).refine((data) => data.password === data.password_confirmation, {
@@ -103,7 +115,7 @@ export const LoginPage: React.FC = () => {
               </label>
               <button 
                 type="button" 
-                onClick={() => setActiveTab('profile')} // Just mapping
+                onClick={() => setActiveTab('forgot-password')}
                 className="text-[10px] text-brand-primary hover:underline font-bold"
               >
                 {t('forgotPassword')}
@@ -351,4 +363,247 @@ export const VerifyEmailPage: React.FC = () => {
     </div>
   );
 };
+
+// ----------------------------------------------------
+// Forgot Password Page Component
+// ----------------------------------------------------
+export const ForgotPasswordPage: React.FC = () => {
+  const { t } = useTranslation();
+  const { forgotPassword } = useAuthStore();
+  const { addToast } = useToastStore();
+  const { setActiveTab } = useSystemStore();
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof forgotPasswordSchema>>({
+    resolver: zodResolver(forgotPasswordSchema)
+  });
+
+  const onSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
+    setLoading(true);
+    try {
+      await forgotPassword(data.email);
+      setSuccess(true);
+      addToast({
+        type: 'success',
+        title: 'Email Dikirim',
+        message: 'Tautan reset sandi telah dikirim ke email Anda.',
+      });
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Permintaan Gagal',
+        message: err.message || 'Terjadi kesalahan saat meminta reset password.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex items-center justify-center px-6 py-12">
+      <CardPanel className="w-full max-w-md border shadow-2xl relative" title={t('forgotPassword')}>
+        <p className="text-[10px] text-text-muted mt-0.5 select-none text-left mb-6">{t('forgotPasswordSub')}</p>
+
+        {success ? (
+          <div className="text-center py-6">
+            <div className="my-4 flex justify-center">
+              <div className="h-16 w-16 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+                <Mail className="h-8 w-8 animate-pulse" />
+              </div>
+            </div>
+            <p className="text-xs font-semibold text-text-main mb-6">
+              Instruksi pemulihan kata sandi telah dikirimkan ke email Anda. Silakan periksa kotak masuk atau spam Anda.
+            </p>
+            <Button
+              onClick={() => setActiveTab('login')}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t('backToLogin')}
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-1.5 text-left">
+              <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 text-text-muted" />
+                {t('email')}
+              </label>
+              <input
+                type="text"
+                {...register('email')}
+                placeholder="nama@email.com"
+                className="premium-input w-full"
+              />
+              {errors.email && (
+                <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3 shrink-0" />
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <Button type="submit" variant="primary" className="w-full mt-2" isLoading={loading}>
+              {t('sendResetLink')}
+            </Button>
+
+            <div className="pt-2 text-center select-none">
+              <button
+                type="button"
+                onClick={() => setActiveTab('login')}
+                className="text-xs font-bold text-text-muted hover:text-brand-primary hover:underline flex items-center justify-center gap-1.5 mx-auto"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                {t('backToLogin')}
+              </button>
+            </div>
+          </form>
+        )}
+      </CardPanel>
+    </div>
+  );
+};
+
+// ----------------------------------------------------
+// Reset Password Page Component
+// ----------------------------------------------------
+export const ResetPasswordPage: React.FC = () => {
+  const { t } = useTranslation();
+  const { resetPassword } = useAuthStore();
+  const { addToast } = useToastStore();
+  const { setActiveTab } = useSystemStore();
+  const [loading, setLoading] = useState(false);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token') || '';
+  const email = urlParams.get('email') || '';
+
+  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof resetPasswordSchema>>({
+    resolver: zodResolver(resetPasswordSchema)
+  });
+
+  const onSubmit = async (data: z.infer<typeof resetPasswordSchema>) => {
+    if (!token || !email) {
+      addToast({
+        type: 'error',
+        title: 'Reset Gagal',
+        message: 'Token reset atau email tidak valid.',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await resetPassword(email, token, data.password, data.password_confirmation);
+      addToast({
+        type: 'success',
+        title: 'Sandi Diperbarui',
+        message: 'Kata sandi Anda berhasil diperbarui. Silakan masuk kembali.',
+      });
+      setActiveTab('login');
+      // Clean query parameters from URL
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Reset Gagal',
+        message: err.message || 'Token reset telah kadaluwarsa atau tidak valid.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!token || !email) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title="Reset Link Tidak Valid">
+          <p className="text-xs text-text-muted leading-relaxed mt-2 mb-6">
+            Tautan reset password ini tidak valid atau tidak lengkap. Silakan minta tautan baru.
+          </p>
+          <Button
+            onClick={() => setActiveTab('login')}
+            variant="primary"
+            className="w-full"
+          >
+            {t('backToLogin')}
+          </Button>
+        </CardPanel>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex items-center justify-center px-6 py-12">
+      <CardPanel className="w-full max-w-md border shadow-2xl relative" title={t('resetPasswordTitle')}>
+        <p className="text-[10px] text-text-muted mt-0.5 select-none text-left mb-6">{t('resetPasswordSub')}</p>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Target Email display */}
+          <div className="space-y-1.5 text-left select-none">
+            <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+              <Mail className="h-3.5 w-3.5 text-text-muted" />
+              {t('email')}
+            </label>
+            <input
+              type="text"
+              value={email}
+              disabled
+              className="premium-input w-full opacity-60 cursor-not-allowed bg-border-main/20"
+            />
+          </div>
+
+          {/* Password field */}
+          <div className="space-y-1.5 text-left">
+            <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+              <KeyRound className="h-3.5 w-3.5 text-text-muted" />
+              {t('password')}
+            </label>
+            <input
+              type="password"
+              {...register('password')}
+              placeholder="Minimal 8 Karakter"
+              className="premium-input w-full"
+            />
+            {errors.password && (
+              <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
+                <AlertCircle className="h-3 w-3 shrink-0" />
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          {/* Password Confirmation field */}
+          <div className="space-y-1.5 text-left">
+            <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+              <KeyRound className="h-3.5 w-3.5 text-text-muted" />
+              {t('confirmPassword')}
+            </label>
+            <input
+              type="password"
+              {...register('password_confirmation')}
+              placeholder="Konfirmasi sandi baru"
+              className="premium-input w-full"
+            />
+            {errors.password_confirmation && (
+              <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
+                <AlertCircle className="h-3 w-3 shrink-0" />
+                {errors.password_confirmation.message}
+              </p>
+            )}
+          </div>
+
+          <Button type="submit" variant="primary" className="w-full mt-2" isLoading={loading}>
+            Simpan Kata Sandi Baru
+          </Button>
+        </form>
+      </CardPanel>
+    </div>
+  );
+};
+
 export default LoginPage;

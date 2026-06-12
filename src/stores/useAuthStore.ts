@@ -11,6 +11,8 @@ interface AuthState {
   register: (name: string, email: string, password?: string) => Promise<boolean>;
   logout: () => Promise<void>;
   verifyEmail: (token?: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<boolean>;
+  resetPassword: (email: string, token: string, password?: string, passwordConfirmation?: string) => Promise<boolean>;
   updateProfile: (name: string, email: string) => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -127,6 +129,27 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       return { status: 'unauthenticated' };
     });
+  },
+
+  forgotPassword: async (email) => {
+    await apiFetch('/auth/forgot-password', {
+      method: 'POST',
+      body: { email }
+    });
+    return true;
+  },
+
+  resetPassword: async (email, token, password = 'password', passwordConfirmation = 'password') => {
+    await apiFetch('/auth/reset-password', {
+      method: 'POST',
+      body: {
+        email,
+        token,
+        password,
+        password_confirmation: passwordConfirmation
+      }
+    });
+    return true;
   },
 
   updateProfile: async (name, email) => {

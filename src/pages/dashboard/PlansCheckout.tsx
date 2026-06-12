@@ -108,7 +108,7 @@ export const PlansCheckout: React.FC = () => {
   const totalAmount = activePayment ? activePayment.amount : 0;
   
   // QRIS Image URL Configuration
-  const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+  const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') : 'http://localhost:5000';
   const qrisImgUrl = settings.qris_image_path ? `${settings.qris_image_path.startsWith('http') ? '' : UPLOADS_BASE}/${settings.qris_image_path}` : null;
 
   return (

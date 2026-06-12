@@ -170,7 +170,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const pendingPayments = payments.filter(p => p.status === 'pending');
-  const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+  const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') : 'http://localhost:5000';
 
   // Calculate monthly revenue from payments
   const currentMonth = new Date().getMonth();
