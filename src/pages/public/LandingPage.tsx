@@ -168,9 +168,14 @@ export const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col flex-1 text-left bg-bg-base">
+    <div className="flex flex-col flex-1 text-left bg-transparent relative">
+        {/* Ambient orange-gold glow behind hero text */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none overflow-hidden z-0 select-none opacity-80">
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[550px] h-[550px] rounded-full bg-[radial-gradient(circle,_rgba(249,115,22,0.15)_0%,_rgba(210,173,94,0.06)_40%,_rgba(0,0,0,0)_75%)] blur-3xl" />
+        </div>
+
         {/* Hero Section */}
-        <section className="px-6 py-20 md:py-28 text-center max-w-4xl mx-auto flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-6 duration-700 select-none">
+        <section className="px-6 py-20 md:py-28 text-center max-w-4xl mx-auto flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-6 duration-700 select-none relative z-10">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bg-surface border border-border-main text-text-subtle text-[11px] font-medium tracking-wide">
             <Zap className="h-3.5 w-3.5 text-brand-primary" />
             <span>High-Performance SSD Cloud Server</span>
