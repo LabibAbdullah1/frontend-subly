@@ -29,6 +29,7 @@ interface DataState {
     system?: {
       cpuCores: number;
       activeProcesses: number;
+      maxProcesses?: number;
       memoryTotalGb: number;
       memoryUsedGb: number;
       uptimeSeconds: number;

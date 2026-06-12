@@ -460,13 +460,16 @@ export const AdminDashboard: React.FC = () => {
                   <div>
                     <span className="text-[10px] text-text-muted uppercase tracking-wider block">CPU Cores</span>
                     <span className="text-sm font-bold text-text-main">
-                      {adminStats?.system?.cpuCores ? `${adminStats.system.cpuCores} Threads` : '-'}
+                      {adminStats?.system?.cpuCores ? `${adminStats.system.cpuCores} Cores` : '-'}
                     </span>
                   </div>
                   <div>
                     <span className="text-[10px] text-text-muted uppercase tracking-wider block">NPROC (Aktif)</span>
                     <span className="text-sm font-bold text-brand-primary">
-                      {adminStats?.system?.activeProcesses ? `${adminStats.system.activeProcesses} Proses` : '-'}
+                      {adminStats?.system?.activeProcesses 
+                        ? `${adminStats.system.activeProcesses} / ${adminStats.system.maxProcesses || 200} (${Math.round((adminStats.system.activeProcesses / (adminStats.system.maxProcesses || 200)) * 100)}%)` 
+                        : '-'
+                      }
                     </span>
                   </div>
                 </div>
