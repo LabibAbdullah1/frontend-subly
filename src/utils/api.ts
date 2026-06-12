@@ -45,8 +45,17 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
   }
 
   if (!response.ok) {
-    // Return structured API validation or general error messages
-    const errorMessage = data.message || data.error || (data.errors ? 'Validation Error' : `HTTP error! status: ${response.status}`);
+    let errorMessage = data.message || data.error;
+    if (!errorMessage && data.errors) {
+      const firstKey = Object.keys(data.errors)[0];
+      if (firstKey) {
+        const errorVal = data.errors[firstKey];
+        errorMessage = Array.isArray(errorVal) ? errorVal[0] : (typeof errorVal === 'object' ? Object.values(errorVal)[0] : errorVal);
+      }
+    }
+    if (!errorMessage) {
+      errorMessage = `HTTP error! status: ${response.status}`;
+    }
     const error: any = new Error(errorMessage);
     error.status = response.status;
     error.data = data;
