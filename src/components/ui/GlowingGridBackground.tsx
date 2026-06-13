@@ -17,45 +17,25 @@ export const GlowingGridBackground: React.FC = () => {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none">
-      {/* Dynamic Gold/Orange Light Blobs */}
+      {/* Dynamic Gold/Orange Light Blobs - Static layout after initial fade-in to optimize GPU performance */}
       <motion.div
-        animate={{
-          x: [-60, 160, -60],
-          y: [-30, 90, -30],
-          opacity: [0.6, 0.8, 0.6],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.7 }}
+        transition={{ duration: 1.5 }}
         className="absolute w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle,_rgba(210,173,94,0.12)_0%,_rgba(210,173,94,0)_70%)] blur-3xl"
         style={{ left: '15%', top: '12%' }}
       />
       <motion.div
-        animate={{
-          x: [120, -120, 120],
-          y: [60, -90, 60],
-          opacity: [0.55, 0.75, 0.55],
-        }}
-        transition={{
-          duration: 22,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.65 }}
+        transition={{ duration: 1.8, delay: 0.2 }}
         className="absolute w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,_rgba(249,115,22,0.13)_0%,_rgba(249,115,22,0)_70%)] blur-3xl"
         style={{ right: '12%', top: '28%' }}
       />
       <motion.div
-        animate={{
-          x: [0, 80, 0],
-          y: [90, -60, 90],
-        }}
-        transition={{
-          duration: 26,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        transition={{ duration: 2, delay: 0.4 }}
         className="absolute w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,_rgba(249,115,22,0.08)_0%,_rgba(249,115,22,0)_70%)] blur-3xl"
         style={{ left: '38%', bottom: '22%' }}
       />

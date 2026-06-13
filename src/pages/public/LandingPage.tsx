@@ -87,7 +87,7 @@ const ProductMockup: React.FC = () => {
             <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] inline-block"></span>
             <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f] inline-block"></span>
           </div>
-          <div className="bg-[#010102] border border-[#23252a]/50 text-[10px] text-zinc-500 font-mono px-6 py-1 rounded-md w-72 text-center truncate">
+          <div className="bg-[#010102] border border-[#23252a]/50 text-[10px] text-zinc-400 font-mono px-6 py-1 rounded-md w-72 text-center truncate">
             {browserUrl}
           </div>
           <div className="w-12"></div>
@@ -97,7 +97,7 @@ const ProductMockup: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 min-h-[380px] text-[11px] font-sans">
           {/* Mock sidebar */}
           <div className="bg-[#0b0c0d] border-r border-[#23252a] p-4 space-y-4 select-none text-left">
-            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{t('mockProjectPortal')}</div>
+            <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{t('mockProjectPortal')}</div>
             <div className="space-y-1">
               <button
                 onClick={() => setActiveTab('detail')}
@@ -159,7 +159,7 @@ const ProductMockup: React.FC = () => {
                     onClick={() => setActiveTab('files')}
                     className="bg-[#141516] border border-[#23252a] hover:border-[#d2ad5e]/50 hover:bg-[#141516]/80 p-3 rounded-lg cursor-pointer transition-all duration-200 group text-left"
                   >
-                    <div className="text-zinc-500 group-hover:text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('colRuntime')}</div>
+                    <div className="text-zinc-400 group-hover:text-zinc-300 text-[9px] uppercase font-bold tracking-wider">{t('colRuntime')}</div>
                     <div className="text-zinc-100 group-hover:text-[#d2ad5e] text-xs font-semibold mt-1 transition-colors">PHP 8.2 (Laravel)</div>
                   </div>
                   
@@ -168,7 +168,7 @@ const ProductMockup: React.FC = () => {
                     onClick={() => setActiveTab('ssl')}
                     className="bg-[#141516] border border-[#23252a] hover:border-[#d2ad5e]/50 hover:bg-[#141516]/80 p-3 rounded-lg cursor-pointer transition-all duration-200 group text-left"
                   >
-                    <div className="text-zinc-500 group-hover:text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('mockSslSecurity')}</div>
+                    <div className="text-zinc-400 group-hover:text-zinc-300 text-[9px] uppercase font-bold tracking-wider">{t('mockSslSecurity')}</div>
                     <div className="text-emerald-400 group-hover:text-emerald-300 text-xs font-semibold mt-1 flex items-center gap-1.5 transition-colors">
                       <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block animate-pulse"></span>
                       {t('mockActiveSecure')}
@@ -180,7 +180,7 @@ const ProductMockup: React.FC = () => {
                     onClick={() => setActiveTab('database')}
                     className="bg-[#141516] border border-[#23252a] hover:border-[#d2ad5e]/50 hover:bg-[#141516]/80 p-3 rounded-lg cursor-pointer transition-all duration-200 group text-left"
                   >
-                    <div className="text-zinc-500 group-hover:text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('dbLinkLabel')}</div>
+                    <div className="text-zinc-400 group-hover:text-zinc-300 text-[9px] uppercase font-bold tracking-wider">{t('dbLinkLabel')}</div>
                     <div className="text-zinc-100 group-hover:text-[#d2ad5e] text-xs font-semibold mt-1 transition-colors">subly_db_laravel</div>
                   </div>
                 </div>
@@ -188,7 +188,7 @@ const ProductMockup: React.FC = () => {
                 {/* Mock terminal output */}
                 <div className="bg-[#010102] border border-[#23252a] rounded-lg p-4 font-mono text-[10px] text-zinc-300 flex-1 flex flex-col justify-between overflow-hidden min-h-[180px]">
                   <div className="flex items-center justify-between pb-2 border-b border-[#23252a]/20 mb-2 select-none">
-                    <span className="text-[9px] uppercase text-zinc-500 font-bold tracking-wider">{t('mockConsoleLogs')}</span>
+                    <span className="text-[9px] uppercase text-zinc-400 font-bold tracking-wider">{t('mockConsoleLogs')}</span>
                     <span className="h-2 w-2 bg-[#d2ad5e] rounded-full animate-pulse"></span>
                   </div>
                   <div className="space-y-1.5 text-left flex-1 overflow-y-auto max-h-[140px] pr-2">
@@ -200,7 +200,7 @@ const ProductMockup: React.FC = () => {
                       if (isUrl) colorClass = 'text-[#e0be75] font-semibold hover:underline';
                       return (
                         <div key={idx} className={`${colorClass} flex items-start gap-1`}>
-                          <span className="text-zinc-500 font-semibold shrink-0 select-none">$</span>
+                          <span className="text-zinc-400 font-semibold shrink-0 select-none">$</span>
                           <span>{log}</span>
                         </div>
                       );
@@ -214,15 +214,15 @@ const ProductMockup: React.FC = () => {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('credDbName')}</div>
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('credDbName')}</div>
                     <div className="text-zinc-100 text-xs font-semibold mt-1">subly_db_laravel</div>
                   </div>
                   <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('credDbUser')}</div>
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('credDbUser')}</div>
                     <div className="text-zinc-100 text-xs font-semibold mt-1">subly_u_laravel</div>
                   </div>
                   <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('credHost')}</div>
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('credHost')}</div>
                     <div className="text-zinc-100 text-xs font-semibold mt-1">127.0.0.1 (Internal)</div>
                   </div>
                 </div>
@@ -243,7 +243,7 @@ const ProductMockup: React.FC = () => {
                   
                   {/* Mini database tables preview */}
                   <div className="border border-[#23252a] rounded overflow-hidden">
-                    <div className="grid grid-cols-3 bg-[#0b0c0d] p-2 font-mono text-[9px] text-zinc-500 border-b border-[#23252a] font-bold text-center">
+                    <div className="grid grid-cols-3 bg-[#0b0c0d] p-2 font-mono text-[9px] text-zinc-400 border-b border-[#23252a] font-bold text-center">
                       <div>TABLE NAME</div>
                       <div>ROWS</div>
                       <div>SIZE</div>
@@ -274,18 +274,18 @@ const ProductMockup: React.FC = () => {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('colFilesMb')}</div>
-                    <div className="text-zinc-100 text-xs font-semibold mt-1">14.2 MB / 1500 MB</div>
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('colFilesMb')}</div>
+                    <div className="text-zinc-100 text-xs font-semibold mt-1 2-15">14.2 MB / 1500 MB</div>
                   </div>
                   <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('syncMethodLabel')}</div>
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('syncMethodLabel')}</div>
                     <div className="text-zinc-100 text-xs font-semibold mt-1 flex items-center gap-1">
                       <GitBranch className="w-3.5 h-3.5 text-brand-primary" />
                       <span>Git Pull (main)</span>
                     </div>
                   </div>
                   <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">last deployment</div>
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold tracking-wider">last deployment</div>
                     <div className="text-zinc-100 text-xs font-semibold mt-1">v1.0.4 (2m ago)</div>
                   </div>
                 </div>
@@ -329,14 +329,14 @@ const ProductMockup: React.FC = () => {
                         onClick={() => handleFileClick('mockToastEnvFile')}
                         className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-pointer transition-colors"
                       >
-                        <FileText className="w-3 h-3 text-zinc-500" />
+                        <FileText className="w-3 h-3 text-zinc-400" />
                         <span>.env</span>
                       </div>
                       <div 
                         onClick={() => handleFileClick('mockToastComposerFile')}
                         className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-pointer transition-colors"
                       >
-                        <FileText className="w-3 h-3 text-zinc-500" />
+                        <FileText className="w-3 h-3 text-zinc-400" />
                         <span>composer.json</span>
                       </div>
                     </div>
@@ -346,7 +346,7 @@ const ProductMockup: React.FC = () => {
                       onClick={handleDeploySimulation}
                       className="border border-dashed border-[#23252a] hover:border-[#d2ad5e]/40 hover:bg-[#0a0b0c]/80 rounded flex flex-col items-center justify-center p-4 bg-[#0a0b0c]/50 text-center select-none cursor-pointer transition-all duration-200"
                     >
-                      <Terminal className="h-5 w-5 text-zinc-500 mb-1" />
+                      <Terminal className="h-5 w-5 text-zinc-400 mb-1" />
                       <span className="text-[8px] text-zinc-400 font-semibold">{t('dropzoneText')}</span>
                     </div>
                   </div>
@@ -358,18 +358,18 @@ const ProductMockup: React.FC = () => {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">ssl provider</div>
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold tracking-wider">ssl provider</div>
                     <div className="text-zinc-100 text-xs font-semibold mt-1">Let's Encrypt</div>
                   </div>
                   <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('colStatus')}</div>
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('colStatus')}</div>
                     <div className="text-emerald-400 text-xs font-semibold mt-1 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block animate-pulse"></span>
                       <span>{t('mockActiveSecure')}</span>
                     </div>
                   </div>
                   <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">autorenew</div>
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold tracking-wider">autorenew</div>
                     <div className="text-zinc-100 text-xs font-semibold mt-1">Enabled (60 days)</div>
                   </div>
                 </div>
@@ -378,7 +378,7 @@ const ProductMockup: React.FC = () => {
                   <div className="flex items-center justify-between pb-2 border-b border-[#23252a]/20">
                     <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">{t('mockSslSecurity')}</span>
                     <div className="flex items-center gap-1.5 select-none">
-                      <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider">FORCE HTTPS</span>
+                      <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-wider">FORCE HTTPS</span>
                       <div 
                         onClick={() => {
                           const nextVal = !forceHttps;
@@ -404,8 +404,8 @@ const ProductMockup: React.FC = () => {
                       <Lock className="h-4.5 w-4.5" />
                     </div>
                     <div>
-                      <h4 className="text-[10px] font-bold text-zinc-200">SSL Certificate Wildcard</h4>
-                      <p className="text-[9px] text-zinc-500 font-medium mt-0.5">Valid until September 11, 2026 (90 days remaining). Renews automatically.</p>
+                      <div className="text-[10px] font-bold text-zinc-200">SSL Certificate Wildcard</div>
+                      <p className="text-[9px] text-zinc-400 font-medium mt-0.5">Valid until September 11, 2026 (90 days remaining). Renews automatically.</p>
                     </div>
                   </div>
                 </div>
@@ -506,7 +506,7 @@ export const LandingPage: React.FC = () => {
               onClick={() => setActiveTab('register')}
               className="text-[11px] text-brand-primary hover:underline font-bold mt-2.5 bg-transparent border-none cursor-pointer block"
             >
-              Belum memiliki akun? Daftar secara gratis di sini →
+              {t('noAccountRegisterFree')}
             </button>
           )}
         </section>
@@ -518,19 +518,19 @@ export const LandingPage: React.FC = () => {
         <section className="px-6 py-8 max-w-5xl mx-auto w-full select-none">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 rounded-xl bg-bg-surface border border-border-main shadow-md">
             <div className="text-center space-y-1">
-              <h3 className="text-xl md:text-2xl font-semibold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>{t('statDeployTime')}</h3>
+              <div className="text-xl md:text-2xl font-semibold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>{t('statDeployTime')}</div>
               <p className="text-[9px] text-text-subtle uppercase tracking-wider font-semibold">{t('statDeployProcess')}</p>
             </div>
             <div className="text-center space-y-1 border-l border-border-main/50">
-              <h3 className="text-xl md:text-2xl font-semibold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>{t('statUptimeSlaVal')}</h3>
+              <div className="text-xl md:text-2xl font-semibold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>{t('statUptimeSlaVal')}</div>
               <p className="text-[9px] text-text-subtle uppercase tracking-wider font-semibold">{t('statUptimeSla')}</p>
             </div>
             <div className="text-center space-y-1 border-l border-border-main/50">
-              <h3 className="text-xl md:text-2xl font-semibold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>{t('statSsdStorageVal')}</h3>
+              <div className="text-xl md:text-2xl font-semibold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>{t('statSsdStorageVal')}</div>
               <p className="text-[9px] text-text-subtle uppercase tracking-wider font-semibold">{t('statSsdStorage')}</p>
             </div>
             <div className="text-center space-y-1 border-l border-border-main/50">
-              <h3 className="text-xl md:text-2xl font-semibold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>{t('statSslSecureVal')}</h3>
+              <div className="text-xl md:text-2xl font-semibold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>{t('statSslSecureVal')}</div>
               <p className="text-[9px] text-text-subtle uppercase tracking-wider font-semibold">{t('statSslSecure')}</p>
             </div>
           </div>
@@ -645,21 +645,21 @@ export const LandingPage: React.FC = () => {
                 <div className="flex items-start gap-3">
                   <div className="h-5 w-5 rounded-md bg-brand-primary/10 flex items-center justify-center text-brand-primary shrink-0 mt-0.5 font-bold text-xs select-none">✓</div>
                   <div>
-                    <h4 className="text-xs font-semibold text-text-main">{t('infraBullet1Title')}</h4>
+                    <div className="text-xs font-semibold text-text-main">{t('infraBullet1Title')}</div>
                     <p className="text-[11px] text-text-muted leading-normal mt-0.5">{t('infraBullet1Desc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="h-5 w-5 rounded-md bg-brand-primary/10 flex items-center justify-center text-brand-primary shrink-0 mt-0.5 font-bold text-xs select-none">✓</div>
                   <div>
-                    <h4 className="text-xs font-semibold text-text-main">{t('infraBullet2Title')}</h4>
+                    <div className="text-xs font-semibold text-text-main">{t('infraBullet2Title')}</div>
                     <p className="text-[11px] text-text-muted leading-normal mt-0.5">{t('infraBullet2Desc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="h-5 w-5 rounded-md bg-brand-primary/10 flex items-center justify-center text-brand-primary shrink-0 mt-0.5 font-bold text-xs select-none">✓</div>
                   <div>
-                    <h4 className="text-xs font-semibold text-text-main">{t('infraBullet3Title')}</h4>
+                    <div className="text-xs font-semibold text-text-main">{t('infraBullet3Title')}</div>
                     <p className="text-[11px] text-text-muted leading-normal mt-0.5">{t('infraBullet3Desc')}</p>
                   </div>
                 </div>
@@ -818,9 +818,9 @@ export const LandingPage: React.FC = () => {
 
                       {/* Content */}
                       <div className="space-y-1.5">
-                        <h4 className="text-xs font-semibold text-text-main uppercase tracking-wide">
+                        <div className="text-xs font-semibold text-text-main uppercase tracking-wide">
                           {testimonial.title}
-                        </h4>
+                        </div>
                         <p className="text-xs text-text-muted leading-relaxed italic font-normal">
                           "{testimonial.content}"
                         </p>

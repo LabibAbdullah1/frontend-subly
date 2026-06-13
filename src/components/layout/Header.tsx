@@ -77,6 +77,7 @@ export const Header: React.FC = () => {
             <button 
               onClick={toggleSidebar}
               className="p-2 rounded-xl hover:bg-border-main/50 text-text-muted hover:text-text-main cursor-pointer"
+              aria-label="Toggle navigation menu"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -106,6 +107,7 @@ export const Header: React.FC = () => {
             onClick={toggleLanguage}
             className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer flex items-center gap-1.5"
             title={t('language')}
+            aria-label="Change language"
           >
             <Languages className="h-4.5 w-4.5" />
             <span className="text-xs font-bold uppercase hidden sm:inline">{language}</span>
@@ -115,6 +117,7 @@ export const Header: React.FC = () => {
             onClick={toggleTheme}
             className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer"
             title={theme === 'dark' ? t('lightMode') : t('darkMode')}
+            aria-label={theme === 'dark' ? t('lightMode') : t('darkMode')}
           >
             {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
           </button>
@@ -123,6 +126,7 @@ export const Header: React.FC = () => {
           onClick={() => activeTab !== 'admin-chat' && activeTab !== 'chat' && setActiveTab(currentRole === 'Admin' ? 'admin-dashboard' : 'dashboard')}
           className="relative p-2.5 rounded-xl hover:bg-border-main/40 text-text-muted hover:text-text-main cursor-pointer"
           title={t('notifications')}
+          aria-label={t('notifications')}
         >
           <Bell className="h-4.5 w-4.5" />
           <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
@@ -133,6 +137,7 @@ export const Header: React.FC = () => {
           <button 
             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
             className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-border-main/40 cursor-pointer"
+            aria-label="User profile menu"
           >
             <div className="h-8 w-8 rounded-xl bg-linear-to-r from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold text-sm">
               {user ? user.name.charAt(0).toUpperCase() : 'L'}

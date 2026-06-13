@@ -20,24 +20,29 @@ import { Header } from './components/layout/Header';
 
 // Public Pages
 import { LandingPage } from './pages/public/LandingPage';
-import { LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage, ResetPasswordPage } from './pages/public/AuthPages';
-import { LegalPages } from './pages/public/LegalPages';
+const LoginPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.LoginPage })));
+const RegisterPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.RegisterPage })));
+const VerifyEmailPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.VerifyEmailPage })));
+const ForgotPasswordPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.ResetPasswordPage })));
+const LegalPages = React.lazy(() => import('./pages/public/LegalPages').then(m => ({ default: m.LegalPages })));
 
 // Client Pages
-import { DashboardOverview } from './pages/dashboard/DashboardOverview';
-import { SubdomainsList } from './pages/dashboard/SubdomainsList';
-import { SubdomainPortal } from './pages/dashboard/SubdomainPortal';
-import { DatabasesPage } from './pages/dashboard/DatabasesPage';
-import { PlansPage } from './pages/dashboard/PlansPage';
-import { PlansCheckout } from './pages/dashboard/PlansCheckout';
-import { SupportChat } from './pages/dashboard/SupportChat';
-import { IssueReports } from './pages/dashboard/IssueReports';
-import { ProfileSettings } from './pages/dashboard/ProfileSettings';
-import { TestimonialPage } from './pages/dashboard/TestimonialPage';
+const DashboardOverview = React.lazy(() => import('./pages/dashboard/DashboardOverview').then(m => ({ default: m.DashboardOverview })));
+const SubdomainsList = React.lazy(() => import('./pages/dashboard/SubdomainsList').then(m => ({ default: m.SubdomainsList })));
+const SubdomainPortal = React.lazy(() => import('./pages/dashboard/SubdomainPortal').then(m => ({ default: m.SubdomainPortal })));
+const DatabasesPage = React.lazy(() => import('./pages/dashboard/DatabasesPage').then(m => ({ default: m.DatabasesPage })));
+const PlansPage = React.lazy(() => import('./pages/dashboard/PlansPage').then(m => ({ default: m.PlansPage })));
+const PlansCheckout = React.lazy(() => import('./pages/dashboard/PlansCheckout').then(m => ({ default: m.PlansCheckout })));
+const SupportChat = React.lazy(() => import('./pages/dashboard/SupportChat').then(m => ({ default: m.SupportChat })));
+const IssueReports = React.lazy(() => import('./pages/dashboard/IssueReports').then(m => ({ default: m.IssueReports })));
+const ProfileSettings = React.lazy(() => import('./pages/dashboard/ProfileSettings').then(m => ({ default: m.ProfileSettings })));
+const TestimonialPage = React.lazy(() => import('./pages/dashboard/TestimonialPage').then(m => ({ default: m.TestimonialPage })));
 
 // Admin Pages
-import { AdminDashboard } from './pages/admin/AdminDashboard';
-import { AdminCRUDs } from './pages/admin/AdminCRUDs';
+const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const AdminCRUDs = React.lazy(() => import('./pages/admin/AdminCRUDs').then(m => ({ default: m.AdminCRUDs })));
+
 import { useDataStore } from './stores/useDataStore';
 import { GlowingGridBackground } from './components/ui/GlowingGridBackground';
 
@@ -171,6 +176,7 @@ export const App: React.FC = () => {
                 <button 
                   onClick={toggleLanguage}
                   className="p-2 rounded-lg hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer flex items-center gap-1"
+                  aria-label="Change Language"
                 >
                   <Languages className="h-4.5 w-4.5" />
                   <span className="text-[10px] font-bold uppercase hidden sm:inline">{language}</span>
@@ -179,6 +185,7 @@ export const App: React.FC = () => {
                   onClick={toggleTheme}
                   className="p-2 rounded-lg hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer"
                   title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 >
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </button>
@@ -211,12 +218,18 @@ export const App: React.FC = () => {
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   className="flex-1 flex flex-col"
                 >
-                  {activeTab === 'legal' && <LegalPages />}
-                  {activeTab === 'login' && <LoginPage />}
-                  {activeTab === 'register' && <RegisterPage />}
-                  {activeTab === 'forgot-password' && <ForgotPasswordPage />}
-                  {activeTab === 'reset-password' && <ResetPasswordPage />}
-                  {activeTab !== 'legal' && activeTab !== 'login' && activeTab !== 'register' && activeTab !== 'forgot-password' && activeTab !== 'reset-password' && <LandingPage />}
+                  <React.Suspense fallback={
+                    <div className="flex-1 flex items-center justify-center p-8 text-zinc-500 font-mono text-xs uppercase tracking-wider select-none animate-pulse">
+                      Loading...
+                    </div>
+                  }>
+                    {activeTab === 'legal' && <LegalPages />}
+                    {activeTab === 'login' && <LoginPage />}
+                    {activeTab === 'register' && <RegisterPage />}
+                    {activeTab === 'forgot-password' && <ForgotPasswordPage />}
+                    {activeTab === 'reset-password' && <ResetPasswordPage />}
+                    {activeTab !== 'legal' && activeTab !== 'login' && activeTab !== 'register' && activeTab !== 'forgot-password' && activeTab !== 'reset-password' && <LandingPage />}
+                  </React.Suspense>
                 </motion.div>
               </AnimatePresence>
             </main>
@@ -250,7 +263,13 @@ export const App: React.FC = () => {
           <GlowingGridBackground />
           
           <div className="relative z-10 w-full">
-            <VerifyEmailPage />
+            <React.Suspense fallback={
+              <div className="flex items-center justify-center p-8 text-zinc-500 font-mono text-xs uppercase tracking-wider select-none animate-pulse">
+                Loading...
+              </div>
+            }>
+              <VerifyEmailPage />
+            </React.Suspense>
           </div>
         </motion.div>
       ) : (
@@ -289,45 +308,51 @@ export const App: React.FC = () => {
                     transition={{ type: "spring", stiffness: 350, damping: 28 }}
                     className="w-full"
                   >
-                    {/* Customer Dashboard Router */}
-                    {currentRole === 'Customer' && (
-                      <>
-                        {activeTab === 'dashboard' && <DashboardOverview />}
-                        {activeTab === 'subdomains' && (
-                          currentSubdomainId === null 
-                            ? <SubdomainsList /> 
-                            : <SubdomainPortal />
-                        )}
-                        {activeTab === 'databases' && <DatabasesPage />}
-                        {activeTab === 'plans' && <PlansPage />}
-                        {activeTab === 'billing' && <PlansCheckout />}
-                        {activeTab === 'chat' && <SupportChat />}
-                        {activeTab === 'reports' && <IssueReports />}
-                        {activeTab === 'profile' && <ProfileSettings />}
-                        {activeTab === 'testimonials' && <TestimonialPage />}
-                      </>
-                    )}
+                    <React.Suspense fallback={
+                      <div className="flex items-center justify-center min-h-[300px] text-zinc-500 font-mono text-xs uppercase tracking-wider select-none animate-pulse">
+                        Loading Page...
+                      </div>
+                    }>
+                      {/* Customer Dashboard Router */}
+                      {currentRole === 'Customer' && (
+                        <>
+                          {activeTab === 'dashboard' && <DashboardOverview />}
+                          {activeTab === 'subdomains' && (
+                            currentSubdomainId === null 
+                              ? <SubdomainsList /> 
+                              : <SubdomainPortal />
+                          )}
+                          {activeTab === 'databases' && <DatabasesPage />}
+                          {activeTab === 'plans' && <PlansPage />}
+                          {activeTab === 'billing' && <PlansCheckout />}
+                          {activeTab === 'chat' && <SupportChat />}
+                          {activeTab === 'reports' && <IssueReports />}
+                          {activeTab === 'profile' && <ProfileSettings />}
+                          {activeTab === 'testimonials' && <TestimonialPage />}
+                        </>
+                      )}
 
-                    {/* Admin Panel Router */}
-                    {currentRole === 'Admin' && (
-                      <>
-                        {activeTab === 'admin-dashboard' && <AdminDashboard />}
-                        {activeTab === 'admin-deployment' && <AdminDashboard />}
-                        {activeTab === 'admin-subdomain' && <AdminDashboard />}
-                        {activeTab === 'admin-database' && <AdminDashboard />}
-                        {activeTab === 'admin-disk' && <AdminDashboard />}
-                        {activeTab === 'admin-notifications' && <AdminDashboard />}
-                        {activeTab === 'admin-reports' && <AdminDashboard />}
-                        {activeTab === 'admin-plans' && <AdminCRUDs />}
-                        {activeTab === 'admin-vouchers' && <AdminCRUDs />}
-                        {activeTab === 'admin-users' && <AdminCRUDs />}
-                        {activeTab === 'admin-payments' && <AdminDashboard />} {/* Payment confirms inside admin dashboard overview */}
-                        {activeTab === 'admin-chat' && <SupportChat />}        {/* Shared chat console component */}
-                        {activeTab === 'admin-settings' && <AdminCRUDs />}
-                        {activeTab === 'admin-testimonials' && <AdminCRUDs />}
-                        {activeTab === 'profile' && <ProfileSettings />}
-                      </>
-                    )}
+                      {/* Admin Panel Router */}
+                      {currentRole === 'Admin' && (
+                        <>
+                          {activeTab === 'admin-dashboard' && <AdminDashboard />}
+                          {activeTab === 'admin-deployment' && <AdminDashboard />}
+                          {activeTab === 'admin-subdomain' && <AdminDashboard />}
+                          {activeTab === 'admin-database' && <AdminDashboard />}
+                          {activeTab === 'admin-disk' && <AdminDashboard />}
+                          {activeTab === 'admin-notifications' && <AdminDashboard />}
+                          {activeTab === 'admin-reports' && <AdminDashboard />}
+                          {activeTab === 'admin-plans' && <AdminCRUDs />}
+                          {activeTab === 'admin-vouchers' && <AdminCRUDs />}
+                          {activeTab === 'admin-users' && <AdminCRUDs />}
+                          {activeTab === 'admin-payments' && <AdminDashboard />} {/* Payment confirms inside admin dashboard overview */}
+                          {activeTab === 'admin-chat' && <SupportChat />}        {/* Shared chat console component */}
+                          {activeTab === 'admin-settings' && <AdminCRUDs />}
+                          {activeTab === 'admin-testimonials' && <AdminCRUDs />}
+                          {activeTab === 'profile' && <ProfileSettings />}
+                        </>
+                      )}
+                    </React.Suspense>
                   </motion.div>
                 </AnimatePresence>
               </div>
