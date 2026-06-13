@@ -10,7 +10,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Select } from '../../components/ui/Select';
 
 export const TestimonialPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { addToast } = useToastStore();
   const { 
     subdomains, 
@@ -41,7 +41,7 @@ export const TestimonialPage: React.FC = () => {
       addToast({
         type: 'error',
         title: t('error'),
-        message: 'Mohon lengkapi semua kolom form.',
+        message: t('fillAllFieldsError'),
       });
       return;
     }
@@ -61,7 +61,7 @@ export const TestimonialPage: React.FC = () => {
       addToast({
         type: 'error',
         title: t('error'),
-        message: err instanceof Error ? err.message : 'Gagal mengirim testimonial.',
+        message: err instanceof Error ? err.message : t('testimonialSubmitError'),
       });
     } finally {
       setIsSubmitting(false);
@@ -87,7 +87,7 @@ export const TestimonialPage: React.FC = () => {
           {t('testimonials')}
         </h1>
         <p className="text-xs text-text-muted">
-          Bagikan pengalaman Anda menggunakan layanan Subly Hosting untuk ditampilkan di landing page.
+          {t('testimonialPageDesc')}
         </p>
       </div>
 
@@ -156,7 +156,7 @@ export const TestimonialPage: React.FC = () => {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Sangat cepat dan andal!"
+                    placeholder={t('testimonialTitlePlaceholder')}
                     className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none animate-all"
                     required
                   />
@@ -171,7 +171,7 @@ export const TestimonialPage: React.FC = () => {
                     rows={4}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    placeholder="Tuliskan pengalaman detail Anda mendeploy aplikasi web dengan Subly..."
+                    placeholder={t('testimonialContentPlaceholder')}
                     className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none resize-none animate-all"
                     required
                   />
@@ -183,7 +183,7 @@ export const TestimonialPage: React.FC = () => {
                   className="w-full"
                   isLoading={isSubmitting}
                 >
-                  Kirim Feedback
+                  {t('sendFeedbackBtn')}
                 </Button>
               </form>
             )}
@@ -201,14 +201,14 @@ export const TestimonialPage: React.FC = () => {
               <div className="flex flex-col items-center justify-center p-8 text-center gap-2">
                 <Star className="h-8 w-8 text-text-muted" />
                 <p className="text-xs text-text-muted font-bold">
-                  Belum ada testimonial yang dikirim.
+                  {t('noTestimonialsSubmitted')}
                 </p>
               </div>
             </CardPanel>
           ) : (
             <div className="grid grid-cols-1 gap-4">
-              {myTestimonials.map((t) => (
-                <CardPanel key={t.id}>
+              {myTestimonials.map((item) => (
+                <CardPanel key={item.id}>
                   <div className="space-y-3">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1 text-left">
@@ -217,45 +217,45 @@ export const TestimonialPage: React.FC = () => {
                             <Star
                               key={star}
                               className={`h-3.5 w-3.5 ${
-                                star <= t.rating ? 'fill-amber-400 text-amber-400' : 'text-text-muted/40'
+                                star <= item.rating ? 'fill-amber-400 text-amber-400' : 'text-text-muted/40'
                               }`}
                             />
                           ))}
                         </div>
                         <h4 className="text-sm font-bold text-text-main">
-                          {t.title}
+                          {item.title}
                         </h4>
                         <span className="text-[10px] text-text-muted block font-mono">
-                          Subdomain: {t.subdomain 
-                            ? `${t.subdomain.name}.subly.my.id` 
+                          {t('subdomain')}: {item.subdomain 
+                            ? `${item.subdomain.name}.subly.my.id` 
                             : (subdomains?.[0] 
                                 ? `${subdomains[0].name}.subly.my.id` 
-                                : 'Semua Subdomain'
+                                : t('allSubdomains')
                               )
                           }
                         </span>
                       </div>
                       <Badge
-                        status={getStatusColor(t.status)}
-                        label={t.status.toUpperCase()}
+                        status={getStatusColor(item.status)}
+                        label={item.status.toUpperCase()}
                       />
                     </div>
 
                     <p className="text-xs text-text-muted leading-relaxed">
-                      "{t.content}"
+                      "{item.content}"
                     </p>
 
                     <div className="flex flex-col gap-2 pt-2 border-t border-border-main/20 text-[10px] text-text-muted font-semibold">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" />
-                        <span>Dikirim pada: {new Date(t.created_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</span>
+                        <span>{t('submittedAtLabel').replace('{date}', new Date(item.created_at).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { dateStyle: 'medium' }))}</span>
                       </div>
                       
-                      {t.admin_note && (
+                      {item.admin_note && (
                         <div className="p-2.5 rounded-lg bg-brand-primary/5 border border-brand-primary/10 text-text-main text-left space-y-1">
-                          <span className="font-bold text-[9px] uppercase tracking-wider text-brand-primary">Catatan Reviewer:</span>
+                          <span className="font-bold text-[9px] uppercase tracking-wider text-brand-primary">{t('reviewerNoteLabel')}</span>
                           <p className="text-[10px] font-medium leading-relaxed italic text-text-muted">
-                            "{t.admin_note}"
+                            "{item.admin_note}"
                           </p>
                         </div>
                       )}

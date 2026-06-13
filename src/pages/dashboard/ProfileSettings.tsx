@@ -11,18 +11,18 @@ import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 
-const profileSchema = z.object({
-  name: z.string().min(3, 'Nama minimal 3 karakter'),
-  email: z.string().min(1, 'Email wajib diisi').email('Format email tidak valid'),
-  password: z.string().optional().or(z.literal('')),
-});
-
 export const ProfileSettings: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { addToast } = useToastStore();
   const { user, updateProfile, deleteAccount } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  const profileSchema = React.useMemo(() => z.object({
+    name: z.string().min(3, t('validationNameMin')),
+    email: z.string().min(1, t('validationEmailRequired')).email(t('validationEmailInvalid')),
+    password: z.string().optional().or(z.literal('')),
+  }), [t]);
 
   const handleDeleteAccountClick = () => {
     setDeleteModalOpen(true);
@@ -35,14 +35,14 @@ export const ProfileSettings: React.FC = () => {
       await deleteAccount();
       addToast({
         type: 'success',
-        title: 'Akun Dihapus',
-        message: 'Akun Anda berhasil dihapus secara permanen dari sistem.',
+        title: t('toastAccountDeletedTitle'),
+        message: t('toastAccountDeletedMsg'),
       });
     } catch {
       addToast({
         type: 'error',
-        title: 'Gagal',
-        message: 'Gagal memproses penghapusan akun Anda.',
+        title: t('error'),
+        message: t('toastAccountDeletedError'),
       });
     } finally {
       setLoading(false);
@@ -64,11 +64,11 @@ export const ProfileSettings: React.FC = () => {
       await updateProfile(data.name, data.email);
       addToast({
         type: 'success',
-        title: 'Profil Diperbarui',
-        message: 'Pengaturan informasi profil cPanel berhasil disimpan.',
+        title: t('toastProfileUpdatedTitle'),
+        message: t('toastProfileUpdatedMsg'),
       });
     } catch {
-      addToast({ type: 'error', title: 'Gagal', message: 'Ada kesalahan server.' });
+      addToast({ type: 'error', title: t('error'), message: t('toastProfileUpdatedError') });
     } finally {
       setLoading(false);
     }
@@ -82,7 +82,7 @@ export const ProfileSettings: React.FC = () => {
             {t('profile')}
           </h1>
           <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-0.5">
-            Perbarui data diri, email, dan kata sandi akun keamanan Anda.
+            {t('profileSettingsSub')}
           </p>
         </div>
       </div>
@@ -91,7 +91,7 @@ export const ProfileSettings: React.FC = () => {
         
         {/* Left Column: Form Edit (Span 2) */}
         <div className="lg:col-span-2">
-          <CardPanel title="Identitas Keanggotaan cPanel">
+          <CardPanel title={t('membershipIdentityTitle')}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
               
               {/* Name */}
@@ -129,7 +129,7 @@ export const ProfileSettings: React.FC = () => {
               {/* Password change */}
               <div className="space-y-1.5 text-left">
                 <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
-                  Ganti Kata Sandi (Kosongkan jika tidak ingin diubah)
+                  {t('changePasswordLabel')}
                 </label>
                 <div className="relative">
                   <input
@@ -153,31 +153,33 @@ export const ProfileSettings: React.FC = () => {
 
         {/* Right Column: Security overview */}
         <div className="lg:col-span-1 space-y-6">
-          <CardPanel title="Status Keamanan">
+          <CardPanel title={t('securityStatusTitle')}>
             <div className="space-y-4 mt-2 text-xs select-none">
               <div className="p-3 bg-emerald-500/5 dark:bg-emerald-500/2 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-start gap-2.5">
                 <ShieldAlert className="h-4.5 w-4.5 shrink-0 mt-0.5" />
                 <div className="text-[10px] leading-relaxed">
-                  <p className="font-bold">E-mail Terverifikasi:</p>
-                  <p className="mt-0.5 text-text-muted">Akun Anda berstatus terverifikasi penuh dan diizinkan mengalokasikan storage SSD NVMe cPanel.</p>
+                  <p className="font-bold">{t('verifiedEmailTitle')}</p>
+                  <p className="mt-0.5 text-text-muted">{t('verifiedEmailDesc')}</p>
                 </div>
               </div>
 
               <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                <span className="text-text-muted font-semibold">Tipe Akun</span>
+                <span className="text-text-muted font-semibold">{t('accountTypeLabel')}</span>
                 <span className="text-brand-primary font-bold">{user?.role || 'Customer'}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                <span className="text-text-muted font-semibold">Dibuat Pada</span>
-                <span className="text-text-main font-bold">01 Juni 2026</span>
+                <span className="text-text-muted font-semibold">{t('createdAtLabel')}</span>
+                <span className="text-text-main font-bold">
+                  {new Date(user?.created_at || '2026-06-01').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { dateStyle: 'medium' })}
+                </span>
               </div>
             </div>
           </CardPanel>
 
-          <CardPanel title="Zona Bahaya (Danger Zone)">
+          <CardPanel title={t('dangerZoneTitle')}>
             <div className="space-y-4 mt-2 text-xs">
               <p className="text-[10px] text-text-muted leading-relaxed">
-                Penghapusan akun bersifat permanen. Semua data Anda akan dihapus secara menyeluruh dari sistem dan tidak dapat dipulihkan kembali.
+                {t('dangerZoneDesc')}
               </p>
               <Button
                 type="button"
@@ -185,7 +187,7 @@ export const ProfileSettings: React.FC = () => {
                 className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 hover:border-red-500/30 text-[10px] font-bold py-2 rounded-xl transition-all"
                 isLoading={loading}
               >
-                Hapus Akun Permanen
+                {t('deleteAccountBtn')}
               </Button>
             </div>
           </CardPanel>
@@ -197,21 +199,21 @@ export const ProfileSettings: React.FC = () => {
       <Modal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        title="Hapus Akun Secara Permanen"
+        title={t('deleteAccountModalTitle')}
         size="sm"
       >
         <div className="space-y-4 text-left">
           <div className="p-3 bg-red-500/5 dark:bg-red-500/2 border border-red-500/10 text-red-500 rounded-xl flex items-start gap-2.5">
             <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
             <div className="text-xs leading-relaxed text-text-muted">
-              <p className="font-bold text-red-500 mb-0.5">PERINGATAN KERAS!</p>
-              <p>Apakah Anda yakin ingin menghapus akun Anda secara permanen? Seluruh subdomain, database MySQL, riwayat pembayaran, dan log deployment Anda akan dihapus selamanya dari sistem dan tidak dapat dipulihkan.</p>
+              <p className="font-bold text-red-500 mb-0.5">{t('deleteAccountWarningTitle')}</p>
+              <p>{t('deleteAccountWarningDesc')}</p>
             </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-main">
             <Button type="button" variant="secondary" onClick={() => setDeleteModalOpen(false)}>
-              Batal
+              {t('cancel')}
             </Button>
             <Button 
               type="button" 
@@ -220,7 +222,7 @@ export const ProfileSettings: React.FC = () => {
               onClick={handleExecuteDeleteAccount}
               isLoading={loading}
             >
-              Hapus Akun Selamanya
+              {t('deleteAccountPermanentlyBtn')}
             </Button>
           </div>
         </div>

@@ -20,7 +20,7 @@ export const AdminDiskView: React.FC = () => {
 
   const handleRefresh = async () => {
     await fetchAdminDiskUsage();
-    addToast({ type: 'success', title: 'Disk Synced', message: 'Data kuota penyimpanan cPanel berhasil diperbarui secara real-time.' });
+    addToast({ type: 'success', title: t('toastDiskSyncedTitle'), message: t('toastDiskSyncedMsg') });
   };
 
   const handleSaveOverride = async (e: React.FormEvent) => {
@@ -29,11 +29,11 @@ export const AdminDiskView: React.FC = () => {
     setIsSubmitting(true);
     try {
       await updateSubdomainStorageOverride(overrideSubdomainId, Number(overrideLimitSize));
-      addToast({ type: 'success', title: 'Kapasitas Di-override', message: `Batas storage sukses diubah menjadi ${overrideLimitSize} MB.` });
+      addToast({ type: 'success', title: t('toastSubdomainOverrideTitle'), message: t('toastSubdomainOverrideMsg').replace('{limit}', overrideLimitSize) });
       setOverrideOpen(false);
       await fetchAdminDiskUsage();
     } catch {
-      addToast({ type: 'error', title: 'Gagal', message: 'Gagal memperbarui batas storage.' });
+      addToast({ type: 'error', title: t('error'), message: t('toastSubdomainOverrideError') });
     } finally { setIsSubmitting(false); }
   };
 
@@ -46,23 +46,23 @@ export const AdminDiskView: React.FC = () => {
     <div className="space-y-6 w-full text-left">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">Penggunaan Disk</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">{t('diskUsage')}</h1>
           <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-0.5">
-            Menampilkan kapasitas penyimpanan fisik asli di server cPanel dan ukuran database MySQL secara real-time.
+            {t('diskSubTitle')}
           </p>
         </div>
         <Button variant="primary" size="sm" icon={<RefreshCw className="h-4 w-4" />} onClick={handleRefresh}>
-          REAL-TIME CPANEL API
+          {t('cpanelApiBtn')}
         </Button>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 select-none">
         {[
-          { label: 'TOTAL AKUMULASI',   value: `${totalAccumulated.toFixed(2)} MB`, icon: <HardDrive className="h-5 w-5" />, color: 'brand' },
-          { label: 'KAPASITAS BERKAS',  value: `${totalFiles.toFixed(2)} MB`,       icon: <Globe className="h-5 w-5" />,     color: 'brand' },
-          { label: 'KAPASITAS DATABASE', value: `${totalDbs.toFixed(2)} MB`,        icon: <Database className="h-5 w-5" />,  color: 'brand' },
-          { label: 'HAMPIR KUOTA PENUH', value: `${warningCount} Subdomain`,        icon: <ShieldAlert className="h-5 w-5" />, color: 'red' },
+          { label: t('totalAccumulatedLabel'),   value: `${totalAccumulated.toFixed(2)} MB`, icon: <HardDrive className="h-5 w-5" />, color: 'brand' },
+          { label: t('filesCapacityLabel'),  value: `${totalFiles.toFixed(2)} MB`,       icon: <Globe className="h-5 w-5" />,     color: 'brand' },
+          { label: t('dbCapacityLabel'), value: `${totalDbs.toFixed(2)} MB`,        icon: <Database className="h-5 w-5" />,  color: 'brand' },
+          { label: t('almostFullLabel'), value: `${warningCount} ${t('subdomains')}`,        icon: <ShieldAlert className="h-5 w-5" />, color: 'red' },
         ].map(({ label, value, icon, color }) => (
           <CardPanel key={label} className="p-5">
             <div className="flex items-center justify-between">
@@ -79,17 +79,17 @@ export const AdminDiskView: React.FC = () => {
       </div>
 
       {/* Disk Table */}
-      <CardPanel title="DAFTAR SUBDOMAIN & KAPASITAS PENYIMPANAN">
+      <CardPanel title={t('subdomainsCapacityTitle')}>
         <div className="overflow-x-auto w-full mt-2">
           <table className="w-full text-left min-w-[850px]">
             <thead>
               <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                <th className="py-2.5 pb-2 px-4 font-bold">SUBDOMAIN / KLIEN</th>
-                <th className="py-2.5 pb-2 px-4 font-bold">PAKET</th>
-                <th className="py-2.5 pb-2 px-4 text-center font-bold">UKURAN FILE</th>
-                <th className="py-2.5 pb-2 px-4 text-center font-bold">UKURAN DATABASE</th>
-                <th className="py-2.5 pb-2 px-4 font-bold">RASIO PENGGUNAAN DISK (TOTAL)</th>
-                <th className="py-2.5 pb-2 px-4 text-right font-bold">AKSI</th>
+                <th className="py-2.5 pb-2 px-4 font-bold">{t('colSubdomainClient')}</th>
+                <th className="py-2.5 pb-2 px-4 font-bold">{t('plans').toUpperCase()}</th>
+                <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colFilesMb')}</th>
+                <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colDbSize')}</th>
+                <th className="py-2.5 pb-2 px-4 font-bold">{t('colDiskUsageRatio')}</th>
+                <th className="py-2.5 pb-2 px-4 text-right font-bold">{t('colAction').toUpperCase()}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-main/30 text-xs">
@@ -100,13 +100,13 @@ export const AdminDiskView: React.FC = () => {
                     <td className="py-3 px-4">
                       <div className="flex flex-col">
                         <span className="font-mono font-bold text-brand-primary">{sub.fullDomain}</span>
-                        <span className="text-[10px] text-text-muted">{sub.owner?.name || 'Client'} ({sub.owner?.email || ''})</span>
+                        <span className="text-[10px] text-text-muted">{sub.owner?.name || t('colClient')} ({sub.owner?.email || ''})</span>
                       </div>
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-text-main">{sub.packageName}</span>
-                        <span className="text-[9px] text-text-muted uppercase tracking-wider">BATAS: {sub.limitMb} MB</span>
+                        <span className="text-[9px] text-text-muted uppercase tracking-wider">{t('diskLimitLabel').replace('{limit}', String(sub.limitMb))}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 text-center font-mono text-[10px] text-text-muted">{sub.filesMb.toFixed(2)} MB</td>
@@ -125,11 +125,11 @@ export const AdminDiskView: React.FC = () => {
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex justify-end gap-1">
-                        <button className="text-text-muted hover:text-brand-primary p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex" title="Sync Disk"
-                          onClick={() => addToast({ type: 'success', title: 'Sync Disk', message: `Disk ${sub.name} sukses diperbarui.` })}>
+                        <button className="text-text-muted hover:text-brand-primary p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex" title={t('syncDisk')}
+                          onClick={() => addToast({ type: 'success', title: t('syncDisk'), message: t('toastDiskSyncedSingle').replace('{name}', sub.name) })}>
                           <RefreshCw className="h-4 w-4" />
                         </button>
-                        <button className="text-text-muted hover:text-brand-primary p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex" title="Adjust Storage"
+                        <button className="text-text-muted hover:text-brand-primary p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex" title={t('adjustStorage')}
                           onClick={() => { setOverrideSubdomainId(Number(sub.id)); setOverrideLimitSize(String(sub.limitMb)); setOverrideOpen(true); }}>
                           <HardDrive className="h-4 w-4" />
                         </button>
@@ -139,7 +139,7 @@ export const AdminDiskView: React.FC = () => {
                 );
               })}
               {(!adminDiskUsage?.subdomains || adminDiskUsage.subdomains.length === 0) && (
-                <tr><td colSpan={6} className="py-8 text-center text-text-muted italic">Tidak ada data penyimpanan subdomain.</td></tr>
+                <tr><td colSpan={6} className="py-8 text-center text-text-muted italic">{t('noSubdomainStorage')}</td></tr>
               )}
             </tbody>
           </table>
@@ -147,20 +147,21 @@ export const AdminDiskView: React.FC = () => {
       </CardPanel>
 
       {/* Override Modal */}
-      <Modal isOpen={overrideOpen} onClose={() => setOverrideOpen(false)} title="Adjust NVMe Storage Space"
-        description="Override batas disk storage default pada virtual host klien secara manual.">
+      <Modal isOpen={overrideOpen} onClose={() => setOverrideOpen(false)} title={t('adjustStorageTitle')}
+        description={t('overrideDiskDesc')}>
         <form onSubmit={handleSaveOverride} className="space-y-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Batas Disk Baru (MB)</label>
+            <label className="text-xs font-bold text-text-main">{t('newDiskLimitLabel')}</label>
             <input type="number" value={overrideLimitSize} onChange={(e) => setOverrideLimitSize(e.target.value)}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
           </div>
           <div className="flex justify-end gap-3 pt-3 border-t border-border-main">
             <Button type="button" variant="secondary" onClick={() => setOverrideOpen(false)}>{t('cancel')}</Button>
-            <Button type="submit" variant="primary" isLoading={isSubmitting}>Simpan Perubahan</Button>
+            <Button type="submit" variant="primary" isLoading={isSubmitting}>{t('saveChanges')}</Button>
           </div>
         </form>
       </Modal>
     </div>
   );
 };
+

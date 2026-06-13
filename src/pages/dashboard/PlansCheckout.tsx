@@ -10,7 +10,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 
 export const PlansCheckout: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { addToast } = useToastStore();
   const { setActiveTab } = useSystemStore();
   const { payments, uploadProof, settings, fetchSettings, fetchPayments } = useDataStore();
@@ -58,7 +58,7 @@ export const PlansCheckout: React.FC = () => {
         addToast({
           type: 'success',
           title: t('paymentSuccess'),
-          message: 'Pembayaran Anda telah disetujui. Subdomain telah diaktifkan secara otomatis oleh server.',
+          message: t('paymentSuccess'),
         });
         setActivePaymentId(null);
       }
@@ -90,15 +90,15 @@ export const PlansCheckout: React.FC = () => {
       await uploadProof(activePayment.id, proofFile);
       addToast({
         type: 'info',
-        title: 'Bukti Bayar Diunggah',
-        message: 'Administrasi Subly akan meninjau tanda terima transaksi Anda.',
+        title: t('toastProofUploadedTitle'),
+        message: t('toastProofUploadedMsg'),
       });
       setProofFile(null);
     } catch (err: unknown) {
       addToast({
         type: 'error',
-        title: 'Gagal Mengunggah',
-        message: (err as Error).message || 'Terjadi kesalahan saat mengunggah bukti pembayaran Anda.',
+        title: t('toastUploadFailedTitle'),
+        message: (err as Error).message || t('toastUploadFailedMsg'),
       });
     } finally {
       setIsUploadingProof(false);
@@ -119,7 +119,7 @@ export const PlansCheckout: React.FC = () => {
             {t('billingTitle')}
           </h1>
           <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-0.5">
-            Periksa invoice transaksi dan bayar via QRIS instan otomatis.
+            {t('billingSubtitle')}
           </p>
         </div>
       </div>
@@ -143,8 +143,8 @@ export const PlansCheckout: React.FC = () => {
                   ) : (
                     <div className="flex flex-col items-center justify-center text-center p-6 border border-dashed border-border-main/50 rounded-2xl w-[212px] h-[212px] select-none text-text-muted">
                       <QrCode className="h-10 w-10 mb-2 text-text-muted/60" />
-                      <span className="text-[11px] font-bold text-text-main">QRIS Belum Diunggah</span>
-                      <span className="text-[9px] opacity-75 mt-0.5">Silakan hubungi Administrator</span>
+                      <span className="text-[11px] font-bold text-text-main">{t('qrisNotUploadedTitle')}</span>
+                      <span className="text-[9px] opacity-75 mt-0.5">{t('qrisNotUploadedSub')}</span>
                     </div>
                   )}
                   {qrisImgUrl && !qrisImageError && (
@@ -158,7 +158,7 @@ export const PlansCheckout: React.FC = () => {
                 <div className="flex-1 p-6 flex flex-col justify-between space-y-4">
                   <div>
                     <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-3">
-                      Checkout Gateway QRIS Statis
+                      {t('qrisGatewayTitle')}
                     </h3>
                     <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-text-main">
                       <QrCode className="h-5 w-5 text-brand-primary" />
@@ -172,7 +172,7 @@ export const PlansCheckout: React.FC = () => {
                     <div className="p-4 rounded-xl bg-brand-primary/5 border border-brand-primary/10 grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 text-left select-none">
                       <div>
                         <span className="text-[10px] font-bold text-text-muted uppercase block">
-                          Tagihan Paket
+                          {t('packageInvoiceLabel')}
                         </span>
                         <span className="text-sm font-semibold text-text-main">
                           Rp {(activePayment.amount - activePayment.unique_code).toLocaleString('id-ID')}
@@ -180,7 +180,7 @@ export const PlansCheckout: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-[10px] font-bold text-text-muted uppercase block">
-                          Kode Unik Transfer
+                          {t('uniqueCodeTransferLabel')}
                         </span>
                         <span className="text-sm font-bold text-brand-primary">
                           + Rp {activePayment.unique_code}
@@ -205,8 +205,8 @@ export const PlansCheckout: React.FC = () => {
                         <Clock className="h-3.5 w-3.5 text-brand-primary absolute" />
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-text-main">Menunggu Verifikasi Admin</h4>
-                        <p className="text-[10px] text-text-muted mt-0.5">Sistem memantau pembayaran secara real-time...</p>
+                        <h4 className="text-xs font-bold text-text-main">{t('waitingAdminVerificationTitle')}</h4>
+                        <p className="text-[10px] text-text-muted mt-0.5">{t('waitingAdminVerificationSub')}</p>
                       </div>
                     </div>
                     
@@ -219,21 +219,21 @@ export const PlansCheckout: React.FC = () => {
                           await fetchPayments();
                           addToast({
                             type: 'info',
-                            title: 'Status Diperbarui',
-                            message: 'Berhasil memeriksa status pembayaran terbaru.',
+                            title: t('toastStatusUpdatedTitle'),
+                            message: t('toastStatusUpdatedMsg'),
                           });
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         } catch (err) {
                           addToast({
                             type: 'error',
-                            title: 'Gagal Memeriksa',
-                            message: 'Terjadi kesalahan saat menghubungi server.',
+                            title: t('error'),
+                            message: t('toastStatusCheckError'),
                           });
                         }
                       }}
                       className="shrink-0 flex items-center gap-1.5"
                     >
-                      Periksa Status
+                      {t('checkStatusBtn')}
                     </Button>
                   </div>
 
@@ -242,7 +242,7 @@ export const PlansCheckout: React.FC = () => {
                       onClick={() => setActiveTab('chat')}
                       className="text-xs font-semibold text-brand-primary hover:underline py-1"
                     >
-                      Butuh bantuan? Hubungi Admin via Live Chat
+                      {t('needHelpChatAdmin')}
                     </button>
                   </div>
                 </div>
@@ -256,7 +256,7 @@ export const PlansCheckout: React.FC = () => {
               <form onSubmit={handleProofUploadSubmit} className="space-y-4 mt-2">
                 <div className="space-y-2 text-left">
                   <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
-                    Invoice ID
+                    {t('invoiceIdLabel')}
                   </label>
                   <p className="text-xs font-mono font-bold text-text-main bg-border-main/20 p-2.5 rounded-xl break-all">
                     {activePayment.transaction_id}
@@ -265,7 +265,7 @@ export const PlansCheckout: React.FC = () => {
 
                 <div className="space-y-1.5 text-left">
                   <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
-                    Unggah Bukti Bayar
+                    {t('uploadReceipt')}
                   </label>
                   <label 
                     htmlFor="receipt-file-input"
@@ -290,7 +290,7 @@ export const PlansCheckout: React.FC = () => {
                             htmlFor="receipt-file-input" 
                             className="px-3 py-1.5 rounded-lg bg-bg-surface text-text-main text-[10px] font-bold cursor-pointer hover:bg-border-main/20 shadow-sm"
                           >
-                            Ganti Gambar
+                            {t('changeImage')}
                           </label>
                           <button
                             type="button"
@@ -300,7 +300,7 @@ export const PlansCheckout: React.FC = () => {
                             }}
                             className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-[10px] font-bold cursor-pointer hover:bg-red-700 shadow-sm"
                           >
-                            Hapus
+                            {t('delete')}
                           </button>
                         </div>
                       </div>
@@ -308,7 +308,7 @@ export const PlansCheckout: React.FC = () => {
                       <div className="flex flex-col items-center gap-1.5">
                         <Upload className="h-6 w-6 text-text-muted" />
                         <span className="text-[10px] font-bold text-text-main truncate max-w-full">
-                          Pilih file bukti bayar (PNG, JPG, WEBP)
+                          {t('selectProofFilePlaceholder')}
                         </span>
                       </div>
                     )}
@@ -331,10 +331,10 @@ export const PlansCheckout: React.FC = () => {
       ) : (
         /* Regular invoice table history listing */
         <CardPanel 
-          title="Riwayat Invoice Pembayaran"
+          title={t('invoiceHistoryTitle')}
           headerActions={
             <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/15 px-2.5 py-0.5 rounded uppercase select-none">
-              All Transactions
+              {t('allTransactionsBadge')}
             </span>
           }
         >
@@ -342,11 +342,11 @@ export const PlansCheckout: React.FC = () => {
             <table className="w-full text-left min-w-[650px]">
               <thead>
                 <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest select-none">
-                  <th className="py-2.5 pb-2 px-4 font-bold">Transaction ID</th>
-                  <th className="py-2.5 pb-2 px-4 font-bold">Plan</th>
-                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Total</th>
-                  <th className="py-2.5 pb-2 px-4 text-center font-bold">Status</th>
-                  <th className="py-2.5 pb-2 px-4 text-right font-bold">Tanggal</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">{t('colTrxIdFull')}</th>
+                  <th className="py-2.5 pb-2 px-4 font-bold">{t('plans')}</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colTotal')}</th>
+                  <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('status')}</th>
+                  <th className="py-2.5 pb-2 px-4 text-right font-bold">{t('colDate')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-main/30 text-xs">
@@ -360,7 +360,7 @@ export const PlansCheckout: React.FC = () => {
                       {p.transaction_id}
                     </td>
                     <td className="py-3 px-4 text-text-muted select-none">
-                      {p.plan?.name || 'Hosting Plan'}
+                      {p.plan?.name || t('plans')}
                     </td>
                     <td className="py-3 px-4 text-center font-bold text-text-main font-mono text-[11px]">
                       Rp {p.amount.toLocaleString('id-ID')}
@@ -368,11 +368,11 @@ export const PlansCheckout: React.FC = () => {
                     <td className="py-3 px-4 text-center select-none">
                       <Badge 
                         status={p.status === 'success' ? 'success' : p.status === 'pending' ? 'pending' : 'failed'} 
-                        label={p.status === 'success' ? 'Paid' : p.status === 'pending' ? 'Unpaid' : 'Failed'} 
+                        label={p.status === 'success' ? t('paymentStatusPaid') : p.status === 'pending' ? t('paymentStatusUnpaid') : t('paymentStatusFailed')} 
                       />
                     </td>
                     <td className="py-3 px-4 text-right text-[10px] text-text-muted font-semibold select-none">
-                      {new Date(p.created_at).toLocaleDateString()}
+                      {new Date(p.created_at).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US')}
                     </td>
                   </tr>
                 ))}
@@ -386,3 +386,4 @@ export const PlansCheckout: React.FC = () => {
   );
 };
 export default PlansCheckout;
+

@@ -6,6 +6,7 @@ import { Badge } from '../../../components/ui/Badge';
 import { Select } from '../../../components/ui/Select';
 import { apiFetch } from '../../../utils/api';
 import { useDataStore } from '../../../stores/useDataStore';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 interface Props {
   onEditUser: (user: any) => void;
@@ -13,7 +14,10 @@ interface Props {
 }
 
 export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => {
+  const { t, language } = useTranslation();
   const { adminUsers } = useDataStore();
+
+  const locale = language === 'id' ? 'id-ID' : 'en-US';
 
   // ─── Search & Filter State ────────────────────────────────────────────────
   const [memberSearchInput, setMemberSearchInput] = useState('');
@@ -92,7 +96,7 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
     memberSearch || filterVerified !== 'all' || filterSubdomain !== 'all' || filterDateFrom || filterDateTo;
 
   return (
-    <CardPanel title="Kelola Member Client">
+    <CardPanel title={t('userManager')}>
       {/* ── Filter Bar ── */}
       <div className="mt-3 space-y-3">
         {/* Row 1: Search + Dropdowns */}
@@ -104,7 +108,7 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
               type="text"
               value={memberSearchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Cari nama atau email klien..."
+              placeholder={t('searchClientPlaceholder')}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl pl-9 pr-10 py-2 text-xs font-semibold text-text-main outline-none transition-colors placeholder:text-text-muted/60"
             />
             {isSearching ? (
@@ -125,9 +129,9 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
               value={filterVerified}
               onChange={(e) => { setFilterVerified(e.target.value); setMemberPage(1); }}
               options={[
-                { value: 'all',        label: 'Semua Status' },
-                { value: 'verified',   label: '✅ Verified' },
-                { value: 'unverified', label: '❌ Unverified' },
+                { value: 'all',        label: t('allStatus') },
+                { value: 'verified',   label: '✅ ' + t('verified') },
+                { value: 'unverified', label: '❌ ' + t('unverified') },
               ]}
             />
           </div>
@@ -138,9 +142,9 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
               value={filterSubdomain}
               onChange={(e) => { setFilterSubdomain(e.target.value); setMemberPage(1); }}
               options={[
-                { value: 'all',    label: 'Semua Subdomain' },
-                { value: 'active', label: '🟢 Ada Subdomain' },
-                { value: 'none',   label: '⚪ Tanpa Subdomain' },
+                { value: 'all',    label: t('allSubdomains') },
+                { value: 'active', label: '🟢 ' + t('hasSubdomain') },
+                { value: 'none',   label: '⚪ ' + t('noSubdomain') },
               ]}
             />
           </div>
@@ -151,7 +155,7 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
               onClick={handleClearFilters}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-colors text-xs font-bold cursor-pointer whitespace-nowrap"
             >
-              <X className="h-3 w-3" /> Reset Filter
+              <X className="h-3 w-3" /> {t('resetFilterBtn')}
             </button>
           )}
         </div>
@@ -159,14 +163,14 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
         {/* Row 2: Date Range + Stats + Page Size */}
         <div className="flex items-center gap-2 flex-wrap">
           <Calendar className="h-3.5 w-3.5 text-text-muted shrink-0" />
-          <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Bergabung:</span>
+          <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{t('colJoinDate')}:</span>
           <input
             type="date"
             value={filterDateFrom}
             onChange={(e) => { setFilterDateFrom(e.target.value); setMemberPage(1); }}
             className="bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-3 py-1.5 text-xs font-semibold text-text-main outline-none cursor-pointer transition-colors"
           />
-          <span className="text-[10px] text-text-muted font-bold">s/d</span>
+          <span className="text-[10px] text-text-muted font-bold">{language === 'id' ? 's/d' : 'to'}</span>
           <input
             type="date"
             value={filterDateTo}
@@ -177,11 +181,15 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
           {/* Stats + Page Size Selector */}
           <div className="ml-auto flex items-center gap-2">
             <span className="text-[11px] text-text-muted">
-              {isSearching ? 'Mencari...' : (
+              {isSearching ? t('searching') : (
                 <>
-                  <span className="font-bold text-text-main">{filteredUsers.length}</span> klien
+                  <span className="font-bold text-text-main">
+                    {t('statsClientCount').replace('{count}', String(filteredUsers.length))}
+                  </span>
                   {hasActiveFilters && (
-                    <span className="text-brand-primary"> (dari {adminUsers.length})</span>
+                    <span className="text-brand-primary">
+                      {t('statsClientTotal').replace('{total}', String(adminUsers.length))}
+                    </span>
                   )}
                 </>
               )}
@@ -191,10 +199,10 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
                 value={memberPageSize}
                 onChange={(e) => { setMemberPageSize(Number(e.target.value)); setMemberPage(1); }}
                 options={[
-                  { value: 5,  label: '5 / halaman' },
-                  { value: 10, label: '10 / halaman' },
-                  { value: 20, label: '20 / halaman' },
-                  { value: 50, label: '50 / halaman' },
+                  { value: 5,  label: `5 ${t('perPage')}` },
+                  { value: 10, label: `10 ${t('perPage')}` },
+                  { value: 20, label: `20 ${t('perPage')}` },
+                  { value: 50, label: `50 ${t('perPage')}` },
                 ]}
               />
             </div>
@@ -207,12 +215,12 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
         <table className="w-full text-left min-w-[750px]">
           <thead>
             <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest select-none">
-              <th className="py-2.5 pb-2 px-4 font-bold">Nama Klien</th>
-              <th className="py-2.5 pb-2 px-4 font-bold">Email</th>
-              <th className="py-2.5 pb-2 px-4 text-center font-bold">Subdomain Aktif</th>
-              <th className="py-2.5 pb-2 px-4 text-center font-bold">Verifikasi</th>
-              <th className="py-2.5 pb-2 px-4 text-center font-bold">Bergabung</th>
-              <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
+              <th className="py-2.5 pb-2 px-4 font-bold">{t('colClient')}</th>
+              <th className="py-2.5 pb-2 px-4 font-bold">{t('colEmail')}</th>
+              <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colSubdomain')}</th>
+              <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colVerification')}</th>
+              <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colJoinDate')}</th>
+              <th className="py-2.5 pb-2 px-4 text-right font-bold">{t('colAction')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border-main/30 text-xs">
@@ -222,11 +230,11 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
                   <div className="flex flex-col items-center gap-2">
                     <Filter className="h-8 w-8 text-text-muted/25" />
                     <p className="text-xs text-text-muted font-medium">
-                      {hasActiveFilters ? 'Tidak ada klien yang cocok dengan filter.' : 'Belum ada data klien.'}
+                      {hasActiveFilters ? t('noFilteredClients') : t('noClients')}
                     </p>
                     {hasActiveFilters && (
                       <button onClick={handleClearFilters} className="text-xs text-brand-primary hover:underline font-bold cursor-pointer">
-                        Reset semua filter
+                        {t('resetAllFiltersBtn')}
                       </button>
                     )}
                   </div>
@@ -248,18 +256,18 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
                       {activeSub ? (
                         <span className="text-brand-primary font-bold">{activeSub.name}.subly.host</span>
                       ) : (
-                        <span className="text-text-muted/40 italic">None</span>
+                        <span className="text-text-muted/40 italic">{t('emptyStatus')}</span>
                       )}
                     </td>
                     <td className="py-3 px-4 text-center select-none">
                       <Badge
                         status={client.emailVerifiedAt ? 'success' : 'inactive'}
-                        label={client.emailVerifiedAt ? 'Verified' : 'Unverified'}
+                        label={client.emailVerifiedAt ? t('verified') : t('unverified')}
                       />
                     </td>
                     <td className="py-3 px-4 text-center font-mono text-[10px] text-text-muted">
                       {client.createdAt
-                        ? new Date(client.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                        ? new Date(client.createdAt).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' })
                         : '—'}
                     </td>
                     <td className="py-3 px-4 text-right">
@@ -292,10 +300,14 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-border-main/40">
           <span className="text-[11px] text-text-muted">
-            Halaman <span className="font-bold text-text-main">{memberPage}</span> dari{' '}
-            <span className="font-bold text-text-main">{totalPages}</span>
+            {t('pageInfo')
+              .replace('{page}', String(memberPage))
+              .replace('{total}', String(totalPages))}
             <span className="ml-1.5 text-text-muted/60">
-              ({(memberPage - 1) * memberPageSize + 1}–{Math.min(memberPage * memberPageSize, filteredUsers.length)} dari {filteredUsers.length})
+              {t('pageRangeInfo')
+                .replace('{start}', String((memberPage - 1) * memberPageSize + 1))
+                .replace('{end}', String(Math.min(memberPage * memberPageSize, filteredUsers.length)))
+                .replace('{total}', String(filteredUsers.length))}
             </span>
           </span>
           <div className="flex items-center gap-1">
@@ -309,7 +321,7 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
               disabled={memberPage === 1}
               className="flex items-center gap-0.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-text-muted hover:text-text-main hover:bg-border-main/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
-              <ChevronLeft className="h-3.5 w-3.5" /> Prev
+              <ChevronLeft className="h-3.5 w-3.5" /> {t('prev')}
             </button>
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -333,7 +345,7 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
               disabled={memberPage === totalPages}
               className="flex items-center gap-0.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-text-muted hover:text-text-main hover:bg-border-main/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
-              Next <ChevronRight className="h-3.5 w-3.5" />
+              {t('next')} <ChevronRight className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => setMemberPage(totalPages)}

@@ -36,7 +36,7 @@ export const Header: React.FC = () => {
     const crumbs = [];
     
     if (currentRole === 'Admin') {
-      crumbs.push({ label: 'Admin Panel', active: activeTab === 'admin-dashboard', onClick: () => setActiveTab('admin-dashboard') });
+      crumbs.push({ label: t('adminPanelBreadcrumb'), active: activeTab === 'admin-dashboard', onClick: () => setActiveTab('admin-dashboard') });
       if (activeTab === 'admin-plans') crumbs.push({ label: t('planManager'), active: true });
       if (activeTab === 'admin-vouchers') crumbs.push({ label: t('voucherManager'), active: true });
       if (activeTab === 'admin-users') crumbs.push({ label: t('userManager'), active: true });
@@ -45,7 +45,7 @@ export const Header: React.FC = () => {
       if (activeTab === 'admin-settings') crumbs.push({ label: t('systemSettings'), active: true });
       if (activeTab === 'profile') crumbs.push({ label: t('profile'), active: true });
     } else {
-      crumbs.push({ label: 'Client portal', active: activeTab === 'dashboard', onClick: () => setActiveTab('dashboard') });
+      crumbs.push({ label: t('clientPortalBreadcrumb'), active: activeTab === 'dashboard', onClick: () => setActiveTab('dashboard') });
       if (activeTab === 'plans') crumbs.push({ label: t('plans'), active: true });
       if (activeTab === 'billing') crumbs.push({ label: t('billing'), active: true });
       if (activeTab === 'chat') crumbs.push({ label: t('chat'), active: true });
@@ -53,71 +53,71 @@ export const Header: React.FC = () => {
       if (activeTab === 'profile') crumbs.push({ label: t('profile'), active: true });
       
       if (activeTab === 'subdomains') {
-        if (currentSubdomainId) {
-          const sub = subdomains.find(s => s.id === currentSubdomainId);
-          crumbs.push({ label: t('subdomains'), active: false, onClick: () => setActiveTab('subdomains', null) });
-          crumbs.push({ label: sub ? `${sub.name}.subly.host` : 'Detail', active: true });
-        } else {
-          crumbs.push({ label: t('subdomains'), active: true });
+          if (currentSubdomainId) {
+            const sub = subdomains.find(s => s.id === currentSubdomainId);
+            crumbs.push({ label: t('subdomains'), active: false, onClick: () => setActiveTab('subdomains', null) });
+            crumbs.push({ label: sub ? `${sub.name}.subly.host` : t('detail'), active: true });
+          } else {
+            crumbs.push({ label: t('subdomains'), active: true });
+          }
+        }
+        if (activeTab === 'databases') {
+          crumbs.push({ label: t('databases'), active: true });
         }
       }
-      if (activeTab === 'databases') {
-        crumbs.push({ label: t('databases'), active: true });
-      }
-    }
-    
-    return crumbs;
-  };
-
-  return (
-    <header className="h-16 sticky top-0 bg-bg-surface/85 backdrop-blur-md border-b border-border-main flex items-center justify-between px-6 z-40 select-none">
-      {/* Left side: Hamburger (Mobile) + Breadcrumbs */}
-      <div className="flex items-center gap-3">
-        {device === 'mobile' && (
-          <button 
-            onClick={toggleSidebar}
-            className="p-2 rounded-xl hover:bg-border-main/50 text-text-muted hover:text-text-main cursor-pointer"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        )}
-
-        {/* Breadcrumb path */}
-        <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-text-muted">
-          {getBreadcrumbs().map((crumb, idx) => (
-            <span key={idx} className="flex items-center gap-1.5">
-              {idx > 0 && <span className="text-border-main">/</span>}
-              <span 
-                onClick={crumb.onClick}
-                className={crumb.active ? 'text-brand-primary' : 'hover:text-text-main cursor-pointer'}
-              >
-                {crumb.label}
+      
+      return crumbs;
+    };
+  
+    return (
+      <header className="h-16 sticky top-0 bg-bg-surface/85 backdrop-blur-md border-b border-border-main flex items-center justify-between px-6 z-40 select-none">
+        {/* Left side: Hamburger (Mobile) + Breadcrumbs */}
+        <div className="flex items-center gap-3">
+          {device === 'mobile' && (
+            <button 
+              onClick={toggleSidebar}
+              className="p-2 rounded-xl hover:bg-border-main/50 text-text-muted hover:text-text-main cursor-pointer"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
+  
+          {/* Breadcrumb path */}
+          <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-text-muted">
+            {getBreadcrumbs().map((crumb, idx) => (
+              <span key={idx} className="flex items-center gap-1.5">
+                {idx > 0 && <span className="text-border-main">/</span>}
+                <span 
+                  onClick={crumb.onClick}
+                  className={crumb.active ? 'text-brand-primary' : 'hover:text-text-main cursor-pointer'}
+                >
+                  {crumb.label}
+                </span>
               </span>
-            </span>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-
-      {/* Right side: Language, Theme, Role Selector, Notifications, Profile */}
-      <div className="flex items-center gap-2">
-        
-        {/* Language switch */}
-        <button 
-          onClick={toggleLanguage}
-          className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer flex items-center gap-1.5"
-          title={t('language')}
-        >
-          <Languages className="h-4.5 w-4.5" />
-          <span className="text-xs font-bold uppercase hidden sm:inline">{language}</span>
-        </button>
-        {/* Theme toggle */}
-        <button 
-          onClick={toggleTheme}
-          className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer"
-          title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-        >
-          {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
-        </button>
+  
+        {/* Right side: Language, Theme, Role Selector, Notifications, Profile */}
+        <div className="flex items-center gap-2">
+          
+          {/* Language switch */}
+          <button 
+            onClick={toggleLanguage}
+            className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer flex items-center gap-1.5"
+            title={t('language')}
+          >
+            <Languages className="h-4.5 w-4.5" />
+            <span className="text-xs font-bold uppercase hidden sm:inline">{language}</span>
+          </button>
+          {/* Theme toggle */}
+          <button 
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl hover:bg-border-main/40 text-text-subtle hover:text-text-main cursor-pointer"
+            title={theme === 'dark' ? t('lightMode') : t('darkMode')}
+          >
+            {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+          </button>
         {/* Notifications */}
         <button 
           onClick={() => activeTab !== 'admin-chat' && activeTab !== 'chat' && setActiveTab(currentRole === 'Admin' ? 'admin-dashboard' : 'dashboard')}

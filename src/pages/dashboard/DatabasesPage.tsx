@@ -18,6 +18,7 @@ const CredRow: React.FC<{
 }> = ({ label, value, secret = false }) => {
   const [copied, setCopied] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const { t } = useTranslation();
 
   const handleCopy = async () => {
     try {
@@ -41,7 +42,7 @@ const CredRow: React.FC<{
         {secret && (
           <button
             onClick={() => setRevealed((r) => !r)}
-            title={revealed ? 'Sembunyikan' : 'Tampilkan'}
+            title={revealed ? t('cancel') : t('confirm')}
             className="p-1.5 rounded-md text-text-subtle hover:text-text-main hover:bg-border-main/30 transition-all cursor-pointer"
           >
             {revealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -49,7 +50,7 @@ const CredRow: React.FC<{
         )}
         <button
           onClick={handleCopy}
-          title="Salin"
+          title={t('copyLabel')}
           className="p-1.5 rounded-md text-text-subtle hover:text-brand-primary hover:bg-brand-primary/10 transition-all cursor-pointer"
         >
           {copied
@@ -101,7 +102,7 @@ export const DatabasesPage: React.FC = () => {
             {t('listDatabases')}
           </h1>
           <p className="text-[10px] text-text-muted font-semibold tracking-wide uppercase mt-0.5">
-            Disk &amp; kredensial database MySQL per subdomain aktif Anda.
+            {t('databaseOverviewSub')}
           </p>
         </div>
 
@@ -113,7 +114,7 @@ export const DatabasesPage: React.FC = () => {
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-surface border border-border-main hover:border-brand-primary/50 hover:bg-brand-primary/5 text-text-muted hover:text-brand-primary text-xs font-bold transition-all duration-200 select-none shrink-0 cursor-pointer group"
         >
           <Database className="h-4 w-4 shrink-0 group-hover:text-brand-primary" />
-          Buka phpMyAdmin
+          {t('openPhpMyAdmin')}
           <ExternalLink className="h-3.5 w-3.5 shrink-0" />
         </a>
       </div>
@@ -124,19 +125,9 @@ export const DatabasesPage: React.FC = () => {
           <div className="flex items-start gap-3">
             <Info className="h-5 w-5 text-brand-primary shrink-0 mt-0.5" />
             <div className="text-xs space-y-1">
-              <h4 className="font-bold text-text-main">Penyediaan Otomatis per Subdomain</h4>
+              <h4 className="font-bold text-text-main">{t('autoProvisioningTitle')}</h4>
               <p className="text-text-muted leading-relaxed">
-                Setiap subdomain yang diklaim mendapatkan satu database MySQL terdedikasi.
-                Gunakan kredensial di bawah untuk menghubungkan aplikasi Anda, atau klik{' '}
-                <a
-                  href="https://db.subly.my.id"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-brand-primary underline underline-offset-2 hover:opacity-80 font-bold"
-                >
-                  db.subly.my.id
-                </a>{' '}
-                untuk membuka phpMyAdmin dan mengelola data secara visual.
+                {t('autoProvisioningDesc').replace('{link}', 'db.subly.my.id')}
               </p>
             </div>
           </div>
@@ -150,10 +141,10 @@ export const DatabasesPage: React.FC = () => {
             <Database className="h-6 w-6" />
           </div>
           <h3 className="text-sm font-bold text-text-main uppercase tracking-wider select-none">
-            Belum Ada Subdomain Aktif
+            {t('emptySubdomains')}
           </h3>
           <p className="text-[11px] text-text-muted mt-2 leading-relaxed select-none">
-            Klaim subdomain terlebih dahulu untuk melihat disk dan database Anda di sini.
+            {t('noSubdomainDatabases')}
           </p>
           <Button
             variant="primary"
@@ -161,7 +152,7 @@ export const DatabasesPage: React.FC = () => {
             className="mt-5 w-full"
             onClick={() => setActiveTab('plans')}
           >
-            Beli Paket Hosting
+            {t('buyHostingBtn')}
           </Button>
         </CardPanel>
       ) : (
@@ -180,7 +171,7 @@ export const DatabasesPage: React.FC = () => {
                       {sub.name}.subly.host
                     </h3>
                     <p className="text-[9px] font-semibold text-text-muted uppercase tracking-wide mt-0.5 truncate">
-                      {plan?.name ?? 'Paket Hosting'} · {plan?.type ?? 'PHP'}
+                      {plan?.name ?? t('plans')} · {plan?.type ?? 'PHP'}
                     </p>
                   </div>
                 </div>
@@ -189,7 +180,7 @@ export const DatabasesPage: React.FC = () => {
                     ? 'bg-green-500/10 text-green-500 border-green-500/20'
                     : 'bg-text-muted/10 text-text-muted border-text-muted/20'
                 }`}>
-                  {sub.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                  {sub.status === 'active' ? t('activeLabel') : t('inactiveLabel')}
                 </span>
               </div>
 
@@ -225,12 +216,12 @@ export const DatabasesPage: React.FC = () => {
                 <div className="flex items-center justify-between select-none">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-text-main">
                     <Server className="h-4 w-4 text-text-muted shrink-0" />
-                    Kredensial Database MySQL
+                    {t('dbCredTitle')}
                   </div>
                   {db && (
                     <span className="text-[9px] font-bold uppercase bg-green-500/10 text-green-500 border border-green-500/15 px-2 py-0.5 rounded flex items-center gap-1 select-none">
                       <ShieldCheck className="h-3.5 w-3.5" />
-                      Aktif
+                      {t('activeLabel')}
                     </span>
                   )}
                 </div>
@@ -239,10 +230,10 @@ export const DatabasesPage: React.FC = () => {
                   <div className="flex flex-col gap-4 mt-2.5">
                     {/* Credentials table */}
                     <div className="rounded-md border border-border-main overflow-hidden text-[11px] divide-y divide-border-main/40 bg-bg-base/20">
-                      <CredRow label="DB Name"  value={db.db_name} />
-                      <CredRow label="DB User"  value={db.db_user} />
-                      <CredRow label="Password" value={db.db_password ?? '(terenkripsi — lihat phpMyAdmin)'} secret={!!db.db_password} />
-                      <CredRow label="Host"     value="localhost" />
+                      <CredRow label={t('credDbName')}  value={db.db_name} />
+                      <CredRow label={t('credDbUser')}  value={db.db_user} />
+                      <CredRow label={t('credPassword')} value={db.db_password ?? t('encryptedLabel')} secret={!!db.db_password} />
+                      <CredRow label={t('credHost')}     value="localhost" />
                     </div>
 
                     {/* phpMyAdmin CTA */}
@@ -253,7 +244,7 @@ export const DatabasesPage: React.FC = () => {
                       className="w-full flex items-center justify-center gap-2 px-4.5 py-2.5 rounded-md border border-border-main bg-bg-surface hover:bg-bg-card hover:text-text-main text-text-subtle text-xs font-semibold transition-all duration-150 cursor-pointer select-none group"
                     >
                       <KeyRound className="h-4 w-4 shrink-0" />
-                      Kelola Database di phpMyAdmin
+                      {t('manageDbPhpMyAdmin')}
                       <ExternalLink className="h-3.5 w-3.5 shrink-0 group-hover:translate-x-0.5 transition-transform" />
                     </a>
                   </div>
@@ -261,7 +252,7 @@ export const DatabasesPage: React.FC = () => {
                   <div className="rounded-xl border border-dashed border-border-main/40 bg-border-main/5 px-4 py-5 text-center select-none">
                     <Database className="h-7 w-7 text-text-muted/40 mx-auto mb-2" />
                     <p className="text-[10px] text-text-muted font-semibold leading-relaxed">
-                      Database belum tersedia — belum diklaim atau sedang diprovisioning oleh sistem.
+                      {t('dbUnavailable')}
                     </p>
                   </div>
                 )}
@@ -276,3 +267,4 @@ export const DatabasesPage: React.FC = () => {
   );
 };
 export default DatabasesPage;
+

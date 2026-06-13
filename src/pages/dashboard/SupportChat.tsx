@@ -134,8 +134,8 @@ export const SupportChat: React.FC = () => {
       setFilePreview(URL.createObjectURL(file));
       addToast({
         type: 'success',
-        title: 'Gambar Terpilih',
-        message: `Berkas ${file.name} siap dikirim.`,
+        title: t('toastImageSelectedTitle'),
+        message: t('toastImageSelectedMsg').replace('{name}', file.name),
       });
     }
   };
@@ -154,8 +154,8 @@ export const SupportChat: React.FC = () => {
     if (isAdmin && !selectedClientId) {
       addToast({
         type: 'error',
-        title: 'Gagal Mengirim',
-        message: 'Silakan pilih klien terlebih dahulu untuk mengirim pesan.',
+        title: t('toastSendFailedTitle'),
+        message: t('toastSendFailedMsg'),
       });
       return;
     }
@@ -170,8 +170,8 @@ export const SupportChat: React.FC = () => {
     
     addToast({
       type: 'info',
-      title: 'Pesan Terkirim',
-      message: isAdmin ? 'Pesan terkirim ke klien.' : 'Pesan dikirim. Hubungan agen Live Chat terhubung.',
+      title: t('toastMessageSentTitle'),
+      message: isAdmin ? t('toastMessageSentMsgAdmin') : t('toastMessageSentMsgClient'),
     });
 
     if (isAdmin) {
@@ -184,15 +184,15 @@ export const SupportChat: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">
-            {isAdmin ? 'Admin Support Console' : t('chatTitle')}
+            {isAdmin ? t('adminSupportConsole') : t('chatTitle')}
           </h1>
           <p className="text-[10px] text-text-muted font-semibold tracking-wide uppercase mt-0.5">
-            {isAdmin ? 'Kelola live chat masuk dari seluruh klien Subly secara real-time.' : t('chatSub')}
+            {isAdmin ? t('adminSupportConsoleDesc') : t('chatSub')}
           </p>
         </div>
         {!isAdmin && (
           <div className="text-[10px] bg-brand-primary/10 border border-brand-primary/20 text-brand-primary px-3.5 py-2 rounded-xl font-bold uppercase tracking-wider">
-            SLA Respon: {slaRespon}
+            {t('chatSlaLabel').replace('{sla}', slaRespon)}
           </div>
         )}
       </div>
@@ -204,8 +204,8 @@ export const SupportChat: React.FC = () => {
           {isAdmin && (
             <div className={`w-full md:w-80 border-r border-border-main/60 flex flex-col bg-bg-surface/20 shrink-0 ${selectedClientId ? 'hidden md:flex' : 'flex'}`}>
               <div className="p-4 border-b border-border-main/60 select-none">
-                <span className="text-[10px] font-black uppercase text-text-muted tracking-wider block">Daftar Antrean Chat Klien</span>
-                <span className="text-[9px] text-text-muted mt-0.5 block">Diurutkan berdasarkan unread terlama (FIFO)</span>
+                <span className="text-[10px] font-black uppercase text-text-muted tracking-wider block">{t('chatQueueTitle')}</span>
+                <span className="text-[9px] text-text-muted mt-0.5 block">{t('chatQueueSub')}</span>
               </div>
               <div className="flex-1 overflow-y-auto divide-y divide-border-main/20">
                 {chatClients.map((client) => {
@@ -240,7 +240,7 @@ export const SupportChat: React.FC = () => {
                 })}
                 {chatClients.length === 0 && !isLoadingClients && (
                   <div className="p-8 text-center text-xs text-text-muted italic select-none">
-                    Belum ada antrean chat masuk.
+                    {t('chatQueueEmpty')}
                   </div>
                 )}
               </div>
@@ -258,7 +258,7 @@ export const SupportChat: React.FC = () => {
                       <button
                         onClick={() => setSelectedClientId(null)}
                         className="md:hidden p-1.5 rounded-xl hover:bg-border-main/40 text-text-muted hover:text-text-main flex items-center justify-center cursor-pointer border-none bg-transparent mr-1 shrink-0"
-                        title="Kembali ke Daftar Klien"
+                        title={t('backToClientList')}
                       >
                         <ArrowLeft className="h-5 w-5" />
                       </button>
@@ -266,13 +266,13 @@ export const SupportChat: React.FC = () => {
                     <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-xs font-bold text-text-main uppercase tracking-wider">
                       {isAdmin 
-                        ? `Chat Klien: ${chatClients.find(c => c.id === selectedClientId)?.name || 'Klien'}`
-                        : 'Subly Support Agent'
+                        ? t('chatWithClientTitle').replace('{name}', chatClients.find(c => c.id === selectedClientId)?.name || '')
+                        : t('chatAgentTitle')
                       }
                     </span>
                   </div>
                   <span className="text-[9px] font-bold uppercase text-brand-primary bg-brand-primary/10 px-2.5 py-0.5 rounded-full">
-                    Online
+                    {t('chatStatusOnline')}
                   </span>
                 </div>
 
@@ -323,8 +323,8 @@ export const SupportChat: React.FC = () => {
                         </div>
                         <span className="text-[8px] font-semibold text-text-muted mt-1 select-none uppercase tracking-widest px-1">
                           {isIncoming 
-                            ? (isAdmin ? 'Client' : 'System Support') 
-                            : 'You'
+                            ? (isAdmin ? t('chatRoleClient') : t('chatRoleAgent')) 
+                            : t('chatRoleYou')
                           } • {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -390,9 +390,9 @@ export const SupportChat: React.FC = () => {
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center select-none text-text-muted">
                 <MessageSquare className="h-10 w-10 text-brand-primary/30" />
-                <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">Mulai Obrolan</h3>
+                <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">{t('startChatPromptTitle')}</h3>
                 <p className="text-[10px] max-w-xs leading-relaxed">
-                  Pilih salah satu klien dari daftar di sebelah kiri untuk melihat riwayat pesan dan mulai membalas.
+                  {t('startChatPromptDesc')}
                 </p>
               </div>
             )}
@@ -408,8 +408,8 @@ export const SupportChat: React.FC = () => {
           setDeleteConfirmOpen(false);
           setMessageToDelete(null);
         }}
-        title="Hapus Pesan?"
-        description="Apakah Anda yakin ingin menghapus pesan ini secara permanen dari riwayat percakapan?"
+        title={t('deleteMessageConfirmTitle')}
+        description={t('deleteMessageConfirmDesc')}
         size="sm"
         footerActions={
           <>
@@ -420,7 +420,7 @@ export const SupportChat: React.FC = () => {
                 setMessageToDelete(null);
               }}
             >
-              Batal
+              {t('cancel')}
             </Button>
             <Button
               variant="primary"
@@ -429,15 +429,15 @@ export const SupportChat: React.FC = () => {
                   await deleteChatMessage(messageToDelete.id, messageToDelete.targetUserId);
                   addToast({
                     type: 'success',
-                    title: 'Pesan Dihapus',
-                    message: 'Pesan berhasil dihapus dari server.',
+                    title: t('toastMessageDeletedTitle'),
+                    message: t('toastMessageDeletedMsg'),
                   });
                 }
                 setDeleteConfirmOpen(false);
                 setMessageToDelete(null);
               }}
             >
-              Ya, Hapus
+              {t('yesDelete')}
             </Button>
           </>
         }
@@ -445,7 +445,7 @@ export const SupportChat: React.FC = () => {
         <div className="flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl select-none">
           <Trash2 className="h-4 w-4 shrink-0 mt-0.5" />
           <p className="text-[10px] font-semibold leading-relaxed">
-            Catatan: Jika pesan ini memiliki file lampiran gambar, file tersebut juga akan dihapus secara permanen dari server penyimpanan.
+            {t('deleteMessageWarningText')}
           </p>
         </div>
       </Modal>

@@ -7,12 +7,14 @@ import { Badge } from '../../../components/ui/Badge';
 import { Modal } from '../../../components/ui/Modal';
 import { useDataStore } from '../../../stores/useDataStore';
 import { useToastStore } from '../../../stores/useToastStore';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 interface Props {
   onDeleteVoucher: (id: number) => void;
 }
 
 export const AdminVouchersTab: React.FC<Props> = ({ onDeleteVoucher }) => {
+  const { t } = useTranslation();
   const { vouchers, addVoucher, updateVoucher } = useDataStore();
   const { addToast } = useToastStore();
 
@@ -29,9 +31,9 @@ export const AdminVouchersTab: React.FC<Props> = ({ onDeleteVoucher }) => {
     try {
       await addVoucher(newCode, Number(newDiscount), 100);
       setNewCode(''); setAddOpen(false);
-      addToast({ type: 'success', title: 'Voucher Aktif', message: `Voucher ${newCode} sukses dirilis.` });
+      addToast({ type: 'success', title: t('toastVoucherCreatedTitle'), message: t('toastVoucherCreatedMsg').replace('{code}', newCode) });
     } catch {
-      addToast({ type: 'error', title: 'Gagal', message: 'Gagal menyimpan voucher.' });
+      addToast({ type: 'error', title: t('error'), message: t('toastVoucherCreatedError') });
     } finally { setIsAdding(false); }
   };
 
@@ -58,19 +60,19 @@ export const AdminVouchersTab: React.FC<Props> = ({ onDeleteVoucher }) => {
     try {
       await updateVoucher(editId, editCode, Number(editDiscount), Number(editMaxUses));
       setEditOpen(false);
-      addToast({ type: 'success', title: 'Voucher Diperbarui', message: `Voucher ${editCode} berhasil diperbarui.` });
+      addToast({ type: 'success', title: t('toastVoucherUpdatedTitle'), message: t('toastVoucherUpdatedMsg').replace('{code}', editCode) });
     } catch {
-      addToast({ type: 'error', title: 'Gagal', message: 'Gagal memperbarui voucher.' });
+      addToast({ type: 'error', title: t('error'), message: t('toastVoucherUpdatedError') });
     } finally { setIsEditing(false); }
   };
 
   return (
     <>
       <CardPanel
-        title="Kelola Voucher Diskon"
+        title={t('voucherManager')}
         headerActions={
           <Button variant="primary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => setAddOpen(true)}>
-            Tambah Voucher
+            {t('addVoucher')}
           </Button>
         }
       >
@@ -78,11 +80,11 @@ export const AdminVouchersTab: React.FC<Props> = ({ onDeleteVoucher }) => {
           <table className="w-full text-left min-w-[600px]">
             <thead>
               <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                <th className="py-2.5 pb-2 px-4 font-bold">Kode Voucher</th>
-                <th className="py-2.5 pb-2 px-4 text-center font-bold">Diskon</th>
-                <th className="py-2.5 pb-2 px-4 text-center font-bold">Maks Penggunaan</th>
-                <th className="py-2.5 pb-2 px-4 text-center font-bold">Status</th>
-                <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
+                <th className="py-2.5 pb-2 px-4 font-bold">{t('colVoucherCode')}</th>
+                <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colDiscount')}</th>
+                <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colMaxUsage')}</th>
+                <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('status')}</th>
+                <th className="py-2.5 pb-2 px-4 text-right font-bold">{t('colAction')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-main/30 text-xs">
@@ -92,7 +94,7 @@ export const AdminVouchersTab: React.FC<Props> = ({ onDeleteVoucher }) => {
                   <td className="py-3 px-4 text-center text-text-main font-bold">{vc.discount_percent}%</td>
                   <td className="py-3 px-4 text-center font-mono text-[10px] text-text-muted">{vc.max_uses}</td>
                   <td className="py-3 px-4 text-center">
-                    <Badge status={vc.is_active ? 'success' : 'inactive'} label={vc.is_active ? 'Aktif' : 'Expired'} />
+                    <Badge status={vc.is_active ? 'success' : 'inactive'} label={vc.is_active ? t('activeStatus') : t('expiredStatus')} />
                   </td>
                   <td className="py-3 px-4 text-right">
                     <div className="flex justify-end gap-1">
@@ -112,46 +114,46 @@ export const AdminVouchersTab: React.FC<Props> = ({ onDeleteVoucher }) => {
       </CardPanel>
 
       {/* Add Voucher Modal */}
-      <Modal isOpen={addOpen} onClose={() => setAddOpen(false)} title="Buat Kode Voucher Diskon">
+      <Modal isOpen={addOpen} onClose={() => setAddOpen(false)} title={t('createVoucherTitle')}>
         <form onSubmit={handleAdd} className="space-y-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Kode Diskon</label>
-            <input type="text" value={newCode} onChange={(e) => setNewCode(e.target.value.toUpperCase())} placeholder="SUBLYSUPER"
+            <label className="text-xs font-bold text-text-main">{t('voucherCodeLabel')}</label>
+            <input type="text" value={newCode} onChange={(e) => setNewCode(e.target.value.toUpperCase())} placeholder={t('voucherCodePlaceholder')}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-text-main outline-none" required />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Persentase Diskon (%)</label>
+            <label className="text-xs font-bold text-text-main">{t('discountPercentLabel')}</label>
             <input type="number" value={newDiscount} onChange={(e) => setNewDiscount(e.target.value)}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
           </div>
           <div className="flex justify-end gap-3 pt-3 border-t border-border-main">
-            <Button type="button" variant="secondary" onClick={() => setAddOpen(false)}>Batal</Button>
-            <Button type="submit" variant="primary" isLoading={isAdding}>Aktifkan Voucher</Button>
+            <Button type="button" variant="secondary" onClick={() => setAddOpen(false)}>{t('cancel')}</Button>
+            <Button type="submit" variant="primary" isLoading={isAdding}>{t('activateVoucherBtn')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit Voucher Modal */}
-      <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title="Edit Voucher Diskon">
+      <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title={t('editVoucherTitle')}>
         <form onSubmit={handleUpdate} className="space-y-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Kode Diskon</label>
+            <label className="text-xs font-bold text-text-main">{t('voucherCodeLabel')}</label>
             <input type="text" value={editCode} onChange={(e) => setEditCode(e.target.value.toUpperCase())}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-text-main outline-none" required />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Persentase Diskon (%)</label>
+            <label className="text-xs font-bold text-text-main">{t('discountPercentLabel')}</label>
             <input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Batas Penggunaan</label>
+            <label className="text-xs font-bold text-text-main">{t('maxUsageLabel')}</label>
             <input type="number" value={editMaxUses} onChange={(e) => setEditMaxUses(e.target.value)}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
           </div>
           <div className="flex justify-end gap-3 pt-3 border-t border-border-main">
-            <Button type="button" variant="secondary" onClick={() => setEditOpen(false)}>Batal</Button>
-            <Button type="submit" variant="primary" isLoading={isEditing}>Perbarui Voucher</Button>
+            <Button type="button" variant="secondary" onClick={() => setEditOpen(false)}>{t('cancel')}</Button>
+            <Button type="submit" variant="primary" isLoading={isEditing}>{t('updateVoucherBtn')}</Button>
           </div>
         </form>
       </Modal>

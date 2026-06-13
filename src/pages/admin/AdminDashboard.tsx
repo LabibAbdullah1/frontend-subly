@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useDataStore } from '../../stores/useDataStore';
 import { useSystemStore } from '../../stores/useSystemStore';
+import { useTranslation } from '../../hooks/useTranslation';
 
 // ─── View Components ──────────────────────────────────────────────────────────
 import { AdminSummaryView }       from './views/AdminSummaryView';
@@ -28,10 +29,10 @@ const formatUptime = (seconds: number | undefined) => {
 };
 
 export const AdminDashboard: React.FC = () => {
+  const { t, language } = useTranslation();
   const { activeTab } = useSystemStore();
   const {
     payments,
-    adminStats,
     fetchAdminStats,
     subdomains,
     fetchSubdomains,
@@ -86,6 +87,8 @@ export const AdminDashboard: React.FC = () => {
     [allDeployments]
   );
 
+  const locale = language === 'id' ? 'id-ID' : 'en-US';
+
   const getLast6MonthsRevenue = () => {
     const now = new Date();
     return Array.from({ length: 6 }, (_, i) => {
@@ -99,7 +102,7 @@ export const AdminDashboard: React.FC = () => {
           return pd.getMonth() === mo && pd.getFullYear() === yr;
         })
         .reduce((sum, p) => sum + (p.amount + p.unique_code), 0);
-      return { label: d.toLocaleDateString('id-ID', { month: 'short' }), revenue };
+      return { label: d.toLocaleDateString(locale, { month: 'short' }), revenue };
     });
   };
 
@@ -109,16 +112,38 @@ export const AdminDashboard: React.FC = () => {
       const owner = adminUsers.find((u) => u.id === p.user_id);
       const name  = owner ? owner.name : `Client #${p.user_id}`;
       if (p.status === 'success') {
-        logs.push({ type: 'success', message: `Pembayaran lunas: ${name} (Rp ${(p.amount + p.unique_code).toLocaleString('id-ID')})`, time: new Date(p.created_at) });
+        logs.push({ 
+          type: 'success', 
+          message: t('logPaymentSuccess')
+            .replace('{name}', name)
+            .replace('{amount}', (p.amount + p.unique_code).toLocaleString(locale)), 
+          time: new Date(p.created_at) 
+        });
       } else if (p.status === 'pending') {
-        logs.push({ type: 'pending', message: `Pembayaran pending: ${name} mengunggah invoice`, time: new Date(p.created_at) });
+        logs.push({ 
+          type: 'pending', 
+          message: t('logPaymentPending').replace('{name}', name), 
+          time: new Date(p.created_at) 
+        });
       }
     });
     subdomains.forEach((s) =>
-      logs.push({ type: 'info', message: `Subdomain aktif: ${s.name}.subly.host (${s.user?.name || 'Client'})`, time: new Date(s.created_at) })
+      logs.push({ 
+        type: 'info', 
+        message: t('logSubdomainActive')
+          .replace('{subdomain}', `${s.name}.subly.host`)
+          .replace('{name}', s.user?.name || 'Client'), 
+        time: new Date(s.created_at) 
+      })
     );
     adminUsers.forEach((u) =>
-      logs.push({ type: 'user', message: `Klien baru terdaftar: ${u.name} (${u.email})`, time: new Date(u.createdAt || new Date()) })
+      logs.push({ 
+        type: 'user', 
+        message: t('logNewClient')
+          .replace('{name}', u.name)
+          .replace('{email}', u.email), 
+        time: new Date(u.createdAt || new Date()) 
+      })
     );
     return logs.sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 5);
   };

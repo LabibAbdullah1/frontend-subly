@@ -24,10 +24,10 @@ export const DashboardOverview: React.FC = () => {
   const pendingPayment = payments.find(p => p.status === 'pending');
 
   const quickActions = [
-    { label: 'Klaim Subdomain', desc: 'Daftarkan virtual host baru', tab: 'plans', icon: <Globe className="h-5 w-5" />, color: 'bg-blue-500/10 text-blue-500 border border-blue-500/15' },
-    { label: 'MySQL Database', desc: 'Kelola alokasi kontainer DB', tab: 'databases', icon: <Database className="h-5 w-5" />, color: 'bg-green-500/10 text-green-500 border border-green-500/15' },
-    { label: 'Tagihan & Invoices', desc: 'Riwayat & transaksi QRIS', tab: 'billing', icon: <CreditCard className="h-5 w-5" />, color: 'bg-amber-500/10 text-amber-500 border border-amber-500/15' },
-    { label: 'Live Chat Admin', desc: 'Konsol support chat bantuan', tab: 'chat', icon: <MessageSquare className="h-5 w-5" />, color: 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/15' },
+    { label: t('quickActionClaimSubdomain'), desc: t('quickActionClaimSubdomainDesc'), tab: 'plans', icon: <Globe className="h-5 w-5" />, color: 'bg-blue-500/10 text-blue-500 border border-blue-500/15' },
+    { label: t('quickActionDatabase'), desc: t('quickActionDatabaseDesc'), tab: 'databases', icon: <Database className="h-5 w-5" />, color: 'bg-green-500/10 text-green-500 border border-green-500/15' },
+    { label: t('quickActionBilling'), desc: t('quickActionBillingDesc'), tab: 'billing', icon: <CreditCard className="h-5 w-5" />, color: 'bg-amber-500/10 text-amber-500 border border-amber-500/15' },
+    { label: t('quickActionChat'), desc: t('quickActionChatDesc'), tab: 'chat', icon: <MessageSquare className="h-5 w-5" />, color: 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/15' },
   ];
 
   // Helper for relative time formatting
@@ -39,11 +39,11 @@ export const DashboardOverview: React.FC = () => {
     const diffHour = Math.floor(diffMin / 60);
     const diffDay = Math.floor(diffHour / 24);
 
-    if (diffSec < 60) return 'Tadi baru saja';
-    if (diffMin < 60) return `${diffMin} menit yang lalu`;
-    if (diffHour < 24) return `${diffHour} jam yang lalu`;
-    if (diffDay === 1) return 'Kemarin';
-    return `${diffDay} hari yang lalu`;
+    if (diffSec < 60) return t('justNow');
+    if (diffMin < 60) return t('minutesAgo').replace('{count}', String(diffMin));
+    if (diffHour < 24) return t('hoursAgo').replace('{count}', String(diffHour));
+    if (diffDay === 1) return t('yesterday');
+    return t('daysAgo').replace('{count}', String(diffDay));
   };
 
   // Compile real events from subdomains, databases, payments, and deployments
@@ -56,7 +56,7 @@ export const DashboardOverview: React.FC = () => {
         events.push({
           date: new Date(sub.created_at),
           type: 'subdomain',
-          desc: `Subdomain ${sub.name}.subly.host berhasil diklaim.`
+          desc: t('eventSubdomainClaimed').replace('{name}', sub.name)
         });
       }
       
@@ -67,7 +67,7 @@ export const DashboardOverview: React.FC = () => {
             events.push({
               date: new Date(depDateStr),
               type: 'deployment',
-              desc: `Deployment v${dep.version} untuk ${sub.name} selesai (${dep.status.toUpperCase()}).`
+              desc: t('eventDeploymentFinished').replace('{version}', String(dep.version)).replace('{name}', sub.name).replace('{status}', dep.status.toUpperCase())
             });
           }
         });
@@ -80,7 +80,7 @@ export const DashboardOverview: React.FC = () => {
         events.push({
           date: new Date(db.created_at),
           type: 'database',
-          desc: `Database ${db.db_name} berhasil dibuat.`
+          desc: t('eventDatabaseCreated').replace('{name}', db.db_name)
         });
       }
     });
@@ -92,13 +92,13 @@ export const DashboardOverview: React.FC = () => {
           events.push({
             date: new Date(p.created_at),
             type: 'payment',
-            desc: `Pembayaran ${p.plan?.name || 'Paket'} berhasil dikonfirmasi.`
+            desc: t('eventPaymentConfirmed').replace('{name}', p.plan?.name || t('plans'))
           });
         } else if (p.status === 'pending') {
           events.push({
             date: new Date(p.created_at),
             type: 'invoice',
-            desc: `Tagihan baru sebesar Rp ${(p.amount + p.unique_code).toLocaleString('id-ID')} dibuat.`
+            desc: t('eventInvoiceCreated').replace('{amount}', (p.amount + p.unique_code).toLocaleString('id-ID'))
           });
         }
       }
@@ -126,7 +126,7 @@ export const DashboardOverview: React.FC = () => {
             {t('welcome')}, {userName}!
           </h1>
           <p className="text-[10px] text-text-muted font-semibold tracking-wider uppercase mt-0.5">
-            Ringkasan status virtual host, alokasi database, dan monitoring resources Anda.
+            {t('dashboardOverviewSub')}
           </p>
         </div>
       </div>
@@ -139,9 +139,9 @@ export const DashboardOverview: React.FC = () => {
               <AlertTriangle className="h-5.5 w-5.5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-text-main uppercase tracking-wider">Invoice Belum Terbayar</h4>
+              <h4 className="text-xs font-bold text-text-main uppercase tracking-wider">{t('unpaidInvoiceAlert')}</h4>
               <p className="text-[11px] text-text-muted mt-1 leading-normal">
-                Anda memiliki tagihan pending sebesar <span className="font-semibold text-amber-500 font-mono">Rp {(pendingPayment.amount + pendingPayment.unique_code).toLocaleString('id-ID')}</span> untuk inisiasi subdomain baru.
+                {t('unpaidInvoiceDesc').replace('{amount}', (pendingPayment.amount + pendingPayment.unique_code).toLocaleString('id-ID'))}
               </p>
             </div>
           </div>
@@ -153,7 +153,7 @@ export const DashboardOverview: React.FC = () => {
             iconPosition="right"
             onClick={() => setActiveTab('billing')}
           >
-            Bayar Sekarang
+            {t('payNow')}
           </Button>
         </div>
       )}
@@ -161,14 +161,14 @@ export const DashboardOverview: React.FC = () => {
       {/* Subdomain Resource Utilization Section */}
       <div className="space-y-3.5 text-left">
         <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider pl-1 select-none">
-          Penggunaan Sumber Daya per Subdomain
+          {t('subdomainResourcesTitle')}
         </h3>
         
         {subdomains.length === 0 ? (
           <CardPanel className="p-6 text-center select-none">
             <Globe className="h-8 w-8 text-text-muted/40 mx-auto mb-2" />
             <p className="text-xs text-text-muted font-semibold leading-relaxed">
-              Belum ada subdomain aktif. Silakan beli paket hosting untuk mulai mendeploy website Anda.
+              {t('noActiveSubdomainOverview')}
             </p>
             <Button
               variant="primary"
@@ -176,7 +176,7 @@ export const DashboardOverview: React.FC = () => {
               className="mt-4 rounded-xl"
               onClick={() => setActiveTab('plans')}
             >
-              Beli Paket Hosting
+              {t('buyHostingBtn')}
             </Button>
           </CardPanel>
         ) : (
@@ -205,7 +205,7 @@ export const DashboardOverview: React.FC = () => {
                           ? 'bg-green-500/10 text-green-500 border-green-500/15'
                           : 'bg-text-muted/10 text-text-muted border-text-muted/15'
                       }`}>
-                        {sub.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                        {sub.status === 'active' ? t('activeLabel') : t('inactiveLabel')}
                       </span>
                     }
                   >
@@ -233,7 +233,7 @@ export const DashboardOverview: React.FC = () => {
                           Database MySQL:
                         </span>
                         <span className="font-mono text-text-main font-bold">
-                          {db ? db.db_name : '1 Database Aktif'}
+                          {db ? db.db_name : t('oneActiveDb')}
                         </span>
                       </div>
                     </div>
@@ -250,7 +250,7 @@ export const DashboardOverview: React.FC = () => {
         
         {/* Left: Quick Actions (Span 2) */}
         <div className="lg:col-span-2 space-y-3.5">
-          <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider pl-1 select-none">Pintasan Menu Utama</h3>
+          <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider pl-1 select-none">{t('quickActionsTitle')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {quickActions.map((action) => (
               <motion.button
@@ -275,12 +275,12 @@ export const DashboardOverview: React.FC = () => {
 
         {/* Right: Recent Events Timeline (Span 1) */}
         <div className="lg:col-span-1 space-y-3.5">
-          <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider pl-1 select-none">Log Aktivitas Terbaru</h3>
+          <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider pl-1 select-none">{t('recentActivityLogs')}</h3>
           <CardPanel className="p-5 h-full">
             <div className="space-y-4 select-none">
               {recentEvents.length === 0 ? (
                 <div className="text-center py-8 text-text-muted">
-                  <p className="text-xs font-semibold">Belum ada aktivitas terbaru.</p>
+                  <p className="text-xs font-semibold">{t('noRecentActivity')}</p>
                 </div>
               ) : (
                 recentEvents.map((evt, idx) => (
@@ -310,6 +310,7 @@ export const DashboardOverview: React.FC = () => {
 export default DashboardOverview;
 
 const ClientNotificationsBanner: React.FC = () => {
+  const { t } = useTranslation();
   const { notifications, markNotificationAsRead } = useDataStore();
   const unreadNotifications = notifications.filter(n => !n.isRead);
 
@@ -318,7 +319,7 @@ const ClientNotificationsBanner: React.FC = () => {
   return (
     <div className="space-y-3.5 mb-6 text-left animate-in fade-in duration-300">
       <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider pl-1 select-none">
-        Pemberitahuan Terbaru
+        {t('recentNotificationsTitle')}
       </h3>
       <div className="space-y-2.5">
         {unreadNotifications.map((n) => (
@@ -335,7 +336,7 @@ const ClientNotificationsBanner: React.FC = () => {
               onClick={() => markNotificationAsRead(n.id)}
               className="text-[10px] font-bold text-brand-primary hover:text-brand-secondary hover:underline cursor-pointer uppercase shrink-0"
             >
-              Tandai Dibaca
+              {t('markAsRead')}
             </button>
           </div>
         ))}
@@ -343,3 +344,4 @@ const ClientNotificationsBanner: React.FC = () => {
     </div>
   );
 };
+

@@ -39,16 +39,16 @@ export const SubdomainsList: React.FC = () => {
     if (!claimName) {
       addToast({
         type: 'error',
-        title: 'Validasi Gagal',
-        message: 'Nama subdomain wajib diisi.',
+        title: t('error'),
+        message: t('subdomainValidationRequired'),
       });
       return;
     }
     if (!regex.test(claimName)) {
       addToast({
         type: 'error',
-        title: 'Validasi Gagal',
-        message: 'Nama subdomain tidak valid. Hanya gunakan huruf kecil, angka, minus (-) dan underscore (_).',
+        title: t('error'),
+        message: t('subdomainValidationInvalid'),
       });
       return;
     }
@@ -58,8 +58,8 @@ export const SubdomainsList: React.FC = () => {
       await addSubdomain(claimName, claimTargetPaymentId);
       addToast({
         type: 'success',
-        title: 'Subdomain Berhasil Diklaim',
-        message: `Subdomain ${claimName}.${rootDomain} dan database MySQL Anda telah aktif!`,
+        title: t('claimSubdomainSuccessTitle'),
+        message: t('claimSubdomainSuccessMsg').replace('{name}', claimName).replace('{domain}', rootDomain),
       });
       setClaimModalOpen(false);
       setClaimTargetPaymentId(null);
@@ -67,8 +67,8 @@ export const SubdomainsList: React.FC = () => {
     } catch (err) {
       addToast({
         type: 'error',
-        title: 'Gagal Mengklaim',
-        message: 'Terjadi kesalahan sistem atau subdomain sudah digunakan.',
+        title: t('claimSubdomainErrorTitle'),
+        message: t('claimSubdomainErrorMsg'),
       });
     } finally {
       setIsClaiming(false);
@@ -82,15 +82,15 @@ export const SubdomainsList: React.FC = () => {
         await deleteSubdomain(subDeleteTarget);
         addToast({
           type: 'success',
-          title: 'Subdomain Dihapus',
-          message: 'Subdomain beserta berkas cPanel berhasil dihapus.',
+          title: t('toastSubdomainDeletedTitle'),
+          message: t('toastSubdomainDeletedMsg'),
         });
         setSubDeleteTarget(null);
       } catch {
         addToast({
           type: 'error',
-          title: 'Gagal',
-          message: 'Terjadi masalah pada server.',
+          title: t('error'),
+          message: t('toastSubdomainDeletedError'),
         });
       } finally {
         setIsDeleting(false);
@@ -109,7 +109,7 @@ export const SubdomainsList: React.FC = () => {
             {t('listSubdomains')}
           </h1>
           <p className="text-[10px] text-text-muted font-semibold tracking-wide uppercase mt-0.5">
-            Kelola domain cPanel instan Anda, koneksi Git, dan parameter deployment.
+            {t('subdomainListSub')}
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export const SubdomainsList: React.FC = () => {
           icon={<Plus className="h-4.5 w-4.5" />}
           onClick={() => setActiveTab('plans')}
         >
-          Beli Paket Baru
+          {t('buyNewPlanBtn')}
         </Button>
       </div>
 
@@ -128,7 +128,7 @@ export const SubdomainsList: React.FC = () => {
         <div className="space-y-3.5 pt-2">
           <h2 className="text-xs font-bold text-brand-primary uppercase tracking-widest flex items-center gap-1.5 animate-pulse select-none">
             <Sparkles className="h-4 w-4" />
-            Paket Siap Diklaim ({unclaimedSlots.length})
+            {t('readyToClaimTitle').replace('{count}', String(unclaimedSlots.length))}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {unclaimedSlots.map((slot) => (
@@ -148,9 +148,9 @@ export const SubdomainsList: React.FC = () => {
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider block select-none">Sewa Hosting Aktif</span>
+                      <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider block select-none">{t('activePlanRentLabel')}</span>
                       <h3 className="text-sm font-bold text-text-main mt-0.5">
-                        {slot.plan?.name || 'Paket Hosting'}
+                        {slot.plan?.name || t('plans')}
                       </h3>
                       <p className="text-[10px] text-text-muted mt-1 select-none">
                         Invoice: <span className="font-mono text-text-main font-bold">{slot.transaction_id}</span>
@@ -158,7 +158,7 @@ export const SubdomainsList: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-between text-[11px] font-semibold text-text-muted pt-3.5 border-t border-border-main/50 select-none">
                       <span>Database</span>
-                      <span className="text-text-main font-bold">1 MySQL Otomatis</span>
+                      <span className="text-text-main font-bold">{t('dbAutoLabel')}</span>
                     </div>
                     <Button
                       variant="primary"
@@ -167,10 +167,10 @@ export const SubdomainsList: React.FC = () => {
                       onClick={() => {
                         setClaimTargetPaymentId(slot.id);
                         setClaimName('');
-                        setClaimModalOpen(true);
+                        setClaimModalOpen(true); // Wait, this was claimModalOpen! Yes, setClaimModalOpen(true). Let's fix that.
                       }}
                     >
-                      Klaim Subdomain
+                      {t('quickActionClaimSubdomain')}
                     </Button>
                   </div>
                 </CardPanel>
@@ -183,7 +183,7 @@ export const SubdomainsList: React.FC = () => {
       {/* Grid of Subdomains Header */}
       {subdomains.length > 0 && (
         <h2 className="text-xs font-semibold text-text-muted uppercase tracking-widest select-none pt-2">
-          Subdomain Aktif Anda
+          {t('activeSubdomainsTitle')}
         </h2>
       )}
 
@@ -267,7 +267,7 @@ export const SubdomainsList: React.FC = () => {
                         MySQL Database:
                       </span>
                       <span className="font-mono text-text-main font-bold">
-                        {db ? db.db_name : '1 Database Aktif'}
+                        {db ? db.db_name : t('oneActiveDb')}
                       </span>
                     </div>
                   </div>
@@ -283,7 +283,7 @@ export const SubdomainsList: React.FC = () => {
                       ) : (
                         <>
                           <FileArchive className="h-4 w-4 text-slate-400 shrink-0" />
-                          <span>Upload Manual (.ZIP)</span>
+                          <span>{t('manualZipUploadLabel')}</span>
                         </>
                       )}
                     </div>
@@ -304,12 +304,12 @@ export const SubdomainsList: React.FC = () => {
                     iconPosition="right"
                     onClick={() => setActiveTab('subdomains', sub.id)}
                   >
-                    Manage Portal
+                    {t('managePortal')}
                   </Button>
                   <button
                     onClick={() => setSubDeleteTarget(sub.id)}
                     className="text-text-muted hover:text-red-500 p-2.5 rounded-lg hover:bg-red-500/10 border border-transparent hover:border-red-500/10 cursor-pointer active:scale-95 transition-all shrink-0"
-                    title="Hapus Subdomain"
+                    title={t('delete')}
                   >
                     <Trash2 className="h-4.5 w-4.5" />
                   </button>
@@ -329,7 +329,7 @@ export const SubdomainsList: React.FC = () => {
                 {t('emptySubdomains')}
               </h3>
               <p className="text-[11px] text-text-muted mt-2 leading-relaxed select-none">
-                Anda belum memiliki domain cPanel aktif. Klaim paket hosting dan dapatkan subdomain Anda sekarang.
+                {t('noSubdomainDatabases')}
               </p>
               <Button 
                 variant="primary" 
@@ -337,7 +337,7 @@ export const SubdomainsList: React.FC = () => {
                 className="mt-5 w-full select-none"
                 onClick={() => setActiveTab('plans')}
               >
-                Klaim Subdomain Baru
+                {t('quickActionClaimSubdomain')}
               </Button>
             </CardPanel>
           </div>
@@ -348,8 +348,8 @@ export const SubdomainsList: React.FC = () => {
       <Modal
         isOpen={subDeleteTarget !== null}
         onClose={() => setSubDeleteTarget(null)}
-        title="Hapus Subdomain?"
-        description="Tindakan ini permanen. Virtual host Nginx, sertifikat SSL Let's Encrypt, dan seluruh berkas aplikasi Anda dalam document root akan dihapus total dari server."
+        title={t('deleteSubdomainConfirmTitle')}
+        description={t('deleteSubdomainConfirmDesc')}
         footerActions={
           <>
             <Button variant="secondary" onClick={() => setSubDeleteTarget(null)} disabled={isDeleting}>
@@ -364,7 +364,7 @@ export const SubdomainsList: React.FC = () => {
         <div className="p-3.5 rounded-xl bg-red-500/5 border border-red-500/10 text-red-500 flex items-center gap-2 select-none">
           <AlertTriangle className="h-5 w-5 shrink-0" />
           <span className="text-xs font-bold text-left">
-            Peringatan: Seluruh file website Anda dalam cPanel document root akan dihapus permanen!
+            {t('deleteSubdomainWarningText')}
           </span>
         </div>
       </Modal>
@@ -373,13 +373,13 @@ export const SubdomainsList: React.FC = () => {
       <Modal
         isOpen={claimModalOpen}
         onClose={() => setClaimModalOpen(false)}
-        title="Klaim Subdomain Baru"
-        description="Masukkan nama subdomain yang ingin Anda gunakan untuk slot hosting ini. Sistem akan secara otomatis menyiapkan Nginx virtual host dan database MySQL."
+        title={t('claimSubdomainTitle')}
+        description={t('claimSubdomainDesc')}
       >
         <form onSubmit={handleClaimSubmit} className="space-y-4 text-left">
           <div className="space-y-2">
             <label className="text-xs font-bold text-text-main">
-              Nama Subdomain
+              {t('subdomainName')}
             </label>
             <div className="flex items-stretch">
               <input
@@ -396,7 +396,7 @@ export const SubdomainsList: React.FC = () => {
             </div>
             <p className="text-[10px] text-text-muted leading-relaxed flex items-start gap-1.5 select-none pt-1">
               <Info className="h-3.5 w-3.5 shrink-0 text-brand-primary" />
-              <span>Hanya diperbolehkan huruf kecil (a-z), angka (0-9), tanda hubung (-) dan garis bawah (_). Tanpa spasi atau titik.</span>
+              <span>{t('subdomainRulesHint')}</span>
             </p>
           </div>
 
@@ -407,14 +407,14 @@ export const SubdomainsList: React.FC = () => {
               onClick={() => setClaimModalOpen(false)}
               disabled={isClaiming}
             >
-              Batal
+              {t('cancel')}
             </Button>
             <Button
               type="submit"
               variant="primary"
               isLoading={isClaiming}
             >
-              Aktifkan Subdomain
+              {t('activateSubdomainBtn')}
             </Button>
           </div>
         </form>
@@ -423,3 +423,4 @@ export const SubdomainsList: React.FC = () => {
   );
 };
 export default SubdomainsList;
+

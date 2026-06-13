@@ -45,14 +45,14 @@ export const PlansPage: React.FC = () => {
       setAppliedDiscount(result.discount);
       addToast({
         type: 'success',
-        title: 'Voucher Diterapkan',
-        message: `Voucher diskon ${result.discount}% sukses digunakan!`,
+        title: t('toastVoucherAppliedTitle'),
+        message: t('toastVoucherAppliedMsg').replace('{discount}', String(result.discount)),
       });
     } else {
       addToast({
         type: 'error',
-        title: 'Voucher Tidak Valid',
-        message: 'Kode voucher salah, kedaluwarsa, atau kuota habis.',
+        title: t('toastVoucherInvalidTitle'),
+        message: t('toastVoucherInvalidMsg'),
       });
       setAppliedDiscount(null);
     }
@@ -67,14 +67,14 @@ export const PlansPage: React.FC = () => {
       await createPayment(selectedPlan.id, '', appliedDiscount ? voucherCode : null);
       addToast({
         type: 'info',
-        title: 'Invoice Tagihan Dibuat',
-        message: 'Silakan lakukan pembayaran QRIS untuk mengaktifkan paket Anda.',
+        title: t('toastInvoiceCreatedTitle'),
+        message: t('toastInvoiceCreatedMsg'),
       });
       setCheckoutModalOpen(false);
       // Redirect to billing page
       setActiveTab('billing');
     } catch {
-      addToast({ type: 'error', title: 'Gagal', message: 'Terdapat masalah server saat memproses invoice.' });
+      addToast({ type: 'error', title: t('error'), message: t('toastInvoiceCreatedError') });
     } finally {
       setIsCheckoutInProgress(false);
     }
@@ -126,7 +126,7 @@ export const PlansPage: React.FC = () => {
                         ? 'bg-green-500/10 text-green-500 border border-green-500/15' 
                         : 'bg-brand-primary/10 text-brand-primary border border-brand-primary/15'
                     }`}>
-                      {plan.type} RUNTIME
+                      {t('pricingRuntimeSuffix').replace('{runtime}', plan.type)}
                     </span>
                   </div>
 
@@ -140,7 +140,7 @@ export const PlansPage: React.FC = () => {
                         Rp {plan.price.toLocaleString('id-ID')}
                       </span>
                       <span className="text-[10px] text-text-muted font-bold uppercase ml-1">
-                        / bln
+                        {t('monthlyPriceSuffix')}
                       </span>
                     </div>
                   </div>
@@ -153,19 +153,19 @@ export const PlansPage: React.FC = () => {
                   <ul className="space-y-2.5 pt-4 border-t border-border-main/50 text-[11px] font-semibold text-text-muted select-none">
                     <li className="flex items-center gap-2">
                       <HardDrive className="h-4 w-4 text-brand-primary shrink-0" />
-                      <span>Storage: <span className="font-mono text-text-main font-bold">{plan.max_storage_mb >= 1024 ? `${plan.max_storage_mb / 1024} GB` : `${plan.max_storage_mb} MB`}</span> SSD NVMe</span>
+                      <span>{t('featureStorageLabel').replace('{storage}', plan.max_storage_mb >= 1024 ? `${plan.max_storage_mb / 1024} GB` : `${plan.max_storage_mb} MB`)}</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Database className="h-4 w-4 text-brand-primary shrink-0" />
-                      <span>1 Database MySQL Terdedikasi</span>
+                      <span>{t('featureDatabaseLabel')}</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 text-brand-primary shrink-0" />
-                      <span>SSL Let's Encrypt Otomatis</span>
+                      <span>{t('featureSslLabel')}</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Globe className="h-4 w-4 text-brand-primary shrink-0" />
-                      <span>Subdomain Gratis .{rootDomain}</span>
+                      <span>{t('featureSubdomainLabel').replace('{domain}', `.${rootDomain}`)}</span>
                     </li>
                   </ul>
                 </div>
@@ -178,7 +178,7 @@ export const PlansPage: React.FC = () => {
                     icon={<ShoppingCart className="h-4 w-4" />}
                     onClick={() => handleOpenCheckout(plan)}
                   >
-                    Pilih Paket
+                    {t('selectPlan')}
                   </Button>
                 </div>
               </CardPanel>
@@ -191,18 +191,18 @@ export const PlansPage: React.FC = () => {
       <Modal
         isOpen={checkoutModalOpen}
         onClose={() => setCheckoutModalOpen(false)}
-        title="Klaim Subdomain & Konfirmasi Pembelian"
+        title={t('billingModalTitle')}
       >
         {selectedPlan && (
           <form onSubmit={handleCheckoutSubmit} className="space-y-4 text-left">
             {/* Plan Info Summary */}
             <div className="p-4 rounded-xl bg-bg-surface border border-border-main/60 grid grid-cols-2 gap-3.5 select-none">
               <div>
-                <span className="text-[9px] font-bold text-text-muted uppercase block">Paket Terpilih</span>
+                <span className="text-[9px] font-bold text-text-muted uppercase block">{t('billingSelectedPlanLabel')}</span>
                 <span className="text-xs font-bold text-text-main">{selectedPlan.name}</span>
               </div>
               <div>
-                <span className="text-[9px] font-bold text-text-muted uppercase block">Base Price</span>
+                <span className="text-[9px] font-bold text-text-muted uppercase block">{t('billingBasePriceLabel')}</span>
                 <span className="text-xs font-bold text-text-main font-mono">Rp {selectedPlan.price.toLocaleString('id-ID')}</span>
               </div>
             </div>
@@ -232,7 +232,7 @@ export const PlansPage: React.FC = () => {
               {appliedDiscount && (
                 <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-1 mt-1 select-none">
                   <Check className="h-3.5 w-3.5" />
-                  Diskon {appliedDiscount}% berhasil dipasang!
+                  {t('billingVoucherAppliedSuccess').replace('{discount}', String(appliedDiscount))}
                 </p>
               )}
             </div>
@@ -240,7 +240,7 @@ export const PlansPage: React.FC = () => {
             {/* Price Calculations */}
             <div className="border-t border-border-main/50 pt-4 flex justify-between items-center select-none">
               <div>
-                <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider block">Total Pembayaran</span>
+                <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider block">{t('billingTotalLabel')}</span>
                 <span className="text-lg font-bold text-brand-primary font-mono">
                   Rp {getFinalPrice().toLocaleString('id-ID')}
                 </span>
@@ -260,7 +260,7 @@ export const PlansPage: React.FC = () => {
                   variant="primary"
                   isLoading={isCheckoutInProgress}
                 >
-                  Buat Tagihan
+                  {t('billingCreateInvoiceBtn')}
                 </Button>
               </div>
             </div>
@@ -272,3 +272,4 @@ export const PlansPage: React.FC = () => {
   );
 };
 export default PlansPage;
+

@@ -5,8 +5,10 @@ import { CardPanel } from '../../../components/ui/CardPanel';
 import { Button } from '../../../components/ui/Button';
 import { useDataStore } from '../../../stores/useDataStore';
 import { useToastStore } from '../../../stores/useToastStore';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 export const AdminSettingsTab: React.FC = () => {
+  const { t } = useTranslation();
   const { settings, updateSetting } = useDataStore();
   const { addToast } = useToastStore();
 
@@ -66,10 +68,10 @@ export const AdminSettingsTab: React.FC = () => {
     setIsSavingQris(true);
     try {
       await updateSetting({ qris_merchant_name: merchantName }, qrisImageFile || undefined);
-      addToast({ type: 'success', title: 'Pengaturan Disimpan', message: 'Konfigurasi QRIS statis berhasil diperbarui.' });
+      addToast({ type: 'success', title: t('toastSettingsSavedTitle'), message: t('toastSettingsSavedMsg') });
       setQrisImageFile(null);
     } catch {
-      addToast({ type: 'error', title: 'Gagal', message: 'Gagal memperbarui pengaturan QRIS.' });
+      addToast({ type: 'error', title: t('error'), message: t('toastSettingsSavedError') });
     } finally { setIsSavingQris(false); }
   };
 
@@ -85,19 +87,19 @@ export const AdminSettingsTab: React.FC = () => {
       await updateSetting('system_ram_limit_gb', systemRamLimit);
       await updateSetting('system_cpu_cores_limit', systemCpuCoresLimit);
       await updateSetting('system_nproc_limit', systemNprocLimit);
-      addToast({ type: 'success', title: 'Pengaturan Disimpan', message: 'Parameter sistem global berhasil diperbarui.' });
+      addToast({ type: 'success', title: t('toastParamsSavedTitle'), message: t('toastParamsSavedMsg') });
     } catch {
-      addToast({ type: 'error', title: 'Gagal', message: 'Gagal memperbarui parameter sistem global.' });
+      addToast({ type: 'error', title: t('error'), message: t('toastParamsSavedError') });
     } finally { setIsSavingParams(false); }
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 select-none">
       {/* QRIS Config */}
-      <CardPanel title="Pengaturan QRIS Statis Sistem">
+      <CardPanel title={t('qrisSettingsTitle')}>
         <form onSubmit={handleSaveQris} className="space-y-4 mt-2 text-xs">
           <div className="space-y-1.5 text-left">
-            <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">Merchant Name</label>
+            <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">{t('merchantNameLabel')}</label>
             <input type="text" value={merchantName} onChange={(e) => setMerchantName(e.target.value)}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-bold text-text-main outline-none" required />
           </div>
@@ -106,7 +108,7 @@ export const AdminSettingsTab: React.FC = () => {
             {/* QRIS Preview */}
             <div className="space-y-2 text-left">
               <span className="text-[10px] font-black uppercase text-text-muted tracking-wider block">
-                {qrisPreviewUrl ? 'Pratinjau QRIS Baru' : 'Foto QRIS Aktif Saat Ini'}
+                {qrisPreviewUrl ? t('newQrisPreviewLabel') : t('activeQrisPreviewLabel')}
               </span>
               <div className={`bg-white border border-border-main rounded-2xl overflow-hidden shadow-xs transition-all duration-200 ${
                 hasQrisImage ? 'w-fit h-fit p-0' : 'w-full sm:w-60 min-h-[144px] flex items-center justify-center p-4 text-center'
@@ -117,7 +119,7 @@ export const AdminSettingsTab: React.FC = () => {
                   <img src={currentQrisImg} onError={() => setImageError(true)} alt="Active QRIS" className="block max-w-full sm:max-w-xs max-h-72 w-auto h-auto" />
                 ) : (
                   <span className="text-[10px] text-text-muted italic">
-                    {currentQrisImg ? 'Gambar QRIS Tidak Ditemukan di Server' : 'Belum ada QRIS aktif'}
+                    {currentQrisImg ? t('qrisImageNotFound') : t('noQrisActive')}
                   </span>
                 )}
               </div>
@@ -126,14 +128,14 @@ export const AdminSettingsTab: React.FC = () => {
             {/* Upload */}
             <div className="space-y-2 text-left flex flex-col justify-between">
               <div>
-                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider block mb-2">Upload/Ganti QRIS (Opsional)</label>
+                <label className="text-[10px] font-black uppercase text-text-muted tracking-wider block mb-2">{t('uploadQrisLabel')}</label>
                 <label htmlFor="qris-image-input"
                   className="block border border-dashed border-border-main hover:border-brand-primary/45 rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center h-36">
                   <input type="file" accept="image/*" onChange={(e) => setQrisImageFile(e.target.files?.[0] || null)} className="hidden" id="qris-image-input" />
                   <div className="flex flex-col items-center gap-1.5 w-full h-full justify-center">
                     <Upload className="h-6 w-6 text-text-muted" />
                     <span className="text-[10px] font-bold text-text-main block truncate max-w-full px-2">
-                      {qrisImageFile ? qrisImageFile.name : 'Upload file gambar QRIS'}
+                      {qrisImageFile ? qrisImageFile.name : t('uploadQrisPlaceholder')}
                     </span>
                   </div>
                 </label>
@@ -141,25 +143,25 @@ export const AdminSettingsTab: React.FC = () => {
             </div>
           </div>
 
-          <Button type="submit" variant="primary" isLoading={isSavingQris}>Simpan QRIS Config</Button>
+          <Button type="submit" variant="primary" isLoading={isSavingQris}>{t('saveQrisConfigBtn')}</Button>
         </form>
       </CardPanel>
 
       {/* System Parameters */}
-      <CardPanel title="Parameter Sistem & Storage Global">
+      <CardPanel title={t('systemParamsTitle')}>
         <form onSubmit={handleSaveParams} className="space-y-4 mt-2 text-xs">
           {[
-            { label: 'Total Kapasitas NVMe Server (GB)', value: systemStorageLimit, set: setSystemStorageLimit, type: 'number', min: '1' },
-            { label: 'Root Domain Utama (cPanel)', value: systemRootDomain, set: setSystemRootDomain, type: 'text', placeholder: 'subly.my.id' },
-            { label: 'Batas Warning Storage Klien (%)', value: systemStorageWarningThreshold, set: setSystemStorageWarningThreshold, type: 'number', min: '1', max: '100' },
-            { label: 'SLA Waktu Respon Live Chat (Klien)', value: systemSupportSla, set: setSystemSupportSla, type: 'text', placeholder: '< 10 Menit' },
-            { label: 'Email Notifikasi Admin (Penerimaan Bukti Bayar)', value: adminNotificationEmail, set: setAdminNotificationEmail, type: 'email', placeholder: 'admin@subly.my.id' },
-            { label: 'Dedicated RAM cPanel (GB)', value: systemRamLimit, set: setSystemRamLimit, type: 'number', min: '1' },
-            { label: 'Jatah CPU Cores cPanel (Cores)', value: systemCpuCoresLimit, set: setSystemCpuCoresLimit, type: 'number', min: '1' },
-            { label: 'Limit NPROC Proses cPanel', value: systemNprocLimit, set: setSystemNprocLimit, type: 'number', min: '1' },
-          ].map(({ label, value, set, type, min, max, placeholder }: any) => (
-            <div key={label} className="space-y-1.5 text-left">
-              <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">{label}</label>
+            { labelKey: 'paramStorageLimit' as const, value: systemStorageLimit, set: setSystemStorageLimit, type: 'number', min: '1' },
+            { labelKey: 'paramRootDomain' as const, value: systemRootDomain, set: setSystemRootDomain, type: 'text', placeholder: 'subly.my.id' },
+            { labelKey: 'paramWarningThreshold' as const, value: systemStorageWarningThreshold, set: setSystemStorageWarningThreshold, type: 'number', min: '1', max: '100' },
+            { labelKey: 'paramSupportSla' as const, value: systemSupportSla, set: setSystemSupportSla, type: 'text', placeholder: '< 10 Menit' },
+            { labelKey: 'paramNotificationEmail' as const, value: adminNotificationEmail, set: setAdminNotificationEmail, type: 'email', placeholder: 'admin@subly.my.id' },
+            { labelKey: 'paramRamLimit' as const, value: systemRamLimit, set: setSystemRamLimit, type: 'number', min: '1' },
+            { labelKey: 'paramCpuLimit' as const, value: systemCpuCoresLimit, set: setSystemCpuCoresLimit, type: 'number', min: '1' },
+            { labelKey: 'paramNprocLimit' as const, value: systemNprocLimit, set: setSystemNprocLimit, type: 'number', min: '1' },
+          ].map(({ labelKey, value, set, type, min, max, placeholder }: any) => (
+            <div key={labelKey} className="space-y-1.5 text-left">
+              <label className="text-[10px] font-black uppercase text-text-muted tracking-wider">{t(labelKey)}</label>
               <input
                 type={type} value={value} onChange={(e) => set(e.target.value)}
                 placeholder={placeholder} min={min} max={max}
@@ -168,7 +170,7 @@ export const AdminSettingsTab: React.FC = () => {
               />
             </div>
           ))}
-          <Button type="submit" variant="primary" isLoading={isSavingParams}>Simpan Parameter Sistem</Button>
+          <Button type="submit" variant="primary" isLoading={isSavingParams}>{t('saveParamsBtn')}</Button>
         </form>
       </CardPanel>
     </div>

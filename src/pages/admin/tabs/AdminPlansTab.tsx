@@ -7,12 +7,14 @@ import { Modal } from '../../../components/ui/Modal';
 import { Select } from '../../../components/ui/Select';
 import { useDataStore } from '../../../stores/useDataStore';
 import { useToastStore } from '../../../stores/useToastStore';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 interface Props {
   onDeletePlan: (id: number) => void;
 }
 
 export const AdminPlansTab: React.FC<Props> = ({ onDeletePlan }) => {
+  const { t } = useTranslation();
   const { plans, addPlan, updatePlan } = useDataStore();
   const { addToast } = useToastStore();
 
@@ -32,9 +34,9 @@ export const AdminPlansTab: React.FC<Props> = ({ onDeletePlan }) => {
     try {
       await addPlan(newName, Number(newPrice), newType, Number(newStorage), newDesc);
       setNewName(''); setNewDesc(''); setAddOpen(false);
-      addToast({ type: 'success', title: 'Paket Dibuat', message: `Paket ${newName} berhasil didaftarkan.` });
+      addToast({ type: 'success', title: t('toastPlanCreatedTitle'), message: t('toastPlanCreatedMsg').replace('{name}', newName) });
     } catch {
-      addToast({ type: 'error', title: 'Gagal', message: 'Gagal mendaftarkan paket baru.' });
+      addToast({ type: 'error', title: t('error'), message: t('toastPlanCreatedError') });
     } finally { setIsAdding(false); }
   };
 
@@ -65,24 +67,24 @@ export const AdminPlansTab: React.FC<Props> = ({ onDeletePlan }) => {
     try {
       await updatePlan(editId, editName, Number(editPrice), editType, Number(editStorage), editDesc);
       setEditOpen(false);
-      addToast({ type: 'success', title: 'Paket Diperbarui', message: `Paket ${editName} berhasil diperbarui.` });
+      addToast({ type: 'success', title: t('toastPlanUpdatedTitle'), message: t('toastPlanUpdatedMsg').replace('{name}', editName) });
     } catch {
-      addToast({ type: 'error', title: 'Gagal', message: 'Gagal memperbarui paket hosting.' });
+      addToast({ type: 'error', title: t('error'), message: t('toastPlanUpdatedError') });
     } finally { setIsEditing(false); }
   };
 
   const planTypeOptions = [
-    { value: 'PHP',    label: 'PHP & Laravel' },
-    { value: 'NodeJS', label: 'Node.js Runtimes' },
+    { value: 'PHP',    label: t('phpLaravel') },
+    { value: 'NodeJS', label: t('nodeJsRuntimes') },
   ];
 
   return (
     <>
       <CardPanel
-        title="Kelola Paket Hosting"
+        title={t('planManager')}
         headerActions={
           <Button variant="primary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => setAddOpen(true)}>
-            Tambah Paket
+            {t('addPlan')}
           </Button>
         }
       >
@@ -90,11 +92,11 @@ export const AdminPlansTab: React.FC<Props> = ({ onDeletePlan }) => {
           <table className="w-full text-left min-w-[650px]">
             <thead>
               <tr className="border-b border-border-main/50 text-[9px] text-text-muted uppercase tracking-widest">
-                <th className="py-2.5 pb-2 px-4 font-bold">Nama Paket</th>
-                <th className="py-2.5 pb-2 px-4 text-center font-bold">Runtime</th>
-                <th className="py-2.5 pb-2 px-4 text-center font-bold">NVMe Storage</th>
-                <th className="py-2.5 pb-2 px-4 text-center font-bold">Price</th>
-                <th className="py-2.5 pb-2 px-4 text-right font-bold">Aksi</th>
+                <th className="py-2.5 pb-2 px-4 font-bold">{t('planNameLabel')}</th>
+                <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colRuntime')}</th>
+                <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colStorage')}</th>
+                <th className="py-2.5 pb-2 px-4 text-center font-bold">{t('colPrice')}</th>
+                <th className="py-2.5 pb-2 px-4 text-right font-bold">{t('colAction')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-main/30 text-xs">
@@ -139,73 +141,73 @@ export const AdminPlansTab: React.FC<Props> = ({ onDeletePlan }) => {
       </CardPanel>
 
       {/* Add Plan Modal */}
-      <Modal isOpen={addOpen} onClose={() => setAddOpen(false)} title="Daftarkan Paket Hosting Baru">
+      <Modal isOpen={addOpen} onClose={() => setAddOpen(false)} title={t('addNewPlanTitle')}>
         <form onSubmit={handleAdd} className="space-y-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Nama Paket</label>
-            <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Subly PHP Enterprise"
+            <label className="text-xs font-bold text-text-main">{t('planNameLabel')}</label>
+            <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder={t('planNamePlaceholder')}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-main">Runtime Type</label>
+              <label className="text-xs font-bold text-text-main">{t('runtimeTypeLabel')}</label>
               <Select value={newType} onChange={(e) => setNewType(e.target.value as 'PHP' | 'NodeJS')} options={planTypeOptions} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-main">Harga Bulanan (Rp)</label>
+              <label className="text-xs font-bold text-text-main">{t('monthlyPriceLabel')}</label>
               <input type="number" value={newPrice} onChange={(e) => setNewPrice(e.target.value)}
                 className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">NVMe Storage Limit (MB)</label>
+            <label className="text-xs font-bold text-text-main">{t('storageLimitLabel')}</label>
             <input type="number" value={newStorage} onChange={(e) => setNewStorage(e.target.value)}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Deskripsi Paket (Opsional)</label>
-            <textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Deskripsi singkat fitur/keunggulan paket ini" rows={3}
+            <label className="text-xs font-bold text-text-main">{t('planDescriptionLabel')}</label>
+            <textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder={t('planDescPlaceholder')} rows={3}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none resize-none" />
           </div>
           <div className="flex justify-end gap-3 pt-3 border-t border-border-main">
-            <Button type="button" variant="secondary" onClick={() => setAddOpen(false)}>Batal</Button>
-            <Button type="submit" variant="primary" isLoading={isAdding}>Simpan Paket</Button>
+            <Button type="button" variant="secondary" onClick={() => setAddOpen(false)}>{t('cancel')}</Button>
+            <Button type="submit" variant="primary" isLoading={isAdding}>{t('savePlanBtn')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* Edit Plan Modal */}
-      <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title="Edit Paket Hosting">
+      <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title={t('editPlanTitle')}>
         <form onSubmit={handleUpdate} className="space-y-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Nama Paket</label>
+            <label className="text-xs font-bold text-text-main">{t('planNameLabel')}</label>
             <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-main">Runtime Type</label>
+              <label className="text-xs font-bold text-text-main">{t('runtimeTypeLabel')}</label>
               <Select value={editType} onChange={(e) => setEditType(e.target.value as 'PHP' | 'NodeJS')} options={planTypeOptions} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-main">Harga Bulanan (Rp)</label>
+              <label className="text-xs font-bold text-text-main">{t('monthlyPriceLabel')}</label>
               <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)}
                 className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">NVMe Storage Limit (MB)</label>
+            <label className="text-xs font-bold text-text-main">{t('storageLimitLabel')}</label>
             <input type="number" value={editStorage} onChange={(e) => setEditStorage(e.target.value)}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none" required />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-text-main">Deskripsi Paket (Opsional)</label>
+            <label className="text-xs font-bold text-text-main">{t('planDescriptionLabel')}</label>
             <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3}
               className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none resize-none" />
           </div>
           <div className="flex justify-end gap-3 pt-3 border-t border-border-main">
-            <Button type="button" variant="secondary" onClick={() => setEditOpen(false)}>Batal</Button>
-            <Button type="submit" variant="primary" isLoading={isEditing}>Perbarui Paket</Button>
+            <Button type="button" variant="secondary" onClick={() => setEditOpen(false)}>{t('cancel')}</Button>
+            <Button type="submit" variant="primary" isLoading={isEditing}>{t('updatePlanBtn')}</Button>
           </div>
         </form>
       </Modal>

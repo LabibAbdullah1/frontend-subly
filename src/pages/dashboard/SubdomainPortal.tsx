@@ -20,7 +20,7 @@ import { apiFetch } from '../../utils/api';
 type SubTab = 'overview' | 'git-env' | 'files' | 'logs';
 
 export const SubdomainPortal: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { addToast } = useToastStore();
   const { currentSubdomainId, setActiveTab } = useSystemStore();
   const { 
@@ -244,11 +244,12 @@ export const SubdomainPortal: React.FC = () => {
     setPullStatus('pulling');
     setPullElapsed(0);
     const startTime = Date.now();
+    const timeStr = () => new Date().toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US');
     setPullLogs([
-      `[${new Date().toLocaleTimeString()}] 🚀 Memulai Git Pull...`,
-      `[${new Date().toLocaleTimeString()}] 🔗 Repository: ${subdomain.git_url}`,
-      `[${new Date().toLocaleTimeString()}] 🌿 Branch: ${subdomain.git_branch || 'main'}`,
-      `[${new Date().toLocaleTimeString()}] ⏳ Menghubungi server Git...`,
+      `[${timeStr()}] 🚀 ${t('gitPullStartLog')}`,
+      `[${timeStr()}] 🔗 ${t('gitPullRepoLog').replace('{url}', subdomain.git_url || '')}`,
+      `[${timeStr()}] 🌿 ${t('gitPullBranchLog').replace('{branch}', subdomain.git_branch || 'main')}`,
+      `[${timeStr()}] ⏳ ${t('gitPullContactLog')}`,
     ]);
 
     // Start elapsed timer
@@ -258,8 +259,8 @@ export const SubdomainPortal: React.FC = () => {
 
     try {
       // Simulate progressive log updates
-      setTimeout(() => setPullLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 📡 Fetching objects dari remote...`]), 800);
-      setTimeout(() => setPullLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 🔄 Checking out branch ${subdomain.git_branch || 'main'}...`]), 1800);
+      setTimeout(() => setPullLogs(prev => [...prev, `[${timeStr()}] 📡 ${t('gitPullFetchLog')}`]), 800);
+      setTimeout(() => setPullLogs(prev => [...prev, `[${timeStr()}] 🔄 ${t('gitPullCheckoutLog').replace('{branch}', subdomain.git_branch || 'main')}`]), 1800);
 
       await triggerRealDeployment(subdomain.id);
 
@@ -268,29 +269,29 @@ export const SubdomainPortal: React.FC = () => {
 
       setPullLogs(prev => [
         ...prev,
-        `[${new Date().toLocaleTimeString()}] ✅ Pull berhasil dalam ${elapsed}s`,
-        `[${new Date().toLocaleTimeString()}] 🎉 Website diperbarui dan aktif.`,
+        `[${timeStr()}] ✅ ${t('gitPullSuccessLog').replace('{elapsed}', String(elapsed))}`,
+        `[${timeStr()}] 🎉 ${t('gitPullSuccessActiveLog')}`,
       ]);
       setPullStatus('success');
       setLastPullAt(new Date());
 
       addToast({
         type: 'success',
-        title: 'Git Pull Berhasil',
-        message: `Kode terbaru berhasil diambil dari branch ${subdomain.git_branch || 'main'}.`,
+        title: t('toastGitPullSuccessTitle'),
+        message: t('toastGitPullSuccessMsg').replace('{branch}', subdomain.git_branch || 'main'),
       });
     } catch (err: any) {
       if (pullTimerRef.current) clearInterval(pullTimerRef.current);
       setPullLogs(prev => [
         ...prev,
-        `[${new Date().toLocaleTimeString()}] ❌ Error: ${err.message || 'Pull gagal'}`,
-        `[${new Date().toLocaleTimeString()}] ⚠️ Periksa token dan URL repository.`,
+        `[${timeStr()}] ❌ ${t('gitPullErrorLog').replace('{error}', err.message || 'Pull gagal')}`,
+        `[${timeStr()}] ⚠️ ${t('gitPullCheckTokenLog')}`,
       ]);
       setPullStatus('error');
       addToast({
         type: 'error',
-        title: 'Git Pull Gagal',
-        message: err.message || 'Terjadi kesalahan saat melakukan git pull.',
+        title: t('toastGitPullFailedTitle'),
+        message: err.message || t('toastGitPullFailedMsg'),
       });
     }
   };
@@ -303,7 +304,7 @@ export const SubdomainPortal: React.FC = () => {
   if (!subdomain) {
     return (
       <div className="py-12 text-center text-text-muted">
-        Subdomain tidak ditemukan. Kembali ke dashboard.
+        {t('subdomainNotFound')}
       </div>
     );
   }
@@ -318,15 +319,15 @@ export const SubdomainPortal: React.FC = () => {
           className="text-xs font-bold text-text-muted hover:text-brand-primary flex items-center gap-1.5 transition-colors cursor-pointer uppercase tracking-wider"
         >
           <ArrowLeft className="h-4 w-4" />
-          Kembali ke Daftar Subdomain
+          {t('backToSubdomainList')}
         </button>
 
         <div className="flex gap-2">
           <Badge 
             status={subdomain.status === 'active' ? 'active' : 'inactive'} 
-            label={subdomain.status === 'active' ? 'Active' : 'Inactive'} 
+            label={subdomain.status === 'active' ? t('active') : t('inactive')} 
           />
-          <Badge status="processing" label={subdomain.git_url ? 'Git Connected' : 'Manual ZIP'} />
+          <Badge status="processing" label={subdomain.git_url ? t('gitConnectedBadge') : t('manualZipBadge')} />
         </div>
       </div>
 
@@ -394,38 +395,38 @@ export const SubdomainPortal: React.FC = () => {
         {/* OVERVIEW SUB-TAB */}
         {activeSubTab === 'overview' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in duration-200">
-            <CardPanel title="Virtual Host Details" className="md:col-span-2">
+            <CardPanel title={t('virtualHostDetailsTitle')} className="md:col-span-2">
               <div className="space-y-4 text-xs select-none">
                 <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                  <span className="text-text-muted font-bold uppercase tracking-wider">Domain Utama</span>
+                  <span className="text-text-muted font-bold uppercase tracking-wider">{t('primaryDomainLabel')}</span>
                   <span className="font-mono text-text-main text-[11px] select-all">{subdomain.full_domain}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                  <span className="text-text-muted font-bold uppercase tracking-wider">Document Root Folder</span>
+                  <span className="text-text-muted font-bold uppercase tracking-wider">{t('docRootFolderLabel')}</span>
                   <span className="font-mono text-text-main text-[11px] select-all">{subdomain.doc_root}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                  <span className="text-text-muted font-bold uppercase tracking-wider">Metode Sinkronisasi</span>
+                  <span className="text-text-muted font-bold uppercase tracking-wider">{t('syncMethodLabel')}</span>
                   <span className="text-text-main font-bold uppercase">
-                    {subdomain.git_url ? 'GitHub Repository' : 'Manual ZIP Upload'}
+                    {subdomain.git_url ? t('githubRepoVal') : t('manualZipUploadVal')}
                   </span>
                 </div>
                 {subdomain.git_url && (
                   <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                    <span className="text-text-muted font-bold uppercase tracking-wider">Git Repo URL</span>
+                    <span className="text-text-muted font-bold uppercase tracking-wider">{t('gitRepoUrlLabel')}</span>
                     <span className="font-mono text-brand-primary text-[11px] truncate max-w-xs md:max-w-md select-all">{subdomain.git_url}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                  <span className="text-text-muted font-bold uppercase tracking-wider">Limit Penyimpanan Disk</span>
+                  <span className="text-text-muted font-bold uppercase tracking-wider">{t('diskStorageLimitLabel')}</span>
                   <span className="text-text-main font-bold">
-                    {subdomain.storage_override_mb ? `${subdomain.storage_override_mb} MB` : 'Default 1.5 GB NVMe'}
+                    {subdomain.storage_override_mb ? `${subdomain.storage_override_mb} MB` : t('defaultDiskLimitVal')}
                   </span>
                 </div>
               </div>
             </CardPanel>
 
-            <CardPanel title="Aksi Infrastruktur" className="md:col-span-1 select-none">
+            <CardPanel title={t('infraActionsTitle')} className="md:col-span-1 select-none">
               <div className="space-y-4">
                 {/* Git Pull Button — shown when git is connected */}
                 {subdomain.git_url ? (
@@ -457,7 +458,7 @@ export const SubdomainPortal: React.FC = () => {
                             className={`p-1.5 rounded-lg ${
                               pullStatus === 'pulling'
                                 ? 'bg-orange-500/20'
-                                : pullStatus === 'success'
+                               : pullStatus === 'success'
                                 ? 'bg-green-500/20'
                                 : pullStatus === 'error'
                                 ? 'bg-red-500/20'
@@ -497,7 +498,7 @@ export const SubdomainPortal: React.FC = () => {
                           {pullStatus === 'idle' && lastPullAt && (
                             <div className="text-[10px] text-text-muted flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              <span>{lastPullAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                              <span>{t('lastPullLabel').replace('{time}', lastPullAt.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' }))}</span>
                             </div>
                           )}
                         </div>
@@ -546,12 +547,12 @@ export const SubdomainPortal: React.FC = () => {
                           {pullStatus === 'pulling' ? (
                             <>
                               <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                              Pulling...
+                              {t('gitPullRunning')}
                             </>
                           ) : (
                             <>
                               <Zap className="h-3.5 w-3.5" />
-                              {pullStatus === 'error' ? 'Coba Lagi' : 'Pull Sekarang'}
+                              {pullStatus === 'error' ? t('tryAgain') : t('pullNow')}
                             </>
                           )}
                         </button>
@@ -559,7 +560,7 @@ export const SubdomainPortal: React.FC = () => {
                           <button
                             onClick={() => { setPullStatus('idle'); setPullLogs([]); }}
                             className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted transition-all cursor-pointer"
-                            title="Reset"
+                            title={t('reset')}
                           >
                             <RotateCcw className="h-3.5 w-3.5" />
                           </button>
@@ -616,25 +617,25 @@ export const SubdomainPortal: React.FC = () => {
                     {pullStatus === 'idle' && lastPullAt && (
                       <div className="flex items-center gap-1.5 text-[10px] text-text-muted">
                         <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
-                        <span>Terakhir pull: <span className="font-bold text-text-main">{lastPullAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span></span>
+                        <span>{t('lastPullLabel').replace('{time}', lastPullAt.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' }))}</span>
                       </div>
                     )}
                     {pullStatus === 'pulling' && (
                       <div className="flex items-center gap-1.5 text-[10px] text-orange-400 font-bold">
                         <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                        <span>Pulling... {pullElapsed}s</span>
+                        <span>{t('pullingTimeLabel').replace('{time}', String(pullElapsed))}</span>
                       </div>
                     )}
                     {pullStatus === 'success' && (
                       <div className="flex items-center gap-1.5 text-[10px] text-green-400 font-bold">
                         <CheckCircle2 className="h-3.5 w-3.5" />
-                        <span>Pull Sukses!</span>
+                        <span>{t('gitPullSuccess')}</span>
                       </div>
                     )}
                     {pullStatus === 'error' && (
                       <div className="flex items-center gap-1.5 text-[10px] text-red-400 font-bold">
                         <XCircle className="h-3.5 w-3.5" />
-                        <span>Pull Gagal</span>
+                        <span>{t('gitPullFailed')}</span>
                       </div>
                     )}
 
@@ -644,7 +645,7 @@ export const SubdomainPortal: React.FC = () => {
                         <button
                           onClick={() => { setPullStatus('idle'); setPullLogs([]); }}
                           className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted transition-all cursor-pointer"
-                          title="Reset status"
+                          title={t('resetStatus')}
                         >
                           <RotateCcw className="h-4 w-4" />
                         </button>
@@ -662,9 +663,9 @@ export const SubdomainPortal: React.FC = () => {
                         }}
                       >
                         {pullStatus === 'pulling' ? (
-                          <><RefreshCw className="h-4 w-4 animate-spin" /> Sedang Pull...</>
+                          <><RefreshCw className="h-4 w-4 animate-spin" /> {t('gitPullRunning')}</>
                         ) : (
-                          <><Zap className="h-4 w-4" /> {pullStatus === 'error' ? 'Coba Lagi' : 'Pull Sekarang'}</>
+                          <><Zap className="h-4 w-4" /> {pullStatus === 'error' ? t('tryAgain') : t('pullNow')}</>
                         )}
                       </button>
                     </div>
@@ -716,7 +717,7 @@ export const SubdomainPortal: React.FC = () => {
                     style={{ background: 'rgba(0,0,0,0.25)', border: '1px dashed rgba(255,255,255,0.05)' }}
                   >
                     <Terminal className="h-3.5 w-3.5" />
-                    <span>Output log akan muncul di sini saat pull dijalankan</span>
+                    <span>{t('gitPullProgressLogs')}</span>
                   </div>
                 )}
               </div>
@@ -750,7 +751,7 @@ export const SubdomainPortal: React.FC = () => {
                       isLoading={isVerifyingGit}
                       onClick={handleVerifyGit}
                     >
-                      Periksa Repo
+                      {t('checkRepoBtn')}
                     </Button>
                   </div>
                 </div>
@@ -759,7 +760,7 @@ export const SubdomainPortal: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border-main/50 animate-in fade-in duration-200">
                     <div className="space-y-1.5 text-left">
                       <label className="text-[10px] font-semibold uppercase text-text-muted tracking-wider">
-                        Personal Access Token (Opsional)
+                        {t('personalAccessTokenLabel')}
                       </label>
                       <div className="relative">
                         <input
@@ -795,7 +796,7 @@ export const SubdomainPortal: React.FC = () => {
                               type="text"
                               value={branchSearch}
                               onChange={(e) => setBranchSearch(e.target.value)}
-                              placeholder="Cari branch..."
+                              placeholder={t('searchBranchPlaceholder')}
                               className="w-full bg-border-main/20 border border-border-main focus:border-brand-primary rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-text-main outline-none mb-1.5"
                             />
                             {filteredBranches.map(b => (
@@ -816,7 +817,7 @@ export const SubdomainPortal: React.FC = () => {
                               </button>
                             ))}
                             {filteredBranches.length === 0 && (
-                              <p className="text-[10px] text-text-muted italic p-2 text-center">Branch tidak ditemukan</p>
+                              <p className="text-[10px] text-text-muted italic p-2 text-center">{t('branchNotFound')}</p>
                             )}
                           </div>
                         </>
@@ -890,7 +891,7 @@ export const SubdomainPortal: React.FC = () => {
                           onClick={() => handleRemoveEnvRow(env.id)}
                           className="text-text-muted hover:text-red-500 p-2 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-[0.95] shrink-0 text-xs font-bold"
                         >
-                          Hapus
+                          {t('delete')}
                         </button>
                       </div>
                     ))}
@@ -915,7 +916,7 @@ export const SubdomainPortal: React.FC = () => {
                       className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl p-4 text-xs font-mono text-text-main outline-none transition-all resize-none"
                     />
                     <p className="text-[10px] text-text-muted mt-1 select-none font-semibold">
-                      Setiap baris merupakan KEY=VALUE. Karakter khusus diparsing otomatis.
+                      {t('envRawHint')}
                     </p>
                   </div>
                 )}

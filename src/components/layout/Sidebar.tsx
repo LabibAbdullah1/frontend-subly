@@ -7,9 +7,11 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { ActiveTab } from '../../types';
 
 export const Sidebar: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     isSidebarCollapsed, 
     toggleSidebar, 
@@ -33,72 +35,78 @@ export const Sidebar: React.FC = () => {
   };
 
   // Customer navigation sections
-  const customerSections = [
+  const customerSections: { titleKey?: any; title?: string; items: any[] }[] = [
     {
       items: [
-        { tab: 'dashboard' as ActiveTab, label: 'RINGKASAN', icon: <LayoutGrid className="h-5 w-5" /> }
+        { tab: 'dashboard' as ActiveTab, labelKey: 'summaryTitle' as const, label: 'RINGKASAN', icon: <LayoutGrid className="h-5 w-5" /> }
       ]
     },
     {
+      titleKey: 'infrastructureTitle' as const,
       title: 'INFRASTRUKTUR',
       items: [
-        { tab: 'subdomains' as ActiveTab, label: 'SUBDOMAIN', icon: <Globe className="h-5 w-5" /> },
-        { tab: 'databases' as ActiveTab, label: 'DATABASE', icon: <Database className="h-5 w-5" /> }
+        { tab: 'subdomains' as ActiveTab, labelKey: 'subdomains' as const, label: 'SUBDOMAIN', icon: <Globe className="h-5 w-5" /> },
+        { tab: 'databases' as ActiveTab, labelKey: 'databases' as const, label: 'DATABASE', icon: <Database className="h-5 w-5" /> }
       ]
     },
     {
+      titleKey: 'billingTitleUppercase' as const,
       title: 'TAGIHAN',
       items: [
-        { tab: 'plans' as ActiveTab, label: 'PAKET', icon: <ShoppingBag className="h-5 w-5" /> },
-        { tab: 'billing' as ActiveTab, label: 'PEMBAYARAN', icon: <CreditCard className="h-5 w-5" /> }
+        { tab: 'plans' as ActiveTab, labelKey: 'plans' as const, label: 'PAKET', icon: <ShoppingBag className="h-5 w-5" /> },
+        { tab: 'billing' as ActiveTab, labelKey: 'billing' as const, label: 'PEMBAYARAN', icon: <CreditCard className="h-5 w-5" /> }
       ]
     },
     {
+      titleKey: 'crmTitle' as const,
       title: 'CRM',
       items: [
-        { tab: 'chat' as ActiveTab, label: 'LIVE CHAT', icon: <MessageSquare className="h-5 w-5" /> },
-        { tab: 'testimonials' as ActiveTab, label: 'TESTIMONI', icon: <Star className="h-5 w-5" /> },
-        { tab: 'reports' as ActiveTab, label: 'TIKET DUKUNGAN', icon: <HelpCircle className="h-5 w-5" /> },
-        { tab: 'profile' as ActiveTab, label: 'PENGATURAN AKUN', icon: <User className="h-5 w-5" /> }
+        { tab: 'chat' as ActiveTab, labelKey: 'chat' as const, label: 'LIVE CHAT', icon: <MessageSquare className="h-5 w-5" /> },
+        { tab: 'testimonials' as ActiveTab, labelKey: 'testimonialsTitleLabel' as const, label: 'TESTIMONI', icon: <Star className="h-5 w-5" /> },
+        { tab: 'reports' as ActiveTab, labelKey: 'supportTicketTitle' as const, label: 'TIKET DUKUNGAN', icon: <HelpCircle className="h-5 w-5" /> },
+        { tab: 'profile' as ActiveTab, labelKey: 'profileSettingsTitle' as const, label: 'PENGATURAN AKUN', icon: <User className="h-5 w-5" /> }
       ]
     }
   ];
 
   // Admin navigation sections (Aligned with side bar screenshot)
-  const adminSections = [
+  const adminSections: { titleKey?: any; title?: string; items: any[] }[] = [
     {
       items: [
-        { tab: 'admin-dashboard' as ActiveTab, label: 'RINGKASAN', icon: <LayoutGrid className="h-5 w-5" />, hasDot: true }
+        { tab: 'admin-dashboard' as ActiveTab, labelKey: 'summaryTitle' as const, label: 'RINGKASAN', icon: <LayoutGrid className="h-5 w-5" />, hasDot: true }
       ]
     },
     {
+      titleKey: 'infrastructureTitle' as const,
       title: 'INFRASTRUKTUR',
       items: [
         { tab: 'admin-dashboard' as ActiveTab, label: 'ARENHOST ID', icon: <Link2 className="h-5 w-5" />, isExternal: true, url: 'https://arenhost.id/client/clientarea.php' },
-        { tab: 'admin-deployment' as ActiveTab, label: 'DEPLOYMENT', icon: <RefreshCw className="h-5 w-5" /> },
-        { tab: 'admin-subdomain' as ActiveTab, label: 'SUBDOMAIN', icon: <Globe className="h-5 w-5" /> },
-        { tab: 'admin-database' as ActiveTab, label: 'DATABASE', icon: <Database className="h-5 w-5" /> },
-        { tab: 'admin-disk' as ActiveTab, label: 'PENGGUNAAN DISK', icon: <HardDrive className="h-5 w-5" /> }
+        { tab: 'admin-deployment' as ActiveTab, labelKey: 'deployment' as const, label: 'DEPLOYMENT', icon: <RefreshCw className="h-5 w-5" /> },
+        { tab: 'admin-subdomain' as ActiveTab, labelKey: 'subdomains' as const, label: 'SUBDOMAIN', icon: <Globe className="h-5 w-5" /> },
+        { tab: 'admin-database' as ActiveTab, labelKey: 'databases' as const, label: 'DATABASE', icon: <Database className="h-5 w-5" /> },
+        { tab: 'admin-disk' as ActiveTab, labelKey: 'diskCapacity' as const, label: 'PENGGUNAAN DISK', icon: <HardDrive className="h-5 w-5" /> }
       ]
     },
     {
+      titleKey: 'billingTitleUppercase' as const,
       title: 'TAGIHAN',
       items: [
-        { tab: 'admin-plans' as ActiveTab, label: 'PAKET', icon: <ShoppingBag className="h-5 w-5" /> },
-        { tab: 'admin-payments' as ActiveTab, label: 'PEMBAYARAN', icon: <CreditCard className="h-5 w-5" /> },
-        { tab: 'admin-vouchers' as ActiveTab, label: 'VOUCHER', icon: <Ticket className="h-5 w-5" /> }
+        { tab: 'admin-plans' as ActiveTab, labelKey: 'plans' as const, label: 'PAKET', icon: <ShoppingBag className="h-5 w-5" /> },
+        { tab: 'admin-payments' as ActiveTab, labelKey: 'billing' as const, label: 'PEMBAYARAN', icon: <CreditCard className="h-5 w-5" /> },
+        { tab: 'admin-vouchers' as ActiveTab, labelKey: 'voucherTitle' as const, label: 'VOUCHER', icon: <Ticket className="h-5 w-5" /> }
       ]
     },
     {
+      titleKey: 'crmTitle' as const,
       title: 'CRM',
       items: [
-        { tab: 'admin-users' as ActiveTab, label: 'KLIEN', icon: <Users className="h-5 w-5" /> },
-        { tab: 'admin-chat' as ActiveTab, label: 'LIVE CHAT', icon: <MessageSquare className="h-5 w-5" /> },
-        { tab: 'admin-testimonials' as ActiveTab, label: 'TESTIMONI', icon: <Star className="h-5 w-5" /> },
-        { tab: 'admin-notifications' as ActiveTab, label: 'NOTIFIKASI', icon: <Megaphone className="h-5 w-5" /> },
-        { tab: 'admin-reports' as ActiveTab, label: 'TIKET DUKUNGAN', icon: <HelpCircle className="h-5 w-5" /> },
-        { tab: 'admin-settings' as ActiveTab, label: 'PENGATURAN', icon: <Settings className="h-5 w-5" /> },
-        { tab: 'profile' as ActiveTab, label: 'PENGATURAN AKUN', icon: <User className="h-5 w-5" /> }
+        { tab: 'admin-users' as ActiveTab, labelKey: 'clientTitle' as const, label: 'KLIEN', icon: <Users className="h-5 w-5" /> },
+        { tab: 'admin-chat' as ActiveTab, labelKey: 'chat' as const, label: 'LIVE CHAT', icon: <MessageSquare className="h-5 w-5" /> },
+        { tab: 'admin-testimonials' as ActiveTab, labelKey: 'testimonialsTitleLabel' as const, label: 'TESTIMONI', icon: <Star className="h-5 w-5" /> },
+        { tab: 'admin-notifications' as ActiveTab, labelKey: 'notifications' as const, label: 'NOTIFIKASI', icon: <Megaphone className="h-5 w-5" /> },
+        { tab: 'admin-reports' as ActiveTab, labelKey: 'supportTicketTitle' as const, label: 'TIKET DUKUNGAN', icon: <HelpCircle className="h-5 w-5" /> },
+        { tab: 'admin-settings' as ActiveTab, labelKey: 'settingsTitle' as const, label: 'PENGATURAN', icon: <Settings className="h-5 w-5" /> },
+        { tab: 'profile' as ActiveTab, labelKey: 'profileSettingsTitle' as const, label: 'PENGATURAN AKUN', icon: <User className="h-5 w-5" /> }
       ]
     }
   ];
@@ -145,13 +153,14 @@ export const Sidebar: React.FC = () => {
         }`}>
           {sections.map((section, secIdx) => (
             <div key={secIdx} className="space-y-1">
-              {section.title && !isSidebarCollapsed && (
+              {(section.titleKey || section.title) && !isSidebarCollapsed && (
                 <div className="px-3.5 py-1.5 text-[10px] font-extrabold text-text-muted/65 tracking-wider uppercase">
-                  {section.title}
+                  {section.titleKey ? t(section.titleKey).toUpperCase() : section.title}
                 </div>
               )}
               {section.items.map((item) => {
                 const isActive = checkIsActive(item.tab, item.label);
+                const itemLabel = item.labelKey ? t(item.labelKey).toUpperCase() : item.label;
                 
                 return (
                   <motion.button
@@ -179,7 +188,7 @@ export const Sidebar: React.FC = () => {
                       <span className={`truncate text-xs font-semibold transition-all duration-300 ${
                         isSidebarCollapsed ? 'w-0 opacity-0 ml-0 overflow-hidden invisible' : 'w-auto opacity-100 visible'
                       }`}>
-                        {item.label}
+                        {itemLabel}
                       </span>
                     </div>
                     {!isSidebarCollapsed && (isActive || (!!(item as any).hasDot)) ? (
@@ -201,7 +210,7 @@ export const Sidebar: React.FC = () => {
             <span className={`truncate transition-all duration-300 ${
               isSidebarCollapsed ? 'w-0 opacity-0 ml-0 overflow-hidden invisible' : 'w-auto opacity-100 visible'
             }`}>
-              {currentRole === 'Admin' ? 'Administrator' : 'Client Account'}
+              {currentRole === 'Admin' ? t('role') + ': Admin' : t('role') + ': Client'}
             </span>
           </div>
         </div>
@@ -246,13 +255,14 @@ export const Sidebar: React.FC = () => {
         <nav className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
           {sections.map((section, secIdx) => (
             <div key={secIdx} className="space-y-1">
-              {section.title && (
+              {(section.titleKey || section.title) && (
                 <div className="px-3.5 py-1 text-[10px] font-extrabold text-text-muted/65 tracking-wider uppercase">
-                  {section.title}
+                  {section.titleKey ? t(section.titleKey).toUpperCase() : section.title}
                 </div>
               )}
               {section.items.map((item) => {
                 const isActive = checkIsActive(item.tab, item.label);
+                const itemLabel = item.labelKey ? t(item.labelKey).toUpperCase() : item.label;
                 
                 return (
                   <motion.button
@@ -275,7 +285,7 @@ export const Sidebar: React.FC = () => {
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
                       <span className="shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate">{itemLabel}</span>
                     </div>
                     {(isActive || (!!(item as any).hasDot)) ? (
                       <span className={`h-2 w-2 rounded-full bg-brand-primary shadow-[0_0_12px_var(--brand-primary)] shrink-0 ml-1.5 ${isActive ? 'animate-pulse' : ''}`} />
@@ -291,7 +301,7 @@ export const Sidebar: React.FC = () => {
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-md bg-border-main/10 text-xs font-medium text-text-subtle">
             <ShieldAlert className="h-4.5 w-4.5 text-brand-primary shrink-0" />
             <span className="truncate">
-              {currentRole === 'Admin' ? 'Administrator' : 'Client Account'}
+              {currentRole === 'Admin' ? t('role') + ': Admin' : t('role') + ': Client'}
             </span>
           </div>
         </div>
