@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Disallow private routing patterns to prevent crawlers from indexing dashboard screens
+Disallow: /dashboard
+Disallow: /admin-dashboard
+Disallow: /billing
+Disallow: /chat
+Disallow: /reports
+Disallow: /profile
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /forgot-password
