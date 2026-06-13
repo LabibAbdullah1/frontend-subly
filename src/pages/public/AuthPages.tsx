@@ -1,5 +1,5 @@
 // src/pages/public/AuthPages.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { apiFetch } from '../../utils/api';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,36 +13,28 @@ import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 
 // ----------------------------------------------------
-// Validation Schemas
+// Form Types
 // ----------------------------------------------------
-const loginSchema = z.object({
-  email: z.string().min(1, 'Email wajib diisi').email('Format email tidak valid'),
-  password: z.string().min(1, 'Kata sandi wajib diisi'),
-});
+interface LoginFormInputs {
+  email: string;
+  password: string;
+}
 
-const registerSchema = z.object({
-  name: z.string().min(3, 'Nama minimal 3 karakter'),
-  email: z.string().min(1, 'Email wajib diisi').email('Format email tidak valid'),
-  password: z.string().min(8, 'Kata sandi minimal 8 karakter'),
-  password_confirmation: z.string().min(1, 'Konfirmasi sandi wajib diisi'),
-}).refine((data) => data.password === data.password_confirmation, {
-  message: "Konfirmasi sandi harus cocok",
-  path: ["password_confirmation"],
-});
+interface RegisterFormInputs {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
 
-const forgotPasswordSchema = z.object({
-  email: z.string().min(1, 'Email wajib diisi').email('Format email tidak valid'),
-});
+interface ForgotPasswordFormInputs {
+  email: string;
+}
 
-const resetPasswordSchema = z.object({
-  password: z.string().min(8, 'Kata sandi minimal 8 karakter'),
-  password_confirmation: z.string().min(1, 'Konfirmasi sandi wajib diisi'),
-}).refine((data) => data.password === data.password_confirmation, {
-  message: "Konfirmasi sandi harus cocok",
-  path: ["password_confirmation"],
-});
-
-
+interface ResetPasswordFormInputs {
+  password: string;
+  password_confirmation: string;
+}
 
 // ----------------------------------------------------
 // Login Page Component
@@ -54,25 +46,30 @@ export const LoginPage: React.FC = () => {
   const { setActiveTab } = useSystemStore();
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof loginSchema>>({
+  const loginSchema = useMemo(() => z.object({
+    email: z.string().min(1, t('validationEmailRequired')).email(t('validationEmailInvalid')),
+    password: z.string().min(1, t('validationPasswordRequired')),
+  }), [t]);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema)
   });
 
-  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+  const onSubmit = async (data: LoginFormInputs) => {
     setLoading(true);
     try {
       await login(data.email, data.password);
       addToast({
         type: 'success',
-        title: 'Login Sukses',
-        message: `Selamat datang kembali di panel Subly!`,
+        title: t('loginSuccessTitle'),
+        message: t('loginSuccessMsg'),
       });
       // Redirect handled by main App shell role check
     } catch {
       addToast({
         type: 'error',
-        title: 'Login Gagal',
-        message: 'Periksa kembali email atau kata sandi Anda.',
+        title: t('loginFailedTitle'),
+        message: t('loginFailedMsg'),
       });
     } finally {
       setLoading(false);
@@ -83,8 +80,6 @@ export const LoginPage: React.FC = () => {
     <div className="flex-1 flex items-center justify-center px-6 py-12">
       <CardPanel className="w-full max-w-md border shadow-2xl relative" title={t('loginTitle')}>
         <p className="text-[10px] text-text-muted mt-0.5 select-none text-left mb-6">{t('loginSub')}</p>
-
-
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Email field */}
@@ -137,7 +132,7 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <Button type="submit" variant="primary" className="w-full mt-2" isLoading={loading}>
-            Sign In
+            {t('signInBtn')}
           </Button>
 
           <div className="pt-2 text-center select-none">
@@ -165,25 +160,35 @@ export const RegisterPage: React.FC = () => {
   const { setActiveTab } = useSystemStore();
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof registerSchema>>({
+  const registerSchema = useMemo(() => z.object({
+    name: z.string().min(3, t('validationNameMin')),
+    email: z.string().min(1, t('validationEmailRequired')).email(t('validationEmailInvalid')),
+    password: z.string().min(8, t('validationPasswordMin')),
+    password_confirmation: z.string().min(1, t('validationConfirmPasswordRequired')),
+  }).refine((data) => data.password === data.password_confirmation, {
+    message: t('validationPasswordsMatch'),
+    path: ["password_confirmation"],
+  }), [t]);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormInputs>({
     resolver: zodResolver(registerSchema)
   });
 
-  const onSubmit = async (data: z.infer<typeof registerSchema>) => {
+  const onSubmit = async (data: RegisterFormInputs) => {
     setLoading(true);
     try {
       await registerUser(data.name, data.email, data.password);
       addToast({
         type: 'success',
-        title: 'Registrasi Sukses',
-        message: 'Akun Anda berhasil didaftarkan. Harap verifikasi email Anda.',
+        title: t('registerSuccessTitle'),
+        message: t('registerSuccessMsg'),
       });
       // Will redirect user to verify-email view
     } catch {
       addToast({
         type: 'error',
-        title: 'Registrasi Gagal',
-        message: 'Email sudah terdaftar atau terdapat masalah jaringan.',
+        title: t('registerFailedTitle'),
+        message: t('registerFailedMsg'),
       });
     } finally {
       setLoading(false);
@@ -277,7 +282,7 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           <Button type="submit" variant="primary" className="w-full mt-2" isLoading={loading}>
-            Sign Up
+            {t('signUpBtn')}
           </Button>
 
           <div className="pt-2 text-center select-none">
@@ -315,15 +320,15 @@ export const VerifyEmailPage: React.FC = () => {
       await verifyEmail(token);
       addToast({
         type: 'success',
-        title: 'Email Terverifikasi',
-        message: 'Selamat! Akun Anda telah aktif sepenuhnya.',
+        title: t('emailVerifiedTitle'),
+        message: t('emailVerifiedMsg'),
       });
       setActiveTab('login');
     } catch (err: any) {
       addToast({
         type: 'error',
-        title: 'Verifikasi Gagal',
-        message: err.message || 'Token verifikasi tidak valid atau kedaluwarsa.',
+        title: t('verificationFailedTitle'),
+        message: err.message || t('verificationFailedMsg'),
       });
     } finally {
       setLoading(false);
@@ -335,7 +340,7 @@ export const VerifyEmailPage: React.FC = () => {
       <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title={t('verifyEmailTitle')}>
         <p className="text-xs text-text-muted leading-relaxed mt-2">
           {token 
-            ? 'Tautan verifikasi ditemukan! Klik tombol di bawah untuk menyelesaikan proses verifikasi akun Anda.'
+            ? t('verifyTokenFound')
             : `${t('verifyEmailSub')} (${user?.email || 'email Anda'})`
           }
         </p>
@@ -357,7 +362,7 @@ export const VerifyEmailPage: React.FC = () => {
           </Button>
         ) : (
           <div className="text-xs font-semibold text-text-muted bg-border-main/20 border border-border-main/50 p-4 rounded-md">
-            Menunggu verifikasi... Tautan telah dikirim. Buka tautan tersebut untuk masuk ke sistem.
+            {t('waitingVerifyLink')}
           </div>
         )}
       </CardPanel>
@@ -376,25 +381,29 @@ export const ForgotPasswordPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof forgotPasswordSchema>>({
+  const forgotPasswordSchema = useMemo(() => z.object({
+    email: z.string().min(1, t('validationEmailRequired')).email(t('validationEmailInvalid')),
+  }), [t]);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<ForgotPasswordFormInputs>({
     resolver: zodResolver(forgotPasswordSchema)
   });
 
-  const onSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
+  const onSubmit = async (data: ForgotPasswordFormInputs) => {
     setLoading(true);
     try {
       await forgotPassword(data.email);
       setSuccess(true);
       addToast({
         type: 'success',
-        title: 'Email Dikirim',
-        message: 'Tautan reset sandi telah dikirim ke email Anda.',
+        title: t('emailSentTitle'),
+        message: t('emailSentMsg'),
       });
     } catch (err: any) {
       addToast({
         type: 'error',
-        title: 'Permintaan Gagal',
-        message: err.message || 'Terjadi kesalahan saat meminta reset password.',
+        title: t('requestFailedTitle'),
+        message: err.message || t('requestFailedMsg'),
       });
     } finally {
       setLoading(false);
@@ -414,7 +423,7 @@ export const ForgotPasswordPage: React.FC = () => {
               </div>
             </div>
             <p className="text-xs font-semibold text-text-main mb-6">
-              Instruksi pemulihan kata sandi telah dikirimkan ke email Anda. Silakan periksa kotak masuk atau spam Anda.
+              {t('forgotPasswordSuccessMsg')}
             </p>
             <Button
               onClick={() => setActiveTab('login')}
@@ -483,9 +492,17 @@ export const ResetPasswordPage: React.FC = () => {
   const token = urlParams.get('token') || '';
   const email = urlParams.get('email') || '';
 
+  const resetPasswordSchema = useMemo(() => z.object({
+    password: z.string().min(8, t('validationPasswordMin')),
+    password_confirmation: z.string().min(1, t('validationConfirmPasswordRequired')),
+  }).refine((data) => data.password === data.password_confirmation, {
+    message: t('validationPasswordsMatch'),
+    path: ["password_confirmation"],
+  }), [t]);
+
   useEffect(() => {
     if (!token || !email) {
-      setTokenError('Tautan reset password tidak valid atau tidak lengkap.');
+      setTokenError(t('invalidResetLink'));
       setChecking(false);
       return;
     }
@@ -497,25 +514,25 @@ export const ResetPasswordPage: React.FC = () => {
         });
         setTokenError(null);
       } catch (err: any) {
-        setTokenError(err.message || 'Tautan reset kata sandi tidak valid atau telah kedaluwarsa.');
+        setTokenError(err.message || t('expiredResetLink'));
       } finally {
         setChecking(false);
       }
     };
 
     checkToken();
-  }, [token, email]);
+  }, [token, email, t]);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof resetPasswordSchema>>({
+  const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordFormInputs>({
     resolver: zodResolver(resetPasswordSchema)
   });
 
-  const onSubmit = async (data: z.infer<typeof resetPasswordSchema>) => {
+  const onSubmit = async (data: ResetPasswordFormInputs) => {
     if (!token || !email || tokenError) {
       addToast({
         type: 'error',
-        title: 'Reset Gagal',
-        message: tokenError || 'Tautan reset kata sandi tidak valid.',
+        title: t('resetFailedTitle'),
+        message: tokenError || t('resetFailedMsg'),
       });
       return;
     }
@@ -525,8 +542,8 @@ export const ResetPasswordPage: React.FC = () => {
       await resetPassword(email, token, data.password, data.password_confirmation);
       addToast({
         type: 'success',
-        title: 'Sandi Diperbarui',
-        message: 'Kata sandi Anda berhasil diperbarui. Silakan masuk kembali.',
+        title: t('passwordUpdatedTitle'),
+        message: t('passwordUpdatedMsg'),
       });
       setActiveTab('login');
       // Clean query parameters from URL
@@ -536,8 +553,8 @@ export const ResetPasswordPage: React.FC = () => {
     } catch (err: any) {
       addToast({
         type: 'error',
-        title: 'Reset Gagal',
-        message: err.message || 'Token reset telah kadaluwarsa atau tidak valid.',
+        title: t('resetFailedTitle'),
+        message: err.message || t('verificationFailedMsg'),
       });
     } finally {
       setLoading(false);
@@ -547,9 +564,9 @@ export const ResetPasswordPage: React.FC = () => {
   if (checking) {
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-12 select-none">
-        <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title="Memvalidasi Tautan">
+        <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title={t('validatingLinkTitle')}>
           <p className="text-xs text-text-muted leading-relaxed mt-2 mb-6">
-            Mohon tunggu, sedang memverifikasi keabsahan tautan reset kata sandi Anda...
+            {t('validatingLinkSub')}
           </p>
           <div className="flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-brand-primary"></div>
@@ -562,7 +579,7 @@ export const ResetPasswordPage: React.FC = () => {
   if (tokenError) {
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-12 select-none">
-        <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title="Tautan Tidak Valid">
+        <CardPanel className="w-full max-w-md border shadow-2xl p-8 text-center" title={t('invalidLinkTitle')}>
           <p className="text-xs text-red-500 font-semibold leading-relaxed mt-2 mb-6">
             {tokenError}
           </p>
@@ -639,7 +656,7 @@ export const ResetPasswordPage: React.FC = () => {
           </div>
 
           <Button type="submit" variant="primary" className="w-full mt-2" isLoading={loading}>
-            Simpan Kata Sandi Baru
+            {t('saveNewPasswordBtn')}
           </Button>
         </form>
       </CardPanel>
