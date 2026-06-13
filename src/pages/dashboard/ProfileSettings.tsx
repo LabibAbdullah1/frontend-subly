@@ -105,7 +105,7 @@ export const ProfileSettings: React.FC = () => {
                     {...register('name')}
                     className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl pl-9.5 pr-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
                   />
-                  <User className="absolute left-3.5 top-3.5 h-4 w-4 text-text-muted" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted" />
                 </div>
                 {errors.name && <p className="text-[10px] text-red-500 font-bold">{errors.name.message as string}</p>}
               </div>
@@ -121,7 +121,7 @@ export const ProfileSettings: React.FC = () => {
                     {...register('email')}
                     className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl pl-9.5 pr-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
                   />
-                  <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-text-muted" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted" />
                 </div>
                 {errors.email && <p className="text-[10px] text-red-500 font-bold">{errors.email.message as string}</p>}
               </div>
@@ -138,7 +138,7 @@ export const ProfileSettings: React.FC = () => {
                     placeholder="••••••••"
                     className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl pl-9.5 pr-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
                   />
-                  <KeyRound className="absolute left-3.5 top-3.5 h-4 w-4 text-text-muted" />
+                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted" />
                 </div>
               </div>
 

@@ -24,12 +24,20 @@ export const PlansPage: React.FC = () => {
   const [voucherCode, setVoucherCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<number | null>(null);
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
+  const [filterType, setFilterType] = useState<'ALL' | 'PHP' | 'NodeJS'>('ALL');
 
   useEffect(() => {
     fetchSettings();
   }, [fetchSettings]);
 
   const rootDomain = settings.system_root_domain || 'subly.my.id';
+
+  const filteredPlans = plans
+    .filter((plan) => {
+      if (filterType === 'ALL') return true;
+      return plan.type === filterType;
+    })
+    .sort((a, b) => a.price - b.price);
 
   const handleOpenCheckout = (plan: Plan) => {
     setSelectedPlan(plan);
@@ -91,7 +99,7 @@ export const PlansPage: React.FC = () => {
   return (
     <div className="space-y-6 w-full text-left">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none border-b border-border-main/20 pb-4">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-text-main tracking-tight uppercase">
             {t('pricingTitle')}
@@ -100,11 +108,45 @@ export const PlansPage: React.FC = () => {
             {t('pricingSub')}
           </p>
         </div>
+
+        {/* Runtime filter tabs */}
+        <div className="inline-flex bg-bg-surface border border-border-main p-1 rounded-full shrink-0">
+          <button
+            onClick={() => setFilterType('ALL')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold border-none transition-all duration-150 cursor-pointer ${
+              filterType === 'ALL'
+                ? 'bg-bg-card text-brand-primary shadow-sm'
+                : 'text-text-muted hover:text-text-main'
+            }`}
+          >
+            {t('filterAll')}
+          </button>
+          <button
+            onClick={() => setFilterType('PHP')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold border-none transition-all duration-150 cursor-pointer ${
+              filterType === 'PHP'
+                ? 'bg-bg-card text-brand-primary shadow-sm'
+                : 'text-text-muted hover:text-text-main'
+            }`}
+          >
+            {t('filterPhp')}
+          </button>
+          <button
+            onClick={() => setFilterType('NodeJS')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold border-none transition-all duration-150 cursor-pointer ${
+              filterType === 'NodeJS'
+                ? 'bg-bg-card text-brand-primary shadow-sm'
+                : 'text-text-muted hover:text-text-main'
+            }`}
+          >
+            {t('filterNode')}
+          </button>
+        </div>
       </div>
 
       {/* Pricing Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {plans.map((plan) => {
+        {filteredPlans.map((plan) => {
           const isNode = plan.type === 'NodeJS';
           
           return (
@@ -173,7 +215,7 @@ export const PlansPage: React.FC = () => {
                 {/* Action */}
                 <div className="mt-6 pt-4 select-none">
                   <Button 
-                    variant={isNode ? 'outline' : 'primary'} 
+                    variant="primary" 
                     className="w-full flex items-center justify-center gap-1.5"
                     icon={<ShoppingCart className="h-4 w-4" />}
                     onClick={() => handleOpenCheckout(plan)}

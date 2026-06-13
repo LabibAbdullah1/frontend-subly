@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Zap, Database, ShieldCheck, Cpu, 
   ArrowRight, Check, HelpCircle, Star, Globe,
-  GitBranch, Terminal, Layers
+  GitBranch, Terminal, Layers, Folder, FileText, Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
@@ -15,7 +15,10 @@ import { Button } from '../../components/ui/Button';
 
 const ProductMockup: React.FC = () => {
   const { t } = useTranslation();
-  const [logCount, setLogCount] = useState(3);
+  const [activeTab, setActiveTab] = useState<'detail' | 'database' | 'files' | 'ssl'>('detail');
+  const [logCount, setLogCount] = useState(14); // default full logs
+  const [forceHttps, setForceHttps] = useState(true);
+  const [mockMessage, setMockMessage] = useState<string | null>(null);
 
   const initialSteps = [
     t('mockStepInitial1'),
@@ -40,23 +43,43 @@ const ProductMockup: React.FC = () => {
   const allLogs = [...initialSteps, ...mockSteps];
 
   useEffect(() => {
+    if (activeTab !== 'detail') return;
     const timer = setInterval(() => {
       setLogCount(prev => {
         if (prev < allLogs.length) {
           return prev + 1;
         } else {
-          return 3; // Reset
+          return allLogs.length; // Keep completed state instead of loop
         }
       });
     }, 2500);
     return () => clearInterval(timer);
-  }, [allLogs.length]);
+  }, [allLogs.length, activeTab]);
+
+  useEffect(() => {
+    if (!mockMessage) return;
+    const timer = setTimeout(() => {
+      setMockMessage(null);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [mockMessage]);
+
+  const handleDeploySimulation = () => {
+    setActiveTab('detail');
+    setLogCount(1);
+    setMockMessage(t('mockToastDeployStart'));
+  };
+
+  const handleFileClick = (key: string) => {
+    setMockMessage(t(key as any));
+  };
 
   const logs = allLogs.slice(0, logCount);
+  const browserUrl = `portal.subly.my.id/subdomain/laravel-blog${activeTab === 'detail' ? '' : `/${activeTab}`}`;
 
   return (
     <div className="w-full max-w-5xl mx-auto px-6 mb-20 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
-      <div className="bg-[#0f1011] border border-[#23252a] rounded-xl overflow-hidden shadow-[0_24px_50px_-12px_rgba(0,0,0,0.85)]">
+      <div className="relative bg-[#0f1011] border border-[#23252a] rounded-xl overflow-hidden shadow-[0_24px_50px_-12px_rgba(0,0,0,0.85)]">
         {/* Chrome header window */}
         <div className="bg-[#0b0c0d] px-4 py-3 border-b border-[#23252a] flex items-center justify-between select-none">
           <div className="flex items-center gap-1.5">
@@ -65,7 +88,7 @@ const ProductMockup: React.FC = () => {
             <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f] inline-block"></span>
           </div>
           <div className="bg-[#010102] border border-[#23252a]/50 text-[10px] text-zinc-500 font-mono px-6 py-1 rounded-md w-72 text-center truncate">
-            portal.subly.host/subdomain/laravel-blog
+            {browserUrl}
           </div>
           <div className="w-12"></div>
         </div>
@@ -76,69 +99,336 @@ const ProductMockup: React.FC = () => {
           <div className="bg-[#0b0c0d] border-r border-[#23252a] p-4 space-y-4 select-none text-left">
             <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{t('mockProjectPortal')}</div>
             <div className="space-y-1">
-              <div className="bg-[#d2ad5e]/10 text-[#d2ad5e] px-3 py-2 rounded-md font-semibold flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('detail')}
+                className={`w-full px-3 py-2 rounded-md font-semibold flex items-center gap-2 transition-colors border-none cursor-pointer text-left ${
+                  activeTab === 'detail'
+                    ? 'bg-[#d2ad5e]/10 text-[#d2ad5e]'
+                    : 'text-zinc-400 hover:text-white bg-transparent'
+                }`}
+              >
                 <Globe className="w-3.5 h-3.5 shrink-0" />
                 <span>{t('mockSubdomainDetail')}</span>
-              </div>
-              <div className="text-zinc-400 hover:text-white px-3 py-2 rounded-md flex items-center gap-2 cursor-pointer transition-colors">
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('database')}
+                className={`w-full px-3 py-2 rounded-md font-semibold flex items-center gap-2 transition-colors border-none cursor-pointer text-left ${
+                  activeTab === 'database'
+                    ? 'bg-[#d2ad5e]/10 text-[#d2ad5e]'
+                    : 'text-zinc-400 hover:text-white bg-transparent'
+                }`}
+              >
                 <Database className="w-3.5 h-3.5 shrink-0" />
                 <span>{t('mockMysqlDb')}</span>
-              </div>
-              <div className="text-zinc-400 hover:text-white px-3 py-2 rounded-md flex items-center gap-2 cursor-pointer transition-colors">
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('files')}
+                className={`w-full px-3 py-2 rounded-md font-semibold flex items-center gap-2 transition-colors border-none cursor-pointer text-left ${
+                  activeTab === 'files'
+                    ? 'bg-[#d2ad5e]/10 text-[#d2ad5e]'
+                    : 'text-zinc-400 hover:text-white bg-transparent'
+                }`}
+              >
                 <Terminal className="w-3.5 h-3.5 shrink-0" />
                 <span>{t('mockFileManager')}</span>
-              </div>
-              <div className="text-zinc-400 hover:text-white px-3 py-2 rounded-md flex items-center gap-2 cursor-pointer transition-colors">
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('ssl')}
+                className={`w-full px-3 py-2 rounded-md font-semibold flex items-center gap-2 transition-colors border-none cursor-pointer text-left ${
+                  activeTab === 'ssl'
+                    ? 'bg-[#d2ad5e]/10 text-[#d2ad5e]'
+                    : 'text-zinc-400 hover:text-white bg-transparent'
+                }`}
+              >
                 <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                 <span>{t('mockSslSecurity')}</span>
-              </div>
+              </button>
             </div>
           </div>
           
           {/* Mock Main Panel */}
           <div className="col-span-3 p-6 space-y-6 flex flex-col justify-between text-left bg-[#0f1011]">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('colRuntime')}</div>
-                <div className="text-zinc-100 text-xs font-semibold mt-1">PHP 8.2 (Laravel)</div>
-              </div>
-              <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('mockSslSecurity')}</div>
-                <div className="text-emerald-400 text-xs font-semibold mt-1 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block animate-pulse"></span>
-                  {t('mockActiveSecure')}
-                </div>
-              </div>
-              <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
-                <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('dbLinkLabel')}</div>
-                <div className="text-zinc-100 text-xs font-semibold mt-1">subly_db_laravel</div>
-              </div>
-            </div>
-            
-            {/* Mock terminal output */}
-            <div className="bg-[#010102] border border-[#23252a] rounded-lg p-4 font-mono text-[10px] text-zinc-300 flex-1 flex flex-col justify-between overflow-hidden min-h-[180px]">
-              <div className="flex items-center justify-between pb-2 border-b border-[#23252a]/20 mb-2 select-none">
-                <span className="text-[9px] uppercase text-zinc-500 font-bold tracking-wider">{t('mockConsoleLogs')}</span>
-                <span className="h-2 w-2 bg-[#d2ad5e] rounded-full animate-pulse"></span>
-              </div>
-              <div className="space-y-1.5 text-left flex-1 overflow-y-auto max-h-[140px] pr-2">
-                {logs.map((log, idx) => {
-                  const isSuccess = log.includes('successful') || log.includes('completed') || log.includes('berhasil') || log.includes('selesai');
-                  const isUrl = log.includes('Active URL') || log.includes('URL Aktif');
-                  let colorClass = 'text-zinc-300';
-                  if (isSuccess) colorClass = 'text-emerald-400 font-semibold';
-                  if (isUrl) colorClass = 'text-[#e0be75] font-semibold hover:underline';
-                  return (
-                    <div key={idx} className={`${colorClass} flex items-start gap-1`}>
-                      <span className="text-zinc-500 font-semibold shrink-0 select-none">$</span>
-                      <span>{log}</span>
+            {activeTab === 'detail' && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Runtime card -> links to File Manager */}
+                  <div 
+                    onClick={() => setActiveTab('files')}
+                    className="bg-[#141516] border border-[#23252a] hover:border-[#d2ad5e]/50 hover:bg-[#141516]/80 p-3 rounded-lg cursor-pointer transition-all duration-200 group text-left"
+                  >
+                    <div className="text-zinc-500 group-hover:text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('colRuntime')}</div>
+                    <div className="text-zinc-100 group-hover:text-[#d2ad5e] text-xs font-semibold mt-1 transition-colors">PHP 8.2 (Laravel)</div>
+                  </div>
+                  
+                  {/* SSL card -> links to SSL Security */}
+                  <div 
+                    onClick={() => setActiveTab('ssl')}
+                    className="bg-[#141516] border border-[#23252a] hover:border-[#d2ad5e]/50 hover:bg-[#141516]/80 p-3 rounded-lg cursor-pointer transition-all duration-200 group text-left"
+                  >
+                    <div className="text-zinc-500 group-hover:text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('mockSslSecurity')}</div>
+                    <div className="text-emerald-400 group-hover:text-emerald-300 text-xs font-semibold mt-1 flex items-center gap-1.5 transition-colors">
+                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block animate-pulse"></span>
+                      {t('mockActiveSecure')}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                  </div>
+                  
+                  {/* Database card -> links to Database MySQL */}
+                  <div 
+                    onClick={() => setActiveTab('database')}
+                    className="bg-[#141516] border border-[#23252a] hover:border-[#d2ad5e]/50 hover:bg-[#141516]/80 p-3 rounded-lg cursor-pointer transition-all duration-200 group text-left"
+                  >
+                    <div className="text-zinc-500 group-hover:text-zinc-400 text-[9px] uppercase font-bold tracking-wider">{t('dbLinkLabel')}</div>
+                    <div className="text-zinc-100 group-hover:text-[#d2ad5e] text-xs font-semibold mt-1 transition-colors">subly_db_laravel</div>
+                  </div>
+                </div>
+                
+                {/* Mock terminal output */}
+                <div className="bg-[#010102] border border-[#23252a] rounded-lg p-4 font-mono text-[10px] text-zinc-300 flex-1 flex flex-col justify-between overflow-hidden min-h-[180px]">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#23252a]/20 mb-2 select-none">
+                    <span className="text-[9px] uppercase text-zinc-500 font-bold tracking-wider">{t('mockConsoleLogs')}</span>
+                    <span className="h-2 w-2 bg-[#d2ad5e] rounded-full animate-pulse"></span>
+                  </div>
+                  <div className="space-y-1.5 text-left flex-1 overflow-y-auto max-h-[140px] pr-2">
+                    {logs.map((log, idx) => {
+                      const isSuccess = log.includes('successful') || log.includes('completed') || log.includes('berhasil') || log.includes('selesai');
+                      const isUrl = log.includes('Active URL') || log.includes('URL Aktif');
+                      let colorClass = 'text-zinc-300';
+                      if (isSuccess) colorClass = 'text-emerald-400 font-semibold';
+                      if (isUrl) colorClass = 'text-[#e0be75] font-semibold hover:underline';
+                      return (
+                        <div key={idx} className={`${colorClass} flex items-start gap-1`}>
+                          <span className="text-zinc-500 font-semibold shrink-0 select-none">$</span>
+                          <span>{log}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'database' && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('credDbName')}</div>
+                    <div className="text-zinc-100 text-xs font-semibold mt-1">subly_db_laravel</div>
+                  </div>
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('credDbUser')}</div>
+                    <div className="text-zinc-100 text-xs font-semibold mt-1">subly_u_laravel</div>
+                  </div>
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('credHost')}</div>
+                    <div className="text-zinc-100 text-xs font-semibold mt-1">127.0.0.1 (Internal)</div>
+                  </div>
+                </div>
+                
+                <div className="bg-[#141516] border border-[#23252a] rounded-lg p-4 flex-1 flex flex-col gap-3 overflow-hidden min-h-[180px]">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#23252a]/20">
+                    <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">{t('dbCredTitle')}</span>
+                    <button 
+                      onClick={() => setMockMessage(t('mockToastPhpMyAdmin'))}
+                      className="bg-[#d2ad5e] text-black border-none px-3 py-1 rounded text-[9px] font-semibold cursor-pointer hover:bg-[#cda654] transition-colors"
+                    >
+                      {t('openPhpMyAdmin')}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 font-normal leading-relaxed">
+                    {t('autoProvisioningDesc').replace('{link}', 'phpMyAdmin')}
+                  </p>
+                  
+                  {/* Mini database tables preview */}
+                  <div className="border border-[#23252a] rounded overflow-hidden">
+                    <div className="grid grid-cols-3 bg-[#0b0c0d] p-2 font-mono text-[9px] text-zinc-500 border-b border-[#23252a] font-bold text-center">
+                      <div>TABLE NAME</div>
+                      <div>ROWS</div>
+                      <div>SIZE</div>
+                    </div>
+                    <div className="divide-y divide-[#23252a] font-mono text-[9px] text-zinc-300">
+                      <div className="grid grid-cols-3 p-1.5 text-center">
+                        <div>users</div>
+                        <div>24</div>
+                        <div>48 KB</div>
+                      </div>
+                      <div className="grid grid-cols-3 p-1.5 text-center">
+                        <div>posts</div>
+                        <div>142</div>
+                        <div>2.4 MB</div>
+                      </div>
+                      <div className="grid grid-cols-3 p-1.5 text-center">
+                        <div>comments</div>
+                        <div>512</div>
+                        <div>1.8 MB</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'files' && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('colFilesMb')}</div>
+                    <div className="text-zinc-100 text-xs font-semibold mt-1">14.2 MB / 1500 MB</div>
+                  </div>
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('syncMethodLabel')}</div>
+                    <div className="text-zinc-100 text-xs font-semibold mt-1 flex items-center gap-1">
+                      <GitBranch className="w-3.5 h-3.5 text-brand-primary" />
+                      <span>Git Pull (main)</span>
+                    </div>
+                  </div>
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">last deployment</div>
+                    <div className="text-zinc-100 text-xs font-semibold mt-1">v1.0.4 (2m ago)</div>
+                  </div>
+                </div>
+                
+                <div className="bg-[#141516] border border-[#23252a] rounded-lg p-4 flex-1 flex flex-col gap-3 overflow-hidden min-h-[180px]">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#23252a]/20">
+                    <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">{t('docRootFolderLabel')}</span>
+                    <button 
+                      onClick={handleDeploySimulation}
+                      className="bg-transparent border border-border-main text-zinc-300 px-3 py-1 rounded text-[9px] font-semibold hover:bg-[#1f2022] cursor-pointer"
+                    >
+                      {t('deployZip')}
+                    </button>
+                  </div>
+                  
+                  {/* File explorer mockup */}
+                  <div className="grid grid-cols-2 gap-4 flex-1">
+                    <div className="border border-[#23252a] rounded p-2 overflow-y-auto max-h-[110px] bg-[#0b0c0d] space-y-1 text-left font-mono text-[9px]">
+                      <div 
+                        onClick={() => handleFileClick('mockToastAppDir')}
+                        className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-pointer transition-colors"
+                      >
+                        <Folder className="w-3 h-3 text-[#d2ad5e]" />
+                        <span>app</span>
+                      </div>
+                      <div 
+                        onClick={() => handleFileClick('mockToastPublicDir')}
+                        className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-pointer transition-colors"
+                      >
+                        <Folder className="w-3 h-3 text-[#d2ad5e]" />
+                        <span>public</span>
+                      </div>
+                      <div 
+                        onClick={() => handleFileClick('mockToastRoutesDir')}
+                        className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-pointer transition-colors"
+                      >
+                        <Folder className="w-3 h-3 text-[#d2ad5e]" />
+                        <span>routes</span>
+                      </div>
+                      <div 
+                        onClick={() => handleFileClick('mockToastEnvFile')}
+                        className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-pointer transition-colors"
+                      >
+                        <FileText className="w-3 h-3 text-zinc-500" />
+                        <span>.env</span>
+                      </div>
+                      <div 
+                        onClick={() => handleFileClick('mockToastComposerFile')}
+                        className="flex items-center gap-1.5 text-zinc-400 hover:text-white cursor-pointer transition-colors"
+                      >
+                        <FileText className="w-3 h-3 text-zinc-500" />
+                        <span>composer.json</span>
+                      </div>
+                    </div>
+                    
+                    {/* Upload area mockup */}
+                    <div 
+                      onClick={handleDeploySimulation}
+                      className="border border-dashed border-[#23252a] hover:border-[#d2ad5e]/40 hover:bg-[#0a0b0c]/80 rounded flex flex-col items-center justify-center p-4 bg-[#0a0b0c]/50 text-center select-none cursor-pointer transition-all duration-200"
+                    >
+                      <Terminal className="h-5 w-5 text-zinc-500 mb-1" />
+                      <span className="text-[8px] text-zinc-400 font-semibold">{t('dropzoneText')}</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'ssl' && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">ssl provider</div>
+                    <div className="text-zinc-100 text-xs font-semibold mt-1">Let's Encrypt</div>
+                  </div>
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">{t('colStatus')}</div>
+                    <div className="text-emerald-400 text-xs font-semibold mt-1 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block animate-pulse"></span>
+                      <span>{t('mockActiveSecure')}</span>
+                    </div>
+                  </div>
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                    <div className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">autorenew</div>
+                    <div className="text-zinc-100 text-xs font-semibold mt-1">Enabled (60 days)</div>
+                  </div>
+                </div>
+                
+                <div className="bg-[#141516] border border-[#23252a] rounded-lg p-4 flex-1 flex flex-col gap-3 overflow-hidden min-h-[180px]">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#23252a]/20">
+                    <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">{t('mockSslSecurity')}</span>
+                    <div className="flex items-center gap-1.5 select-none">
+                      <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider">FORCE HTTPS</span>
+                      <div 
+                        onClick={() => {
+                          const nextVal = !forceHttps;
+                          setForceHttps(nextVal);
+                          setMockMessage(t(nextVal ? 'mockToastHttpsEnabled' : 'mockToastHttpsDisabled'));
+                        }}
+                        className={`w-6 h-3 border rounded-full p-0.5 flex transition-all duration-200 cursor-pointer ${
+                          forceHttps 
+                            ? 'bg-emerald-500/20 border-emerald-500/40 justify-end' 
+                            : 'bg-zinc-500/20 border-zinc-500/40 justify-start'
+                        }`}
+                      >
+                        <div className={`w-2 h-2 rounded-full transition-all duration-200 ${forceHttps ? 'bg-emerald-400' : 'bg-zinc-400'}`}></div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 font-normal leading-relaxed">
+                    {t('featureSslDesc')}
+                  </p>
+                  
+                  <div className="bg-[#0b0c0d] border border-[#23252a] p-3 rounded flex items-center gap-3 select-none text-left">
+                    <div className="h-8 w-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                      <Lock className="h-4.5 w-4.5" />
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] font-bold text-zinc-200">SSL Certificate Wildcard</h4>
+                      <p className="text-[9px] text-zinc-500 font-medium mt-0.5">Valid until September 11, 2026 (90 days remaining). Renews automatically.</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
+
+        {/* Mockup custom notification */}
+        <AnimatePresence>
+          {mockMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="absolute bottom-4 right-4 bg-[#141516] border border-[#d2ad5e]/30 text-[#d2ad5e] text-[10px] px-3.5 py-2 rounded-md shadow-lg flex items-center gap-2 font-mono font-semibold select-none z-50 pointer-events-none"
+            >
+              <span className="w-1.5 h-1.5 bg-[#d2ad5e] rounded-full animate-ping"></span>
+              <span>{mockMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

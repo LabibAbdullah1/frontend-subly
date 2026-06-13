@@ -770,7 +770,7 @@ export const SubdomainPortal: React.FC = () => {
                           placeholder="ghp_••••••••••••••••••••"
                           className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl pl-9.5 pr-4 py-2.5 text-xs font-semibold text-text-main placeholder-text-muted/65 outline-none transition-all"
                         />
-                        <KeyRound className="absolute left-3.5 top-3.5 h-4 w-4 text-text-muted" />
+                        <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted" />
                       </div>
                     </div>
 
