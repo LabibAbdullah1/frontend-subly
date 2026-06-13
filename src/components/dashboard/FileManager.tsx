@@ -1,5 +1,5 @@
 // src/components/dashboard/FileManager.tsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Folder, Search, ChevronRight, 
   Trash2, Upload, AlertCircle, FileArchive, FileCode, 
@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useToastStore } from '../../stores/useToastStore';
+import { apiFetch } from '../../utils/api';
 
 export interface FileItem {
   name: string;
@@ -22,11 +23,13 @@ export interface FileItem {
 
 interface FileManagerProps {
   subdomainName: string;
+  subdomainId: number;
   onDeployTrigger?: () => void;
 }
 
 export const FileManager: React.FC<FileManagerProps> = ({
   subdomainName,
+  subdomainId,
   onDeployTrigger
 }) => {
   const { t } = useTranslation();
@@ -36,6 +39,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<FileItem | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // File upload simulation states
   const [isUploading, setIsUploading] = useState(false);
@@ -43,25 +47,48 @@ export const FileManager: React.FC<FileManagerProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Mock file systems
-  const [filesDb, setFilesDb] = useState<FileItem[]>([
-    // Root Files
-    { name: 'public', path: 'public', is_dir: true, size: '-', size_bytes: 0, last_modified: '2026-06-02 14:22', extension: '' },
-    { name: 'app', path: 'app', is_dir: true, size: '-', size_bytes: 0, last_modified: '2026-06-02 14:20', extension: '' },
-    { name: 'bootstrap', path: 'bootstrap', is_dir: true, size: '-', size_bytes: 0, last_modified: '2026-06-02 14:21', extension: '' },
-    { name: 'index.php', path: 'index.php', is_dir: false, size: '1.2 KB', size_bytes: 1224, last_modified: '2026-06-01 10:00', extension: 'php' },
-    { name: '.env', path: '.env', is_dir: false, size: '820 B', size_bytes: 820, last_modified: '2026-06-03 10:20', extension: 'env' },
-    { name: '.htaccess', path: '.htaccess', is_dir: false, size: '240 B', size_bytes: 240, last_modified: '2026-06-01 09:45', extension: 'htaccess' },
-    { name: 'package.json', path: 'package.json', is_dir: false, size: '512 B', size_bytes: 512, last_modified: '2026-06-01 09:45', extension: 'json' },
-    
-    // Inside public/
-    { name: 'index.html', path: 'public/index.html', is_dir: false, size: '3.4 KB', size_bytes: 3400, last_modified: '2026-06-02 14:30', extension: 'html' },
-    { name: 'logo.png', path: 'public/logo.png', is_dir: false, size: '42 KB', size_bytes: 43008, last_modified: '2026-06-02 14:31', extension: 'png' },
-    { name: 'css', path: 'public/css', is_dir: true, size: '-', size_bytes: 0, last_modified: '2026-06-02 14:25', extension: '' },
-    
-    // Inside public/css
-    { name: 'style.css', path: 'public/css/style.css', is_dir: false, size: '12 KB', size_bytes: 12288, last_modified: '2026-06-02 14:26', extension: 'css' },
-  ]);
+  // Real files loaded from backend API
+  const [filesDb, setFilesDb] = useState<FileItem[]>([]);
+
+  const fetchFiles = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiFetch(`/subdomains/${subdomainId}/file-manager?path=${currentPath}`);
+      const combined: FileItem[] = [
+        ...(data.folders || []).map((f: any) => ({
+          name: f.name,
+          path: f.path,
+          is_dir: true,
+          size: '-',
+          size_bytes: 0,
+          last_modified: f.last_modified ? new Date(f.last_modified).toLocaleString() : '-',
+          extension: ''
+        })),
+        ...(data.files || []).map((f: any) => ({
+          name: f.name,
+          path: f.path,
+          is_dir: false,
+          size: f.size,
+          size_bytes: 0,
+          last_modified: f.last_modified ? new Date(f.last_modified).toLocaleString() : '-',
+          extension: f.extension || ''
+        }))
+      ];
+      setFilesDb(combined);
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Memuat Berkas',
+        message: err.message || 'Terjadi kesalahan saat mengambil daftar berkas.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFiles();
+  }, [subdomainId, currentPath]);
 
   // Filters to display current directory items
   const getCurrentItems = () => {
@@ -123,15 +150,27 @@ export const FileManager: React.FC<FileManagerProps> = ({
     setDeleteConfirmItem(item);
   };
 
-  const executeDelete = () => {
+  const executeDelete = async () => {
     if (deleteConfirmItem) {
-      setFilesDb(prev => prev.filter(f => !f.path.startsWith(deleteConfirmItem.path)));
-      addToast({
-        type: 'success',
-        title: 'Berkas Dihapus',
-        message: `Sukses menghapus ${deleteConfirmItem.name} dari server hosting.`,
-      });
-      setDeleteConfirmItem(null);
+      try {
+        await apiFetch(`/subdomains/${subdomainId}/file-manager`, {
+          method: 'DELETE',
+          body: { path: deleteConfirmItem.path }
+        });
+        addToast({
+          type: 'success',
+          title: 'Berkas Dihapus',
+          message: `Sukses menghapus ${deleteConfirmItem.name} dari server hosting.`,
+        });
+        setDeleteConfirmItem(null);
+        fetchFiles();
+      } catch (err: any) {
+        addToast({
+          type: 'error',
+          title: 'Gagal Menghapus',
+          message: err.message || 'Terjadi kesalahan saat menghapus berkas.',
+        });
+      }
     }
   };
 
@@ -368,52 +407,65 @@ export const FileManager: React.FC<FileManagerProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-border-main/40">
-              {currentItems.map((item, index) => (
-                <tr key={index} className="group hover:bg-border-main/10 transition-colors">
-                  <td className="py-3 px-6">
-                    {item.is_dir ? (
-                      <button 
-                        onClick={() => handleNavigate(item.path)} 
-                        className="font-bold text-text-main hover:text-brand-primary flex items-center gap-2.5 transition-colors text-xs font-mono cursor-pointer select-none"
-                      >
-                        <Folder className="w-4.5 h-4.5 text-amber-500 shrink-0 transition-transform group-hover:scale-105 duration-200" />
-                        <span className="truncate max-w-[200px] sm:max-w-md">{item.name}</span>
-                      </button>
-                    ) : (
-                      <div className="font-semibold text-text-muted group-hover:text-text-main flex items-center gap-2.5 transition-colors text-xs font-mono truncate select-none">
-                        {getFileIcon(item.extension)}
-                        <span className="truncate max-w-[200px] sm:max-w-md">{item.name}</span>
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-3 px-6 text-center font-mono text-[10px] text-text-muted font-bold">
-                    {item.size}
-                  </td>
-                  <td className="py-3 px-6 text-center text-[10px] font-semibold text-text-muted">
-                    {item.last_modified}
-                  </td>
-                  <td className="py-3 px-6 text-right pr-8">
-                    <button 
-                      onClick={() => handleDeleteRequest(item)}
-                      className="text-text-muted hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-95 inline-flex"
-                      title="Hapus"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {/* Empty state inside folders */}
-              {currentItems.length === 0 && (
+              {isLoading ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-text-muted italic font-semibold text-xs">
+                  <td colSpan={4} className="py-12 text-center text-text-muted font-semibold text-xs">
                     <div className="flex flex-col items-center justify-center gap-2.5 select-none">
-                      <AlertCircle className="w-6 h-6 text-text-muted/60" />
-                      <p>Direktori ini kosong.</p>
+                      <div className="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+                      <p>Memuat berkas...</p>
                     </div>
                   </td>
                 </tr>
+              ) : (
+                <>
+                  {currentItems.map((item, index) => (
+                    <tr key={index} className="group hover:bg-border-main/10 transition-colors">
+                      <td className="py-3 px-6">
+                        {item.is_dir ? (
+                          <button 
+                            onClick={() => handleNavigate(item.path)} 
+                            className="font-bold text-text-main hover:text-brand-primary flex items-center gap-2.5 transition-colors text-xs font-mono cursor-pointer select-none"
+                          >
+                            <Folder className="w-4.5 h-4.5 text-amber-500 shrink-0 transition-transform group-hover:scale-105 duration-200" />
+                            <span className="truncate max-w-[200px] sm:max-w-md">{item.name}</span>
+                          </button>
+                        ) : (
+                          <div className="font-semibold text-text-muted group-hover:text-text-main flex items-center gap-2.5 transition-colors text-xs font-mono truncate select-none">
+                            {getFileIcon(item.extension)}
+                            <span className="truncate max-w-[200px] sm:max-w-md">{item.name}</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-6 text-center font-mono text-[10px] text-text-muted font-bold">
+                        {item.size}
+                      </td>
+                      <td className="py-3 px-6 text-center text-[10px] font-semibold text-text-muted">
+                        {item.last_modified}
+                      </td>
+                      <td className="py-3 px-6 text-right pr-8">
+                        <button 
+                          onClick={() => handleDeleteRequest(item)}
+                          className="text-text-muted hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-95 inline-flex"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* Empty state inside folders */}
+                  {currentItems.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-12 text-center text-text-muted italic font-semibold text-xs">
+                        <div className="flex flex-col items-center justify-center gap-2.5 select-none">
+                          <AlertCircle className="w-6 h-6 text-text-muted/60" />
+                          <p>Direktori ini kosong.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>

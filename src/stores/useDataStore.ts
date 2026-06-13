@@ -73,6 +73,7 @@ interface DataState {
   applyVoucher: (code: string) => Promise<{ discount: number; voucherId: number } | null>;
   createPayment: (planId: number, subdomainName: string, voucherCode: string | null) => Promise<Payment>;
   confirmPayment: (paymentId: number) => Promise<void>;
+  cancelPayment: (paymentId: number) => Promise<void>;
   uploadProof: (paymentId: number, proof: any) => Promise<void>;
 
   addChatMessage: (userId: number, message: string, isAdmin: boolean, imageFile?: any) => Promise<void>;
@@ -631,6 +632,13 @@ export const useDataStore = create<DataState>((set, get) => ({
 
     await get().fetchPayments();
     await get().fetchSubdomains();
+  },
+
+  cancelPayment: async (paymentId) => {
+    await apiFetch(`/payments/${paymentId}/cancel`, {
+      method: 'POST'
+    });
+    await get().fetchPayments();
   },
 
   uploadProof: async (paymentId, proof) => {

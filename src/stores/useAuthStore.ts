@@ -107,6 +107,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     localStorage.removeItem('subly_token');
+    localStorage.removeItem('subly-activeTab');
+    localStorage.removeItem('subly-currentSubdomainId');
+    localStorage.removeItem('subly-role');
+    localStorage.removeItem('subly-activeSubTab');
     set({ user: null, status: 'unauthenticated' });
     useSystemStore.getState().setActiveTab('dashboard');
   },

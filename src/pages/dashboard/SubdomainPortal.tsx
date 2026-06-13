@@ -31,7 +31,15 @@ export const SubdomainPortal: React.FC = () => {
   } = useDataStore();
 
   const subdomain = subdomains.find(s => s.id === currentSubdomainId);
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>('overview');
+
+  const [activeSubTab, setActiveSubTabState] = useState<SubTab>(() => {
+    return (localStorage.getItem('subly-activeSubTab') as SubTab) || 'overview';
+  });
+
+  const setActiveSubTab = (tab: SubTab) => {
+    setActiveSubTabState(tab);
+    localStorage.setItem('subly-activeSubTab', tab);
+  };
 
   // Git integration state
   const [gitUrlInput, setGitUrlInput] = useState('');
@@ -941,6 +949,7 @@ export const SubdomainPortal: React.FC = () => {
           <div className="w-full animate-in fade-in duration-200">
             <FileManager 
               subdomainName={subdomain.name} 
+              subdomainId={subdomain.id} 
               onDeployTrigger={handleTriggerDeploy} 
             />
           </div>

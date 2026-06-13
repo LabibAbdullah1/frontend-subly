@@ -501,6 +501,14 @@ export const LandingPage: React.FC = () => {
               </Button>
             </a>
           </div>
+          {!user && (
+            <button
+              onClick={() => setActiveTab('register')}
+              className="text-[11px] text-brand-primary hover:underline font-bold mt-2.5 bg-transparent border-none cursor-pointer block"
+            >
+              Belum memiliki akun? Daftar secara gratis di sini →
+            </button>
+          )}
         </section>
 
         {/* Dense Product UI Screenshot - Protagonist of the page */}
@@ -761,7 +769,7 @@ export const LandingPage: React.FC = () => {
 
                     <div className="mt-6 pt-4 border-t border-border-main/40 w-full">
                       <Button 
-                        variant={isFeatured ? "primary" : "secondary"}
+                        variant="primary"
                         className="w-full font-medium"
                         onClick={() => setActiveTab('dashboard')}
                       >

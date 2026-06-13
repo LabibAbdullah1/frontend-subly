@@ -31,7 +31,7 @@ export const translations = {
     desktop: 'Tampilan Desktop',
     mobile: 'Tampilan Mobile',
     role: 'Peran',
-    
+
     // Auth & Landing
     landingTitle: 'Managed Web Hosting Kilat & Tanpa Ribet',
     landingSub: 'Subly membantu Anda mendeploy proyek web PHP, NodeJS, Laravel, dan HTML statis dengan subdomain gratis, SSL otomatis, dan database MySQL instan.',
@@ -57,7 +57,7 @@ export const translations = {
     forgotPasswordSub: 'Masukkan email Anda untuk menerima link reset kata sandi.',
     resetPasswordSub: 'Masukkan kata sandi baru Anda di bawah ini.',
     backToLogin: 'Kembali to Login',
-    
+
     // Dashboard Client
     welcome: 'Selamat datang kembali',
     diskUsage: 'Penggunaan Disk Storage',
@@ -77,7 +77,7 @@ export const translations = {
     dbPassHint: 'Disimpan otomatis demi keamanan.',
     emptySubdomains: 'Anda belum memiliki subdomain. Silakan klaim di atas.',
     emptyDatabases: 'Belum ada database MySQL dialokasikan.',
-    
+
     // Portal / Detail
     managePortal: 'Portal Pengelolaan Subdomain',
     gitIntegration: 'Integrasi GitHub (Git Connect)',
@@ -94,7 +94,7 @@ export const translations = {
     dropzoneText: 'Tarik & taruh file ZIP proyek Anda di sini, atau klik untuk memilih file',
     deployBtn: 'Trigger Deployment / Deploy',
     logsTitle: 'Infrastruktur Deployment Console (Log Real-time)',
-    
+
     // Billing & QRIS
     billingTitle: 'Pembayaran Tagihan Hosting',
     payInstructions: 'Silakan scan QRIS di bawah ini dengan aplikasi dompet digital Anda (Gopay, OVO, Dana, LinkAja) atau Mobile Banking.',
@@ -106,13 +106,13 @@ export const translations = {
     uploadReceipt: 'Unggah Bukti Bayar (Screenshot)',
     uploadReceiptBtn: 'Unggah Bukti',
     paySuccessBtn: 'Bayar Instan',
-    
+
     // Live Chat Support
     chatTitle: 'Konsol Dukungan Live Chat',
     chatSub: 'Hubungi admin jika Anda mengalami kendala deployment server, database, atau aktivasi pembayaran manual.',
     chatPlaceholder: 'Tulis pesan Anda di sini...',
     send: 'Kirim',
-    
+
     // Admin Pages
     adminStats: 'Statistik Global',
     totalUsers: 'Total Pengguna',
@@ -693,8 +693,8 @@ export const translations = {
     darkMode: 'Mode Gelap',
 
     // New Keys for Landing Page
-    landingBadgeText: 'High-Performance SSD Cloud Server',
-    landingSubtitle: 'Platform modern untuk mendeploy aplikasi PHP, Laravel, Node.js, Next.js, dan Vite secara instan. Dapatkan database MySQL terisolasi, monitoring log real-time, perlindungan SSL Let\'s Encrypt gratis, serta subdomain premium langsung aktif dalam 5 detik.',
+    landingBadgeText: 'High-Performance SSD NVMe Cloud Server',
+    landingSubtitle: 'Platform modern untuk mendeploy aplikasi PHP, Laravel, Node.js, Next.js, dan Vite secara instan. Dapatkan database MySQL terisolasi, monitoring log real-time, perlindungan SSL Let\'s Encrypt gratis, serta subdomain premium langsung aktif dalam 10 detik.',
     statDeployTime: '< 5 detik',
     statDeployProcess: 'Proses Deployment',
     statUptimeSlaVal: '99.9%',
@@ -885,7 +885,7 @@ export const translations = {
     desktop: 'Desktop View',
     mobile: 'Mobile View',
     role: 'Role',
-    
+
     // Auth & Landing
     landingTitle: 'Fast & Effortless Managed Web Hosting',
     landingSub: 'Subly helps you deploy PHP, Node.js, Laravel, and static HTML web projects with free subdomains, automatic SSL, and instant MySQL databases.',
@@ -911,7 +911,7 @@ export const translations = {
     forgotPasswordSub: 'Enter your email to receive a password reset link.',
     resetPasswordSub: 'Enter your new password below.',
     backToLogin: 'Back to Login',
-    
+
     // Dashboard Client
     welcome: 'Welcome back',
     diskUsage: 'Disk Storage Usage',
@@ -931,7 +931,7 @@ export const translations = {
     dbPassHint: 'Automatically stored securely.',
     emptySubdomains: 'You do not have any subdomains yet. Claim one above.',
     emptyDatabases: 'No active MySQL databases configured.',
-    
+
     // Portal / Detail
     managePortal: 'Subdomain Portal Management',
     gitIntegration: 'GitHub Integration (Git Connect)',
@@ -948,7 +948,7 @@ export const translations = {
     dropzoneText: 'Drag & drop your project ZIP file here, or click to browse files',
     deployBtn: 'Trigger Deployment / Deploy',
     logsTitle: 'Infrastructure Deployment Console (Real-time Logs)',
-    
+
     // Billing & QRIS
     billingTitle: 'Hosting Billing & Invoices',
     payInstructions: 'Please scan the QRIS below with your digital wallet application (Gopay, OVO, Dana, LinkAja) or Mobile Banking app.',
@@ -960,13 +960,13 @@ export const translations = {
     uploadReceipt: 'Upload Payment Receipt (Screenshot)',
     uploadReceiptBtn: 'Upload Proof',
     paySuccessBtn: 'Instant Pay',
-    
+
     // Live Chat Support
     chatTitle: 'Live Chat Support Console',
     chatSub: 'Contact our administrator for server deployments, database errors, or manual payment activations.',
     chatPlaceholder: 'Type your message here...',
     send: 'Send',
-    
+
     // Admin Pages
     adminStats: 'Global Stats',
     totalUsers: 'Total Users',
@@ -1547,9 +1547,9 @@ export const translations = {
     darkMode: 'Dark Mode',
 
     // New Keys for Landing Page
-    landingBadgeText: 'High-Performance SSD Cloud Server',
-    landingSubtitle: 'Modern platform to deploy PHP, Laravel, Node.js, Next.js, and Vite applications instantly. Get isolated MySQL database, real-time log monitoring, free SSL Let\'s Encrypt protection, and premium subdomains active in 5 seconds.',
-    statDeployTime: '< 5s',
+    landingBadgeText: 'High-Performance SSD NVMe Cloud Server',
+    landingSubtitle: 'Modern platform to deploy PHP, Laravel, Node.js, Next.js, and Vite applications instantly. Get isolated MySQL database, real-time log monitoring, free SSL Let\'s Encrypt protection, and premium subdomains active in 10 seconds.',
+    statDeployTime: '< 10s',
     statDeployProcess: 'Deployment Process',
     statUptimeSlaVal: '99.9%',
     statUptimeSla: 'Server Uptime SLA',

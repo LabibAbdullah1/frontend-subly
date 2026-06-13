@@ -138,14 +138,14 @@ export const App: React.FC = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.35 }}
-          className="min-h-screen flex flex-col bg-bg-base text-text-main transition-colors duration-300 relative overflow-hidden w-full"
+          className="min-h-screen flex flex-col bg-bg-base text-text-main transition-colors duration-300 relative overflow-x-hidden w-full"
         >
           {/* Dynamic Symmetrical Glow Grid Background */}
           <GlowingGridBackground />
 
           <div className="relative z-10 flex flex-col flex-1">
             {/* Public Landing Navbar Header */}
-            <header className="h-14 border-b border-border-main bg-bg-base/80 backdrop-blur-md sticky top-0 flex items-center justify-between px-4 sm:px-6 z-40 select-none">
+            <header className="h-14 border-b border-border-main bg-bg-base/80 backdrop-blur-md fixed top-0 left-0 right-0 flex items-center justify-between px-4 sm:px-6 z-40 select-none">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-md bg-brand-primary flex items-center justify-center text-white font-black text-lg">
                   <Zap className="h-4.5 w-4.5 text-white fill-white shrink-0" />
@@ -201,7 +201,7 @@ export const App: React.FC = () => {
             </header>
 
             {/* Public Content pages */}
-            <main className="flex-1 flex flex-col overflow-x-hidden">
+            <main className="flex-1 flex flex-col overflow-x-hidden pt-14">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
