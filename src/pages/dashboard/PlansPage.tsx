@@ -218,10 +218,10 @@ export const PlansPage: React.FC = () => {
                     </h3>
                     <div className="mt-2.5 flex items-baseline">
                       <span className="text-xl font-bold text-text-main font-mono">
-                        Rp {plan.price.toLocaleString('id-ID')}
+                        {Number(plan.price) === 0 ? 'Gratis' : `Rp ${Number(plan.price).toLocaleString('id-ID')}`}
                       </span>
                       <span className="text-[10px] text-text-muted font-bold uppercase ml-1">
-                        {t('monthlyPriceSuffix')}
+                        {Number(plan.price) === 0 ? ` / ${t('lifetime')}` : `/ ${t('monthlyPriceSuffix')}`}
                       </span>
                     </div>
                   </div>
@@ -234,11 +234,25 @@ export const PlansPage: React.FC = () => {
                   <ul className="space-y-2.5 pt-4 border-t border-border-main/50 text-[11px] font-semibold text-text-muted select-none">
                     <li className="flex items-center gap-2">
                       <HardDrive className="h-4 w-4 text-brand-primary shrink-0" />
-                      <span>{t('featureStorageLabel').replace('{storage}', plan.max_storage_mb >= 1024 ? `${plan.max_storage_mb / 1024} GB` : `${plan.max_storage_mb} MB`)}</span>
+                      <span>
+                        {t('featureStorageLabel').replace(
+                          '{storage}', 
+                          plan.max_storage_mb >= 1024 
+                            ? `${(plan.max_storage_mb / 1024) % 1 === 0 ? (plan.max_storage_mb / 1024) : (plan.max_storage_mb / 1024).toFixed(1)} GB`
+                            : `${plan.max_storage_mb} MB`
+                        )}
+                      </span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Database className="h-4 w-4 text-brand-primary shrink-0" />
-                      <span>{t('featureDatabaseLabel')}</span>
+                      <span>
+                        {plan.max_databases === 1 
+                          ? t('featureDatabaseLabel') 
+                          : t('featureDatabaseLabel')
+                              .replace('1', plan.max_databases.toString())
+                              .replace('Database', t('databases') === 'Databases' ? 'Databases' : 'Database')
+                        }
+                      </span>
                     </li>
                     <li className="flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 text-brand-primary shrink-0" />
@@ -259,7 +273,7 @@ export const PlansPage: React.FC = () => {
                     icon={<ShoppingCart className="h-4 w-4" />}
                     onClick={() => handleOpenCheckout(plan)}
                   >
-                    {t('selectPlan')}
+                    {Number(plan.price) === 0 ? t('quickActionClaimSubdomain') : t('selectPlan')}
                   </Button>
                 </div>
               </CardPanel>

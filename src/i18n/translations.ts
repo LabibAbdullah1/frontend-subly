@@ -874,7 +874,21 @@ export const translations = {
     deploySuccessFeedbackTemplate1: 'Deployment sangat cepat dan mudah! Hanya hitungan detik langsung online.',
     deploySuccessFeedbackTemplate2: 'Fitur integrasi Git otomatisnya luar biasa memudahkan sinkronisasi kode.',
     deploySuccessFeedbackTemplate3: 'Interface platform sangat modern, bersih, dan mudah dipahami developer pemula.',
-    deploySuccessFeedbackTemplate4: 'Layanan cloud hosting murah dengan resource performa tinggi. Sangat recommended!'
+    deploySuccessFeedbackTemplate4: 'Layanan cloud hosting murah dengan resource performa tinggi. Sangat recommended!',
+
+    // Free Tier Info on Landing Page
+    freeTierPromoBadge: 'Dukungan Belajar & Portofolio',
+    freeTierPromoTitle: 'Hosting & Subdomain Gratis Selamanya',
+    freeTierPromoDesc: 'Belajar mendeploy proyek web PHP, HTML statis, dan database MySQL tanpa biaya sepeser pun. Dapatkan subdomain gratis dan SSL Let\'s Encrypt instan.',
+    freeTierBullet1: '1 Subdomain Premium Gratis',
+    freeTierBullet2: '1 Database MySQL Instan',
+    freeTierBullet3: '100 MB NVMe SSD Storage Kencang',
+    freeTierBullet4: 'Gratis SSL Let\'s Encrypt (HTTPS)',
+    freeTierCTA: 'Klaim Subdomain Gratis Sekarang',
+    freeTierSmartHibernationTitle: 'Kebijakan Hibernasi Cerdas (Smart Hibernation)',
+    freeTierSmartHibernationDesc: 'Untuk menghemat penggunaan resource server global, subdomain gratis yang tidak aktif (tidak ada deployment) selama 30 hari akan ditangguhkan sementara.',
+    freeTierSmartHibernationReactivate: 'Reaktivasi Instan & Otomatis',
+    freeTierSmartHibernationReactivateDesc: 'Cukup trigger Git Pull baru atau upload file ZIP di panel kontrol, website Anda akan langsung online kembali saat itu juga!'
   },
   en: {
     // Common
@@ -1749,7 +1763,21 @@ export const translations = {
     deploySuccessFeedbackTemplate1: 'Very fast and easy deployment! Live in seconds.',
     deploySuccessFeedbackTemplate2: 'The auto Git integration feature is amazing and makes code sync so easy.',
     deploySuccessFeedbackTemplate3: 'The platform interface is very modern, clean, and easy for beginners to understand.',
-    deploySuccessFeedbackTemplate4: 'Affordable cloud hosting with high performance resources. Highly recommended!'
+    deploySuccessFeedbackTemplate4: 'Affordable cloud hosting with high performance resources. Highly recommended!',
+
+    // Free Tier Info on Landing Page
+    freeTierPromoBadge: 'Learning & Portfolio Support',
+    freeTierPromoTitle: 'Free Hosting & Subdomain Forever',
+    freeTierPromoDesc: 'Learn to deploy PHP, static HTML, and MySQL database web projects without spending a penny. Get a free subdomain and instant Let\'s Encrypt SSL.',
+    freeTierBullet1: '1 Free Premium Subdomain',
+    freeTierBullet2: '1 Instant MySQL Database',
+    freeTierBullet3: '100 MB High-Speed NVMe SSD Storage',
+    freeTierBullet4: 'Free Let\'s Encrypt SSL (HTTPS)',
+    freeTierCTA: 'Claim Your Free Subdomain Now',
+    freeTierSmartHibernationTitle: 'Smart Hibernation Policy',
+    freeTierSmartHibernationDesc: 'To optimize global server resources, free subdomains that are inactive (no deployments) for 30 days will be temporarily suspended.',
+    freeTierSmartHibernationReactivate: 'Instant & Automatic Reactivation',
+    freeTierSmartHibernationReactivateDesc: 'Simply trigger a Git Pull or upload a new ZIP archive from your control panel, and your website goes live instantly!'
   }
 };
 export type TranslationKeys = keyof typeof translations.id;

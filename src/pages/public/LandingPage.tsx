@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Zap, Database, ShieldCheck, Cpu, 
   ArrowRight, Check, HelpCircle, Star, Globe,
-  GitBranch, Terminal, Layers, Folder, FileText, Lock
+  GitBranch, Terminal, Layers, Folder, FileText, Lock,
+  RefreshCw, Gift
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
@@ -449,7 +450,9 @@ export const LandingPage: React.FC = () => {
   }, [fetchPlans, fetchPublicTestimonials, fetchSettings]);
 
   const rootDomain = settings.system_root_domain || 'subly.my.id';
-  const filteredPlans = plans.filter(p => p.type === selectedType);
+  const filteredPlans = plans
+    .filter(p => p.type === selectedType)
+    .sort((a, b) => Number(a.price) - Number(b.price));
 
   const faqs = [
     { q: t('faq1Q'), a: t('faq1A').replace('{domain}', rootDomain) },
@@ -532,6 +535,124 @@ export const LandingPage: React.FC = () => {
             <div className="text-center space-y-1 border-l border-border-main/50">
               <div className="text-xl md:text-2xl font-semibold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>{t('statSslSecureVal')}</div>
               <p className="text-[9px] text-text-subtle uppercase tracking-wider font-semibold">{t('statSslSecure')}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Standout Free Tier Showcase Section */}
+        <section className="px-6 py-12 max-w-5xl mx-auto w-full select-none">
+          <div className="relative rounded-2xl overflow-hidden border border-[#d2ad5e]/30 bg-[radial-gradient(circle_at_top_right,_rgba(210,173,94,0.08)_0%,_rgba(15,16,17,0.5)_50%,_rgba(0,0,0,0.8)_100%)] p-8 md:p-12 shadow-[0_24px_50px_-12px_rgba(210,173,94,0.12)]">
+            
+            {/* Background elements */}
+            <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-[radial-gradient(circle,_rgba(210,173,94,0.15)_0%,_rgba(0,0,0,0)_70%)] blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-16 -left-16 w-80 h-80 rounded-full bg-[radial-gradient(circle,_rgba(249,115,22,0.05)_0%,_rgba(0,0,0,0)_70%)] blur-3xl pointer-events-none" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center relative z-10 text-left">
+              {/* Left Column: Offer Details */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d2ad5e]/10 border border-[#d2ad5e]/20 text-[#d2ad5e] text-[10px] font-bold tracking-wide uppercase">
+                  <Gift className="h-3.5 w-3.5" />
+                  <span>{t('freeTierPromoBadge')}</span>
+                </div>
+                
+                <h2 className="text-2xl md:text-4xl font-semibold text-text-main tracking-tight leading-tight" style={{ letterSpacing: '-1.0px' }}>
+                  {t('freeTierPromoTitle')}
+                </h2>
+                
+                <p className="text-xs md:text-sm text-text-muted leading-relaxed font-normal">
+                  {t('freeTierPromoDesc')}
+                </p>
+
+                {/* Specs List */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="flex items-center gap-3">
+                    <div className="h-6 w-6 rounded-full bg-[#d2ad5e]/10 flex items-center justify-center text-[#d2ad5e] shrink-0 font-bold text-xs select-none">✓</div>
+                    <span className="text-xs text-text-main font-medium">{t('freeTierBullet1')}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-6 w-6 rounded-full bg-[#d2ad5e]/10 flex items-center justify-center text-[#d2ad5e] shrink-0 font-bold text-xs select-none">✓</div>
+                    <span className="text-xs text-text-main font-medium">{t('freeTierBullet2')}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-6 w-6 rounded-full bg-[#d2ad5e]/10 flex items-center justify-center text-[#d2ad5e] shrink-0 font-bold text-xs select-none">✓</div>
+                    <span className="text-xs text-text-main font-medium">{t('freeTierBullet3')}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-6 w-6 rounded-full bg-[#d2ad5e]/10 flex items-center justify-center text-[#d2ad5e] shrink-0 font-bold text-xs select-none">✓</div>
+                    <span className="text-xs text-text-main font-medium">{t('freeTierBullet4')}</span>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <Button 
+                    variant="primary" 
+                    size="md" 
+                    icon={<ArrowRight className="h-4 w-4" />} 
+                    iconPosition="right"
+                    onClick={() => {
+                      if (user) {
+                        setActiveTab('dashboard');
+                      } else {
+                        setActiveTab('register');
+                      }
+                    }}
+                  >
+                    {t('freeTierCTA')}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Right Column: Smart Hibernation Feature Card */}
+              <div className="lg:col-span-5">
+                <div className="bg-[#0b0c0d] border border-[#23252a] p-6 rounded-xl space-y-4 shadow-xl relative overflow-hidden group">
+                  {/* Highlight bar */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-primary to-orange-500" />
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center shrink-0">
+                      <RefreshCw className="h-4.5 w-4.5 animate-spin" style={{ animationDuration: '8s' }} />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-wide">
+                        {t('freeTierSmartHibernationTitle')}
+                      </h3>
+                      <p className="text-[10px] text-zinc-400 leading-normal mt-1">
+                        {t('freeTierSmartHibernationDesc')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[#23252a] pt-4 space-y-3">
+                    {/* Status simulation */}
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-zinc-400 font-semibold">Status Subdomain (Hari 1-30)</span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block animate-pulse"></span>
+                        ONLINE / AKTIF
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-zinc-400 font-semibold">Status setelah 30 hari pasif</span>
+                      <span className="px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 font-bold flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-orange-400 rounded-full inline-block"></span>
+                        HIBERNASI / SUSPENDED
+                      </span>
+                    </div>
+
+                    {/* Action flow */}
+                    <div className="bg-[#141516] p-3 rounded-lg border border-[#23252a] text-[10px] space-y-1">
+                      <div className="text-[#d2ad5e] font-bold flex items-center gap-1">
+                        <Zap className="h-3 w-3" />
+                        <span>{t('freeTierSmartHibernationReactivate')}</span>
+                      </div>
+                      <p className="text-zinc-400 leading-relaxed">
+                        {t('freeTierSmartHibernationReactivateDesc')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -729,22 +850,28 @@ export const LandingPage: React.FC = () => {
                 >
                   <CardPanel 
                     className={`flex flex-col justify-between border relative overflow-hidden h-full ${
-                      isFeatured ? 'bg-bg-card border-border-strong shadow-md' : 'bg-bg-surface border-border-main'
+                      Number(plan.price) === 0 
+                        ? 'bg-bg-surface border-[#d2ad5e]/40 shadow-[0_0_20px_rgba(210,173,94,0.1)]'
+                        : isFeatured 
+                          ? 'bg-bg-card border-border-strong shadow-md' 
+                          : 'bg-bg-surface border-border-main'
                     }`}
                   >
                     <div className="text-left space-y-4">
                       <div className="flex justify-between items-start">
                         <h3 className="text-sm font-semibold text-text-main">{plan.name}</h3>
                         <span className="text-[9px] font-semibold uppercase bg-brand-primary/10 border border-brand-primary/20 text-brand-primary px-2.5 py-0.5 rounded-md select-none">
-                          {plan.type}
+                          {Number(plan.price) === 0 ? 'FREE' : plan.type}
                         </span>
                       </div>
                       
                       <div className="flex items-baseline gap-1 select-none">
                         <span className="text-2xl font-bold text-brand-primary" style={{ letterSpacing: '-0.5px' }}>
-                          Rp {plan.price.toLocaleString('id-ID')}
+                          {Number(plan.price) === 0 ? 'Gratis' : `Rp ${Number(plan.price).toLocaleString('id-ID')}`}
                         </span>
-                        <span className="text-[10px] text-text-subtle">/ {plan.duration_months} {t('monthlyPriceSuffix')}</span>
+                        <span className="text-[10px] text-text-subtle">
+                          {Number(plan.price) === 0 ? ` / ${t('lifetime')}` : `/ ${plan.duration_months} ${t('monthlyPriceSuffix')}`}
+                        </span>
                       </div>
 
                       <p className="text-xs text-text-muted leading-relaxed font-normal">
@@ -754,11 +881,25 @@ export const LandingPage: React.FC = () => {
                       <div className="border-t border-border-main/50 pt-4 space-y-2 text-xs text-text-muted font-normal">
                         <div className="flex items-center gap-2">
                           <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                          <span>{t('featureStorageLabel').replace('{storage}', plan.max_storage_mb >= 1024 ? `${plan.max_storage_mb / 1024} GB` : `${plan.max_storage_mb} MB`)}</span>
+                          <span>
+                            {t('featureStorageLabel').replace(
+                              '{storage}', 
+                              plan.max_storage_mb >= 1024 
+                                ? `${(plan.max_storage_mb / 1024) % 1 === 0 ? (plan.max_storage_mb / 1024) : (plan.max_storage_mb / 1024).toFixed(1)} GB`
+                                : `${plan.max_storage_mb} MB`
+                            )}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                          <span>{t('featureDatabaseLabel')}</span>
+                          <span>
+                            {plan.max_databases === 1 
+                              ? t('featureDatabaseLabel') 
+                              : t('featureDatabaseLabel')
+                                  .replace('1', plan.max_databases.toString())
+                                  .replace('Database', t('databases') === 'Databases' ? 'Databases' : 'Database')
+                            }
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Check className="h-4 w-4 text-emerald-400 shrink-0" />
@@ -773,7 +914,7 @@ export const LandingPage: React.FC = () => {
                         className="w-full font-medium"
                         onClick={() => setActiveTab('dashboard')}
                       >
-                        {t('orderNowBtn')}
+                        {Number(plan.price) === 0 ? t('startNow') : t('orderNowBtn')}
                       </Button>
                     </div>
                   </CardPanel>
