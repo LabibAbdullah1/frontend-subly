@@ -820,6 +820,12 @@ export const translations = {
     signInBtn: 'Sign In',
     signUpBtn: 'Sign Up',
 
+    // Free Tier Checkout
+    billingSubdomainNameFree: 'Nama Subdomain (Khusus Paket Gratis)',
+    billingSubdomainNameFreePlaceholder: 'portofoliosaya',
+    billingCheckoutFreeBtn: 'Klaim Subdomain Gratis Sekarang 🎉',
+    toastFreeClaimSuccess: 'Subdomain gratis berhasil diaktifkan!',
+
     // Legal page keys
     legalHeaderTitle: 'Legal & Dokumentasi',
     legalHeaderSub: 'Informasi regulasi penggunaan server, ketentuan hosting gratis, dan transaksi cPanel Subly.',
@@ -1688,6 +1694,12 @@ export const translations = {
     saveNewPasswordBtn: 'Save New Password',
     signInBtn: 'Sign In',
     signUpBtn: 'Sign Up',
+
+    // Free Tier Checkout
+    billingSubdomainNameFree: 'Subdomain Name (Free Plan Exclusive)',
+    billingSubdomainNameFreePlaceholder: 'myportfolio',
+    billingCheckoutFreeBtn: 'Claim Free Subdomain Now 🎉',
+    toastFreeClaimSuccess: 'Free subdomain successfully activated!',
 
     // Legal page keys
     legalHeaderTitle: 'Legal & Documentation',

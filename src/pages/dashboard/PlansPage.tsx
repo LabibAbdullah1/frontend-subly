@@ -23,6 +23,7 @@ export const PlansPage: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [voucherCode, setVoucherCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<number | null>(null);
+  const [subdomainName, setSubdomainName] = useState('');
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
   const [filterType, setFilterType] = useState<'ALL' | 'PHP' | 'NodeJS'>('ALL');
 
@@ -37,12 +38,13 @@ export const PlansPage: React.FC = () => {
       if (filterType === 'ALL') return true;
       return plan.type === filterType;
     })
-    .sort((a, b) => a.price - b.price);
+    .sort((a, b) => Number(a.price) - Number(b.price));
 
   const handleOpenCheckout = (plan: Plan) => {
     setSelectedPlan(plan);
     setVoucherCode('');
     setAppliedDiscount(null);
+    setSubdomainName('');
     setCheckoutModalOpen(true);
   };
 
@@ -70,19 +72,56 @@ export const PlansPage: React.FC = () => {
     e.preventDefault();
     if (!selectedPlan) return;
 
+    const isFree = Number(selectedPlan.price) === 0;
+
+    if (isFree) {
+      if (!subdomainName.trim()) {
+        addToast({
+          type: 'error',
+          title: t('error'),
+          message: t('subdomainValidationRequired'),
+        });
+        return;
+      }
+
+      const cleanName = subdomainName.trim().toLowerCase();
+      if (!/^[a-z0-9_-]+$/.test(cleanName)) {
+        addToast({
+          type: 'error',
+          title: t('error'),
+          message: t('subdomainValidationInvalid'),
+        });
+        return;
+      }
+    }
+
     setIsCheckoutInProgress(true);
     try {
-      await createPayment(selectedPlan.id, '', appliedDiscount ? voucherCode : null);
+      if (isFree) {
+        await createPayment(selectedPlan.id, subdomainName.trim().toLowerCase(), null);
+        addToast({
+          type: 'success',
+          title: t('success'),
+          message: t('toastFreeClaimSuccess'),
+        });
+        setCheckoutModalOpen(false);
+        setActiveTab('subdomains');
+      } else {
+        await createPayment(selectedPlan.id, '', appliedDiscount ? voucherCode : null);
+        addToast({
+          type: 'info',
+          title: t('toastInvoiceCreatedTitle'),
+          message: t('toastInvoiceCreatedMsg'),
+        });
+        setCheckoutModalOpen(false);
+        setActiveTab('billing');
+      }
+    } catch (err: any) {
       addToast({
-        type: 'info',
-        title: t('toastInvoiceCreatedTitle'),
-        message: t('toastInvoiceCreatedMsg'),
+        type: 'error',
+        title: t('error'),
+        message: err.message || t('toastInvoiceCreatedError')
       });
-      setCheckoutModalOpen(false);
-      // Redirect to billing page
-      setActiveTab('billing');
-    } catch {
-      addToast({ type: 'error', title: t('error'), message: t('toastInvoiceCreatedError') });
     } finally {
       setIsCheckoutInProgress(false);
     }
@@ -249,35 +288,62 @@ export const PlansPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Voucher Discount */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-main">
-                {t('voucherCode')}
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={voucherCode}
-                  onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-                  placeholder="WELCOME50"
-                  className="flex-1 premium-input font-mono"
-                />
-                <Button 
-                  type="button" 
-                  variant="secondary" 
-                  size="sm"
-                  onClick={handleApplyVoucher}
-                >
-                  {t('apply')}
-                </Button>
-              </div>
-              {appliedDiscount && (
-                <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-1 mt-1 select-none">
-                  <Check className="h-3.5 w-3.5" />
-                  {t('billingVoucherAppliedSuccess').replace('{discount}', String(appliedDiscount))}
+            {Number(selectedPlan.price) === 0 ? (
+              /* Subdomain Name Input for Free Tier */
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-bold text-text-main">
+                  {t('billingSubdomainNameFree')}
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={subdomainName}
+                      onChange={(e) => setSubdomainName(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                      placeholder={t('billingSubdomainNameFreePlaceholder')}
+                      className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none font-mono"
+                      required
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-text-muted font-mono select-none">
+                    .{rootDomain}
+                  </span>
+                </div>
+                <p className="text-[9.5px] text-text-muted leading-relaxed select-none">
+                  {t('subdomainRulesHint')}
                 </p>
-              )}
-            </div>
+              </div>
+            ) : (
+              /* Voucher Discount */
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-text-main">
+                  {t('voucherCode')}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={voucherCode}
+                    onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                    placeholder="WELCOME50"
+                    className="flex-1 premium-input font-mono"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    size="sm"
+                    onClick={handleApplyVoucher}
+                  >
+                    {t('apply')}
+                  </Button>
+                </div>
+                {appliedDiscount && (
+                  <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-1 mt-1 select-none">
+                    <Check className="h-3.5 w-3.5" />
+                    {t('billingVoucherAppliedSuccess').replace('{discount}', String(appliedDiscount))}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Price Calculations */}
             <div className="border-t border-border-main/50 pt-4 flex justify-between items-center select-none">
@@ -302,7 +368,9 @@ export const PlansPage: React.FC = () => {
                   variant="primary"
                   isLoading={isCheckoutInProgress}
                 >
-                  {t('billingCreateInvoiceBtn')}
+                  {Number(selectedPlan.price) === 0 
+                    ? t('billingCheckoutFreeBtn') 
+                    : t('billingCreateInvoiceBtn')}
                 </Button>
               </div>
             </div>
