@@ -695,9 +695,9 @@ export const SubdomainPortal: React.FC = () => {
                       <Button
                         onClick={handleTriggerDeploy}
                         variant="primary"
-                        className="w-full flex items-center justify-center gap-2 cursor-pointer animate-pulse hover:animate-none"
+                        icon={<Zap className="h-3.5 w-3.5" />}
+                        className="w-full animate-pulse hover:animate-none font-bold"
                       >
-                        <Zap className="h-3.5 w-3.5" />
                         {t('deployBtn')}
                       </Button>
                     </div>

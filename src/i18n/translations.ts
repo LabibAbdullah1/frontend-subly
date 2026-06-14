@@ -93,7 +93,7 @@ export const translations = {
     valuePlaceholder: 'nilai_variabel',
     deployZip: 'Deploy Aplikasi via ZIP',
     dropzoneText: 'Tarik & taruh file ZIP proyek Anda di sini, atau klik untuk memilih file',
-    deployBtn: 'Trigger Deployment / Deploy',
+    deployBtn: 'Mulai Deployment',
     logsTitle: 'Infrastruktur Deployment Console (Log Real-time)',
 
     // Billing & QRIS
@@ -982,7 +982,7 @@ export const translations = {
     valuePlaceholder: 'variable_value',
     deployZip: 'Deploy App via ZIP',
     dropzoneText: 'Drag & drop your project ZIP file here, or click to browse files',
-    deployBtn: 'Trigger Deployment / Deploy',
+    deployBtn: 'Trigger Deployment',
     logsTitle: 'Infrastructure Deployment Console (Real-time Logs)',
 
     // Billing & QRIS
