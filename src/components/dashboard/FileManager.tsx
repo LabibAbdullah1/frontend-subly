@@ -4,7 +4,7 @@ import {
   Folder, Search, ChevronRight, 
   Trash2, Upload, AlertCircle, FileArchive, FileCode, 
   Image, FileText, Edit, Edit2, Download, ArrowRightLeft, 
-  Plus, Save
+  Plus, Save, Home, ArrowUp, CornerDownRight
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
@@ -44,6 +44,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lineNumbersRef = useRef<HTMLDivElement>(null);
 
   // Real files loaded from backend API
   const [filesDb, setFilesDb] = useState<FileItem[]>([]);
@@ -68,6 +69,10 @@ export const FileManager: React.FC<FileManagerProps> = ({
   const [moveItem, setMoveItem] = useState<FileItem | null>(null);
   const [moveNewPath, setMoveNewPath] = useState('');
   const [isMoving, setIsMoving] = useState(false);
+  const [showBulkMoveModal, setShowBulkMoveModal] = useState<boolean>(false);
+  const [isMovingBulk, setIsMovingBulk] = useState<boolean>(false);
+  const [editorFontSize, setEditorFontSize] = useState<number>(12);
+  const [showHtaccessConfirmModal, setShowHtaccessConfirmModal] = useState<boolean>(false);
 
   const [editFileItem, setEditFileItem] = useState<FileItem | null>(null);
   const [editFileContent, setEditFileContent] = useState('');
@@ -143,18 +148,27 @@ export const FileManager: React.FC<FileManagerProps> = ({
     setMoveNewPath(item.path);
   };
 
-  const executeMove = async () => {
-    if (!moveItem || !moveNewPath.trim() || moveNewPath.trim() === moveItem.path) return;
+  const getParentMovePath = (item: FileItem) => {
+    const parts = item.path.split('/');
+    if (parts.length <= 1) return null; // Root
+    parts.pop(); // Remove item name
+    parts.pop(); // Remove current folder name
+    const parentDir = parts.join('/');
+    return parentDir ? `${parentDir}/${item.name}` : item.name;
+  };
+
+  const executeMoveWithPath = async (targetPath: string) => {
+    if (!moveItem || !targetPath.trim() || targetPath.trim() === moveItem.path) return;
     setIsMoving(true);
     try {
       await apiFetch(`/subdomains/${subdomainId}/file-manager/move`, {
         method: 'POST',
-        body: { path: moveItem.path, newPath: moveNewPath.trim() }
+        body: { path: moveItem.path, newPath: targetPath.trim() }
       });
       addToast({
         type: 'success',
         title: 'Berkas Dipindahkan',
-        message: `Sukses memindahkan ke "/${moveNewPath.trim()}"`,
+        message: `Sukses memindahkan ke "/${targetPath.trim()}"`,
       });
       setMoveItem(null);
       fetchFiles();
@@ -166,6 +180,43 @@ export const FileManager: React.FC<FileManagerProps> = ({
       });
     } finally {
       setIsMoving(false);
+    }
+  };
+
+  const getParentDirPath = () => {
+    if (!currentPath) return null;
+    const parts = currentPath.split('/');
+    parts.pop();
+    return parts.join('/');
+  };
+
+  const executeBulkMove = async (targetFolder: string) => {
+    if (selectedFiles.length === 0) return;
+    setIsMovingBulk(true);
+    try {
+      await apiFetch(`/subdomains/${subdomainId}/file-manager/move`, {
+        method: 'POST',
+        body: { 
+          paths: selectedFiles, 
+          newPath: targetFolder 
+        }
+      });
+      addToast({
+        type: 'success',
+        title: 'Berkas Dipindahkan',
+        message: `Sukses memindahkan ${selectedFiles.length} item ke "/${targetFolder}"`,
+      });
+      setSelectedFiles([]);
+      setShowBulkMoveModal(false);
+      fetchFiles();
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Memindahkan',
+        message: err.message || 'Terjadi kesalahan.',
+      });
+    } finally {
+      setIsMovingBulk(false);
     }
   };
 
@@ -246,8 +297,9 @@ export const FileManager: React.FC<FileManagerProps> = ({
     }
   };
 
-  const isEditableFile = (ext: string) => {
-    return ['php', 'html', 'css', 'js', 'json', 'ts', 'jsx', 'tsx', 'env', 'txt', 'md', 'htaccess'].includes(ext.toLowerCase());
+  const isEditableFile = (ext: string, name?: string) => {
+    const target = (ext || name || '').toLowerCase().replace(/^\./, '');
+    return ['php', 'html', 'css', 'js', 'json', 'ts', 'jsx', 'tsx', 'env', 'txt', 'md', 'htaccess'].includes(target);
   };
 
   useEffect(() => {
@@ -339,16 +391,13 @@ export const FileManager: React.FC<FileManagerProps> = ({
 
   // Delete Action Trigger
   const handleDeleteRequest = (item: FileItem) => {
-    // Safety Action Guard: block deletion of critical .htaccess file
-    if (item.name === '.htaccess') {
-      addToast({
-        type: 'error',
-        title: 'Aksi Ditolak',
-        message: 'Berkas konfigurasi sistem (.htaccess) tidak boleh dihapus demi keamanan virtual host.',
-      });
-      return;
-    }
     setDeleteConfirmItem(item);
+  };
+
+  const handleEditorScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = e.currentTarget.scrollTop;
+    }
   };
 
   const executeDelete = async () => {
@@ -579,8 +628,8 @@ export const FileManager: React.FC<FileManagerProps> = ({
       </div>
 
       {/* Path Breadcrumbs navigation */}
-      <div className="glass-panel px-6 py-3.5 rounded-xl flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-text-muted">
+      <div className="glass-panel px-4 sm:px-6 py-3.5 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs font-bold text-text-muted w-full md:w-auto">
           <Folder className="h-4.5 w-4.5 text-brand-primary shrink-0" />
           <button 
             onClick={() => handleNavigate('')} 
@@ -602,7 +651,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
           ))}
         </div>
 
-        <div className="flex gap-2 select-none">
+        <div className="flex flex-wrap gap-2 select-none w-full md:w-auto justify-start md:justify-end">
           <button
             onClick={() => handleOpenCreateModal('file')}
             className="text-[9px] font-bold uppercase tracking-widest text-brand-primary hover:text-white hover:bg-brand-primary/10 transition-all bg-brand-primary/10 border border-brand-primary/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer font-bold"
@@ -626,13 +675,22 @@ export const FileManager: React.FC<FileManagerProps> = ({
           </button>
 
           {selectedFiles.length > 0 && (
-            <button 
-              onClick={() => setShowBulkDeleteModal(true)}
-              className="text-[9px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-all bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Hapus Terpilih ({selectedFiles.length})
-            </button>
+            <>
+              <button 
+                onClick={() => setShowBulkMoveModal(true)}
+                className="text-[9px] font-bold uppercase tracking-widest text-blue-500 hover:text-blue-400 transition-all bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer font-bold"
+              >
+                <ArrowRightLeft className="h-3.5 w-3.5" />
+                Pindahkan Terpilih ({selectedFiles.length})
+              </button>
+              <button 
+                onClick={() => setShowBulkDeleteModal(true)}
+                className="text-[9px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-all bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer font-bold"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Hapus Terpilih ({selectedFiles.length})
+              </button>
+            </>
           )}
 
           {currentPath !== '' && (
@@ -728,7 +786,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
                         {item.last_modified}
                       </td>
                       <td className="py-3 px-6 text-right pr-8 space-x-1.5">
-                        {!item.is_dir && isEditableFile(item.extension || item.name) && (
+                        {!item.is_dir && isEditableFile(item.extension, item.name) && (
                           <button 
                             onClick={() => handleOpenFileEditor(item)}
                             className="text-cyan-500 hover:text-cyan-400 transition-colors p-1.5 rounded-lg hover:bg-cyan-500/10 cursor-pointer active:scale-95 inline-flex"
@@ -858,6 +916,112 @@ export const FileManager: React.FC<FileManagerProps> = ({
         </div>
       </Modal>
 
+      {/* Bulk Move Modal */}
+      <Modal
+        isOpen={showBulkMoveModal}
+        onClose={() => setShowBulkMoveModal(false)}
+        title={`Pindahkan ${selectedFiles.length} Item Terpilih`}
+        description="Pilih salah satu folder tujuan cepat di bawah ini untuk memindahkan semua item terpilih."
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setShowBulkMoveModal(false)} disabled={isMovingBulk}>
+              Batal
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4 text-left">
+          <div className="space-y-3">
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Pilih Lokasi Tujuan:</span>
+            
+            <div className="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+              {/* 1. Option: Move to Root */}
+              {currentPath !== '' && (
+                <button
+                  type="button"
+                  onClick={() => executeBulkMove('')}
+                  disabled={isMovingBulk}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-border-main hover:border-brand-primary bg-bg-surface/50 hover:bg-brand-primary/5 transition-all text-left text-xs font-semibold text-text-main cursor-pointer"
+                >
+                  <Home className="h-4.5 w-4.5 text-brand-primary shrink-0" />
+                  <div>
+                    <p className="font-bold">Pindahkan ke Root (/)</p>
+                    <p className="text-[10px] text-text-muted font-mono mt-0.5">Tujuan: / (Root)</p>
+                  </div>
+                </button>
+              )}
+
+              {/* 2. Option: Move Up One Level */}
+              {(() => {
+                const parentDir = getParentDirPath();
+                if (parentDir === null) return null;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => executeBulkMove(parentDir)}
+                    disabled={isMovingBulk}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-border-main hover:border-brand-primary bg-bg-surface/50 hover:bg-brand-primary/5 transition-all text-left text-xs font-semibold text-text-main cursor-pointer"
+                  >
+                    <ArrowUp className="h-4.5 w-4.5 text-amber-500 shrink-0" />
+                    <div>
+                      <p className="font-bold">Pindahkan Keluar (Naik 1 Tingkat)</p>
+                      <p className="text-[10px] text-text-muted font-mono mt-0.5">Tujuan: /{parentDir || '(Root)'}</p>
+                    </div>
+                  </button>
+                );
+              })()}
+
+              {/* 3. Option: Move to Subfolders inside current directory */}
+              {filesDb
+                .filter(f => f.is_dir && !selectedFiles.includes(f.path))
+                .map((dir, idx) => {
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => executeBulkMove(dir.path)}
+                      disabled={isMovingBulk}
+                      className="flex items-center gap-3 p-3 rounded-xl border border-border-main hover:border-brand-primary bg-bg-surface/50 hover:bg-brand-primary/5 transition-all text-left text-xs font-semibold text-text-main cursor-pointer"
+                    >
+                      <CornerDownRight className="h-4.5 w-4.5 text-cyan-500 shrink-0" />
+                      <div>
+                        <p className="font-bold">Masuk ke Folder: {dir.name}</p>
+                        <p className="text-[10px] text-text-muted font-mono mt-0.5">Tujuan: /{dir.path}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+
+            {/* 4. Manual Custom Path */}
+            <div className="pt-3.5 border-t border-border-main/50 space-y-2">
+              <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Path Tujuan Kustom (Manual):</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  id="bulkMoveManualPath"
+                  placeholder="contoh: public/assets"
+                  className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2 text-xs font-semibold text-text-main outline-none transition-all font-mono"
+                />
+                <Button 
+                  variant="primary" 
+                  onClick={() => {
+                    const val = (document.getElementById('bulkMoveManualPath') as HTMLInputElement)?.value;
+                    if (val) executeBulkMove(val);
+                  }} 
+                  isLoading={isMovingBulk}
+                  size="sm"
+                  className="shrink-0 rounded-xl"
+                >
+                  Pindahkan
+                </Button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </Modal>
+
       {/* ZIP Extraction Confirmation Modal */}
       <Modal
         isOpen={extractingZipItem !== null}
@@ -948,29 +1112,112 @@ export const FileManager: React.FC<FileManagerProps> = ({
       <Modal
         isOpen={moveItem !== null}
         onClose={() => setMoveItem(null)}
-        title="Pindahkan File / Folder"
-        description="Masukkan path folder tujuan (relatif dari root, pisahkan dengan garis miring)."
+        title={`Pindahkan: ${moveItem?.name || ''}`}
+        description="Pilih salah satu folder tujuan cepat di bawah ini atau tentukan path secara manual."
         footerActions={
           <>
             <Button variant="secondary" onClick={() => setMoveItem(null)} disabled={isMoving}>
               Batal
             </Button>
-            <Button variant="primary" onClick={executeMove} isLoading={isMoving}>
-              Pindahkan
-            </Button>
           </>
         }
       >
-        <div className="space-y-3">
-          <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block text-left">Path Tujuan:</label>
-          <input
-            type="text"
-            value={moveNewPath}
-            onChange={(e) => setMoveNewPath(e.target.value)}
-            placeholder="contoh: public/assets/image.png"
-            className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all font-mono"
-            autoFocus
-          />
+        <div className="space-y-4 text-left">
+          {moveItem && (
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Pilih Lokasi Tujuan:</span>
+              
+              <div className="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+                {/* 1. Option: Move to Root */}
+                {moveItem.path.includes('/') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMoveNewPath(moveItem.name);
+                      executeMoveWithPath(moveItem.name);
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-border-main hover:border-brand-primary bg-bg-surface/50 hover:bg-brand-primary/5 transition-all text-left text-xs font-semibold text-text-main cursor-pointer"
+                  >
+                    <Home className="h-4.5 w-4.5 text-brand-primary shrink-0" />
+                    <div>
+                      <p className="font-bold">Pindahkan ke Root (/)</p>
+                      <p className="text-[10px] text-text-muted font-mono mt-0.5">Tujuan: /{moveItem.name}</p>
+                    </div>
+                  </button>
+                )}
+
+                {/* 2. Option: Move Up One Level */}
+                {(() => {
+                  const parentPath = getParentMovePath(moveItem);
+                  if (!parentPath) return null;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMoveNewPath(parentPath);
+                        executeMoveWithPath(parentPath);
+                      }}
+                      className="flex items-center gap-3 p-3 rounded-xl border border-border-main hover:border-brand-primary bg-bg-surface/50 hover:bg-brand-primary/5 transition-all text-left text-xs font-semibold text-text-main cursor-pointer"
+                    >
+                      <ArrowUp className="h-4.5 w-4.5 text-amber-500 shrink-0" />
+                      <div>
+                        <p className="font-bold">Pindahkan Keluar (Naik 1 Tingkat)</p>
+                        <p className="text-[10px] text-text-muted font-mono mt-0.5">Tujuan: /{parentPath}</p>
+                      </div>
+                    </button>
+                  );
+                })()}
+
+                {/* 3. Option: Move to Subfolders inside current directory */}
+                {filesDb
+                  .filter(f => f.is_dir && f.path !== moveItem.path && !f.path.startsWith(moveItem.path + '/'))
+                  .map((dir, idx) => {
+                    const destPath = `${dir.path}/${moveItem.name}`;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setMoveNewPath(destPath);
+                          executeMoveWithPath(destPath);
+                        }}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-border-main hover:border-brand-primary bg-bg-surface/50 hover:bg-brand-primary/5 transition-all text-left text-xs font-semibold text-text-main cursor-pointer"
+                      >
+                        <CornerDownRight className="h-4.5 w-4.5 text-cyan-500 shrink-0" />
+                        <div>
+                          <p className="font-bold">Masuk ke Folder: {dir.name}</p>
+                          <p className="text-[10px] text-text-muted font-mono mt-0.5">Tujuan: /{destPath}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+
+              {/* 4. Manual Custom Path */}
+              <div className="pt-3.5 border-t border-border-main/50 space-y-2">
+                <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Path Tujuan Kustom (Manual):</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={moveNewPath}
+                    onChange={(e) => setMoveNewPath(e.target.value)}
+                    placeholder="contoh: public/assets/logo.png"
+                    className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2 text-xs font-semibold text-text-main outline-none transition-all font-mono"
+                  />
+                  <Button 
+                    variant="primary" 
+                    onClick={() => executeMoveWithPath(moveNewPath)} 
+                    isLoading={isMoving}
+                    size="sm"
+                    className="shrink-0 rounded-xl"
+                  >
+                    Pindahkan
+                  </Button>
+                </div>
+              </div>
+
+            </div>
+          )}
         </div>
       </Modal>
 
@@ -978,8 +1225,8 @@ export const FileManager: React.FC<FileManagerProps> = ({
       <Modal
         isOpen={editFileItem !== null}
         onClose={() => setEditFileItem(null)}
-        title={`Mengedit File: ${editFileItem?.name || ''}`}
-        size="lg"
+        title={`Mengedit File: ${editFileItem?.name || ''} ${editFileItem ? `(${editFileItem.size})` : ''}`}
+        size="xl"
         footerActions={
           <>
             <Button variant="secondary" onClick={() => setEditFileItem(null)} disabled={isSavingContent}>
@@ -1000,13 +1247,68 @@ export const FileManager: React.FC<FileManagerProps> = ({
           </div>
         ) : (
           <div className="w-full">
-            <textarea
-              value={editFileContent}
-              onChange={(e) => setEditFileContent(e.target.value)}
-              rows={16}
-              className="w-full bg-black/60 border border-border-main rounded-xl p-4 text-xs font-mono text-cyan-400 outline-none transition-all resize-none leading-relaxed"
-              spellCheck="false"
-            />
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-2.5 select-none text-[10px] font-bold text-text-muted uppercase tracking-wider">
+              <div className="flex flex-wrap items-center gap-3">
+                <span>Format: {editFileItem?.extension || 'Text'}</span>
+                <span className="text-border-main/50">|</span>
+                <div className="flex items-center gap-1.5 normal-case font-semibold">
+                  <span>Ukuran Teks:</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setEditorFontSize(prev => Math.max(10, prev - 1))}
+                    className="px-2 py-0.5 rounded bg-bg-surface border border-border-main hover:text-white transition-colors cursor-pointer text-[9px]"
+                  >
+                    A-
+                  </button>
+                  <span className="font-mono text-text-main text-[11px] px-1">{editorFontSize}px</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setEditorFontSize(prev => Math.min(24, prev + 1))}
+                    className="px-2 py-0.5 rounded bg-bg-surface border border-border-main hover:text-white transition-colors cursor-pointer text-[9px]"
+                  >
+                    A+
+                  </button>
+                </div>
+              </div>
+              {editFileItem?.name.toLowerCase() === '.htaccess' && (
+                <button
+                  type="button"
+                  onClick={() => setShowHtaccessConfirmModal(true)}
+                  className="text-brand-primary hover:text-orange-400 transition-colors flex items-center gap-1 cursor-pointer bg-transparent border-none font-bold text-left"
+                >
+                  ⚡ Gunakan Template .htaccess Default
+                </button>
+              )}
+            </div>
+            <div className="flex bg-black/60 border border-border-main rounded-xl overflow-hidden font-mono text-xs text-cyan-400 relative">
+              {/* Line numbers column */}
+              <div 
+                ref={lineNumbersRef}
+                className="select-none text-right pr-3 pl-2 py-4 bg-zinc-950/40 text-slate-600 border-r border-border-main/30 leading-relaxed shrink-0 min-w-[36px] overflow-hidden"
+                style={{ 
+                  height: '450px', 
+                  fontSize: `${editorFontSize}px`,
+                  lineHeight: `${editorFontSize * 1.5}px` 
+                }}
+              >
+                {editFileContent.split('\n').map((_, idx) => (
+                  <div key={idx} style={{ height: `${editorFontSize * 1.5}px` }}>{idx + 1}</div>
+                ))}
+              </div>
+              <textarea
+                value={editFileContent}
+                onChange={(e) => setEditFileContent(e.target.value)}
+                onScroll={handleEditorScroll}
+                className="w-full bg-transparent px-3 py-4 text-cyan-400 outline-none transition-all resize-none leading-relaxed overflow-x-auto whitespace-pre font-mono"
+                spellCheck="false"
+                style={{ 
+                  tabSize: 4, 
+                  height: '450px', 
+                  fontSize: `${editorFontSize}px`,
+                  lineHeight: `${editorFontSize * 1.5}px` 
+                }}
+              />
+            </div>
           </div>
         )}
       </Modal>
@@ -1014,7 +1316,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
       {/* Floating Upload Progress Card */}
       {isUploading && (
         <div 
-          className="fixed bottom-6 right-6 z-50 w-80 p-5 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-5 duration-200"
+          className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 left-4 sm:left-auto z-50 w-[calc(100%-2rem)] sm:w-80 p-5 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-5 duration-200"
           style={{
             background: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(251,146,60,0.08))',
             backdropFilter: 'blur(16px)',
@@ -1037,6 +1339,34 @@ export const FileManager: React.FC<FileManagerProps> = ({
           </div>
         </div>
       )}
+
+      {/* Htaccess default confirmation */}
+      <Modal
+        isOpen={showHtaccessConfirmModal}
+        onClose={() => setShowHtaccessConfirmModal(false)}
+        title="Gunakan Template .htaccess Default?"
+        description="Aksi ini akan menimpa seluruh isi editor berkas saat ini dengan template penataan ulang URL default Subly."
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setShowHtaccessConfirmModal(false)}>
+              Batal
+            </Button>
+            <Button variant="primary" onClick={() => {
+              setEditFileContent(
+                `# Subly Default Routing .htaccess\nRewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^ index.php [L]\n`
+              );
+              setShowHtaccessConfirmModal(false);
+            }}>
+              Gunakan Template
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-brand-primary/5 border border-brand-primary/10 text-brand-primary text-xs text-left">
+          <AlertCircle className="h-5 w-5 text-brand-primary shrink-0" />
+          <p className="font-semibold">Catatan: Seluruh kode yang sedang Anda edit saat ini akan digantikan secara instan. Pastikan Anda telah membackup kode penting jika diperlukan.</p>
+        </div>
+      </Modal>
     </div>
   );
 };

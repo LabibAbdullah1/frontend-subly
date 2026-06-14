@@ -5,7 +5,7 @@ import {
   Settings, FolderKanban, 
   ArrowLeft, Layers, ChevronRight,
   GitPullRequest, CheckCircle2, XCircle, Clock, Zap, RotateCcw, GitBranch, RefreshCw,
-  Star
+  Star, AlertCircle, Trash2
 } from 'lucide-react';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
@@ -55,6 +55,7 @@ export const SubdomainPortal: React.FC = () => {
   const [selectedBranch, setSelectedBranch] = useState('main');
   const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
   const [branchesList, setBranchesList] = useState<string[]>(['main', 'master']);
+  const [showGitDisconnectModal, setShowGitDisconnectModal] = useState(false);
 
   // Git Pull state
   type PullStatus = 'idle' | 'pulling' | 'success' | 'error';
@@ -293,14 +294,12 @@ export const SubdomainPortal: React.FC = () => {
 
   const [isDisconnectingGit, setIsDisconnectingGit] = useState(false);
 
-  const handleDisconnectGit = async () => {
-    if (!subdomain) return;
-    const confirmText = language === 'id' 
-      ? 'Apakah Anda yakin ingin memutuskan hubungan repositori Git? Metode sinkronisasi subdomain akan kembali menjadi Upload ZIP Manual.'
-      : 'Are you sure you want to disconnect the Git repository? The subdomain synchronization method will return to Manual ZIP Upload.';
-    
-    if (!window.confirm(confirmText)) return;
+  const handleDisconnectGit = () => {
+    setShowGitDisconnectModal(true);
+  };
 
+  const executeGitDisconnect = async () => {
+    if (!subdomain) return;
     setIsDisconnectingGit(true);
     try {
       await disconnectSubdomainGit(subdomain.id);
@@ -315,11 +314,12 @@ export const SubdomainPortal: React.FC = () => {
           ? 'Koneksi repositori Git berhasil diputuskan. Metode sinkronisasi kembali ke ZIP Manual.'
           : 'Git repository connection has been successfully disconnected. Synchronization method returned to Manual ZIP.',
       });
+      setShowGitDisconnectModal(false);
     } catch (err: any) {
       addToast({
         type: 'error',
-        title: language === 'id' ? 'Gagal' : 'Failed',
-        message: err.message || (language === 'id' ? 'Gagal memutuskan hubungan Git.' : 'Failed to disconnect Git.'),
+        title: language === 'id' ? 'Gagal Memutuskan Git' : 'Failed to Disconnect Git',
+        message: err.message || 'Terjadi kesalahan.',
       });
     } finally {
       setIsDisconnectingGit(false);
@@ -1094,21 +1094,22 @@ export const SubdomainPortal: React.FC = () => {
                           value={env.key}
                           onChange={(e) => handleUpdateEnvRowKey(env.id, e.target.value)}
                           placeholder="KEY_NAME"
-                          className="w-1/3 bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-3 py-2 text-xs font-semibold font-mono text-text-main uppercase outline-none transition-all"
+                          className="w-[35%] sm:w-1/3 bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-2.5 sm:px-3 py-2 text-xs font-semibold font-mono text-text-main uppercase outline-none transition-all"
                         />
                         <input
                           type="text"
                           value={env.value}
                           onChange={(e) => handleUpdateEnvRowValue(env.id, e.target.value)}
                           placeholder="value_setting"
-                          className="flex-1 bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-3 py-2 text-xs font-semibold font-mono text-text-main outline-none transition-all"
+                          className="flex-1 bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-2.5 sm:px-3 py-2 text-xs font-semibold font-mono text-text-main outline-none transition-all"
                         />
                         <button
                           type="button"
                           onClick={() => handleRemoveEnvRow(env.id)}
-                          className="text-text-muted hover:text-red-500 p-2 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-[0.95] shrink-0 text-xs font-bold"
+                          className="text-text-muted hover:text-red-500 p-2 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-[0.95] shrink-0 inline-flex items-center justify-center transition-colors"
+                          title={t('delete')}
                         >
-                          {t('delete')}
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     ))}
@@ -1180,6 +1181,39 @@ export const SubdomainPortal: React.FC = () => {
         )}
 
       </div>
+
+      {/* Git Disconnect Confirmation Modal */}
+      <Modal
+        isOpen={showGitDisconnectModal}
+        onClose={() => setShowGitDisconnectModal(false)}
+        title={language === 'id' ? 'Putuskan Hubungan Git?' : 'Disconnect Git Repository?'}
+        description={language === 'id' 
+          ? 'Apakah Anda yakin ingin memutuskan hubungan repositori Git? Metode sinkronisasi subdomain akan kembali menjadi Upload ZIP Manual.'
+          : 'Are you sure you want to disconnect the Git repository? The subdomain synchronization method will return to Manual ZIP Upload.'
+        }
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setShowGitDisconnectModal(false)} disabled={isDisconnectingGit}>
+              {language === 'id' ? 'Batal' : 'Cancel'}
+            </Button>
+            <Button variant="danger" onClick={executeGitDisconnect} isLoading={isDisconnectingGit}>
+              {language === 'id' ? 'Putuskan Hubungan' : 'Disconnect'}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-red-600 dark:text-red-400">
+          <AlertCircle className="h-5 w-5 shrink-0 animate-bounce" />
+          <div className="text-xs text-left">
+            <p className="font-bold">{language === 'id' ? 'Tindakan ini akan:' : 'This action will:'}</p>
+            <ul className="list-disc list-inside mt-1 space-y-0.5 font-semibold text-text-muted">
+              <li>{language === 'id' ? 'Menghapus token akses Git yang tersimpan' : 'Remove saved Git access tokens'}</li>
+              <li>{language === 'id' ? 'Menghentikan live console log Git webhook' : 'Stop live console log Git webhooks'}</li>
+              <li>{language === 'id' ? 'Mengubah metode deploy kembali ke ZIP Manual' : 'Revert deploy method to Manual ZIP'}</li>
+            </ul>
+          </div>
+        </div>
+      </Modal>
 
       {/* SUCCESS & TESTIMONIAL FEEDBACK MODAL */}
       <Modal
