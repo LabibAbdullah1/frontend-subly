@@ -628,7 +628,7 @@ export const LandingPage: React.FC = () => {
                       <span className="text-zinc-400 font-semibold">Status Subdomain (Hari 1-30)</span>
                       <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block animate-pulse"></span>
-                        ONLINE / AKTIF
+                        ONLINE
                       </span>
                     </div>
 
@@ -636,7 +636,7 @@ export const LandingPage: React.FC = () => {
                       <span className="text-zinc-400 font-semibold">Status setelah 30 hari pasif</span>
                       <span className="px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 font-bold flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-orange-400 rounded-full inline-block"></span>
-                        HIBERNASI / SUSPENDED
+                        SUSPENDED
                       </span>
                     </div>
 
