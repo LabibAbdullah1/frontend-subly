@@ -854,7 +854,21 @@ export const translations = {
     privacyRule2Title: 'Keamanan Berkas:',
     privacyRule2Desc: 'Berkas PHP/NodeJS Anda aman di direktori terenkripsi dan tidak akan dibagikan ke pihak ketiga mana pun.',
     privacyRule3Title: 'Penghapusan Data:',
-    privacyRule3Desc: 'Pengguna dapat mengajukan penghapusan akun permanen melalui tiket bantuan dukungan live chat cPanel.'
+    privacyRule3Desc: 'Pengguna dapat mengajukan penghapusan akun permanen melalui tiket bantuan dukungan live chat cPanel.',
+
+    // Feedback Modal after first deployment
+    deploySuccessFeedbackTitle: 'Deployment Berhasil! 🎉',
+    deploySuccessFeedbackDesc: 'Selamat! Website Anda kini online dan aktif. Kami ingin mendengar pengalaman Anda mendeploy proyek pertama Anda di Subly.',
+    deploySuccessFeedbackRating: 'Bagaimana pengalaman Anda?',
+    deploySuccessFeedbackCommentTitle: 'Judul Feedback',
+    deploySuccessFeedbackContent: 'Tulis komentar Anda...',
+    deploySuccessFeedbackTemplates: 'Pilih Template Cepat:',
+    deploySuccessFeedbackSubmit: 'Kirim Testimonial',
+    deploySuccessFeedbackSkip: 'Lewati & Ingatkan Nanti',
+    deploySuccessFeedbackTemplate1: 'Deployment sangat cepat dan mudah! Hanya hitungan detik langsung online.',
+    deploySuccessFeedbackTemplate2: 'Fitur integrasi Git otomatisnya luar biasa memudahkan sinkronisasi kode.',
+    deploySuccessFeedbackTemplate3: 'Interface platform sangat modern, bersih, dan mudah dipahami developer pemula.',
+    deploySuccessFeedbackTemplate4: 'Layanan cloud hosting murah dengan resource performa tinggi. Sangat recommended!'
   },
   en: {
     // Common
@@ -1709,7 +1723,21 @@ export const translations = {
     privacyRule2Title: 'File Security:',
     privacyRule2Desc: 'Your PHP/NodeJS files are safe in encrypted directories and will not be shared with any third party.',
     privacyRule3Title: 'Data Deletion:',
-    privacyRule3Desc: 'Users can request permanent account deletion via the cPanel live chat support ticket.'
+    privacyRule3Desc: 'Users can request permanent account deletion via the cPanel live chat support ticket.',
+
+    // Feedback Modal after first deployment
+    deploySuccessFeedbackTitle: 'Deployment Successful! 🎉',
+    deploySuccessFeedbackDesc: 'Congratulations! Your website is now live and active. We would love to hear about your experience deploying your first project on Subly.',
+    deploySuccessFeedbackRating: 'How was your experience?',
+    deploySuccessFeedbackCommentTitle: 'Feedback Title',
+    deploySuccessFeedbackContent: 'Write your comment here...',
+    deploySuccessFeedbackTemplates: 'Choose a Quick Template:',
+    deploySuccessFeedbackSubmit: 'Submit Testimonial',
+    deploySuccessFeedbackSkip: 'Skip & Remind Me Later',
+    deploySuccessFeedbackTemplate1: 'Very fast and easy deployment! Live in seconds.',
+    deploySuccessFeedbackTemplate2: 'The auto Git integration feature is amazing and makes code sync so easy.',
+    deploySuccessFeedbackTemplate3: 'The platform interface is very modern, clean, and easy for beginners to understand.',
+    deploySuccessFeedbackTemplate4: 'Affordable cloud hosting with high performance resources. Highly recommended!'
   }
 };
 export type TranslationKeys = keyof typeof translations.id;

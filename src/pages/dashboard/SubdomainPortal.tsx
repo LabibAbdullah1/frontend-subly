@@ -4,7 +4,8 @@ import {
   Github, KeyRound, Terminal, 
   Settings, FolderKanban, 
   ArrowLeft, Layers, ChevronRight,
-  GitPullRequest, CheckCircle2, XCircle, Clock, Zap, RotateCcw, GitBranch, RefreshCw
+  GitPullRequest, CheckCircle2, XCircle, Clock, Zap, RotateCcw, GitBranch, RefreshCw,
+  Star
 } from 'lucide-react';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
@@ -15,6 +16,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { TerminalConsole } from '../../components/dashboard/TerminalConsole';
 import { FileManager } from '../../components/dashboard/FileManager';
+import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
 
 type SubTab = 'overview' | 'git-env' | 'files' | 'logs';
@@ -27,7 +29,9 @@ export const SubdomainPortal: React.FC = () => {
     subdomains, 
     updateSubdomainGit,
     updateEnvs,
-    triggerRealDeployment
+    triggerRealDeployment,
+    submitTestimonial,
+    fetchMyTestimonials
   } = useDataStore();
 
   const subdomain = subdomains.find(s => s.id === currentSubdomainId);
@@ -72,6 +76,19 @@ export const SubdomainPortal: React.FC = () => {
   ]);
   const [rawEnvText, setRawEnvText] = useState('');
   const [isSavingEnvs, setIsSavingEnvs] = useState(false);
+
+  // Testimonial Modal states
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(5);
+  const [feedbackHoverRating, setFeedbackHoverRating] = useState<number | null>(null);
+  const [feedbackTitle, setFeedbackTitle] = useState('');
+  const [feedbackContent, setFeedbackContent] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+
+  // Load testimonials on mount
+  useEffect(() => {
+    fetchMyTestimonials();
+  }, [fetchMyTestimonials]);
 
   // Load existing git settings on open
   useEffect(() => {
@@ -162,6 +179,58 @@ export const SubdomainPortal: React.FC = () => {
       setIsSavingEnvs(false);
     }
   };
+  const checkAndTriggerFeedback = () => {
+    const latestSubdomain = useDataStore.getState().subdomains.find(s => s.id === currentSubdomainId);
+    const latestMyTestimonials = useDataStore.getState().myTestimonials;
+    
+    if (!latestSubdomain) return;
+    
+    const alreadyHasTestimonial = latestMyTestimonials.some(t => Number(t.subdomain_id) === Number(latestSubdomain.id));
+    if (alreadyHasTestimonial) return;
+
+    const successDeployments = (latestSubdomain.deployments || []).filter(d => d.status === 'success');
+    const isFirstSuccessDeploy = successDeployments.length === 1;
+    const hasNoTestimonials = latestMyTestimonials.length === 0;
+
+    if (isFirstSuccessDeploy || hasNoTestimonials) {
+      setFeedbackRating(5);
+      setFeedbackTitle(t('deploySuccessFeedbackTemplate1').substring(0, 30));
+      setFeedbackContent(t('deploySuccessFeedbackTemplate1'));
+      setShowFeedbackModal(true);
+    }
+  };
+
+  const handleFeedbackSubmit = async () => {
+    if (!subdomain) return;
+    if (!feedbackTitle.trim() || !feedbackContent.trim()) {
+      addToast({
+        type: 'error',
+        title: t('error'),
+        message: t('fillAllFieldsError'),
+      });
+      return;
+    }
+
+    setIsSubmittingFeedback(true);
+    try {
+      await submitTestimonial(subdomain.id, feedbackRating, feedbackTitle, feedbackContent);
+      addToast({
+        type: 'success',
+        title: t('success'),
+        message: t('testimonialSubmitSuccess'),
+      });
+      setShowFeedbackModal(false);
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: t('error'),
+        message: err.message || t('testimonialSubmitError'),
+      });
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
+
 
   const handleVerifyGit = async () => {
     if (!gitUrlInput.startsWith('https://github.com/')) {
@@ -212,6 +281,7 @@ export const SubdomainPortal: React.FC = () => {
       });
       await triggerRealDeployment(subdomain.id);
       setActiveSubTab('logs'); // Redirect to logs tab automatically
+      checkAndTriggerFeedback();
     } catch {
       addToast({
         type: 'error',
@@ -235,6 +305,7 @@ export const SubdomainPortal: React.FC = () => {
           title: 'Deploy Sukses',
           message: 'Website Anda telah dideploy dan aktif.',
         });
+        checkAndTriggerFeedback();
       } catch (err: any) {
         addToast({
           type: 'error',
@@ -288,6 +359,7 @@ export const SubdomainPortal: React.FC = () => {
         title: t('toastGitPullSuccessTitle'),
         message: t('toastGitPullSuccessMsg').replace('{branch}', subdomain.git_branch || 'main'),
       });
+      checkAndTriggerFeedback();
     } catch (err: any) {
       if (pullTimerRef.current) clearInterval(pullTimerRef.current);
       setPullLogs(prev => [
@@ -966,6 +1038,125 @@ export const SubdomainPortal: React.FC = () => {
         )}
 
       </div>
+
+      {/* SUCCESS & TESTIMONIAL FEEDBACK MODAL */}
+      <Modal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        title={t('deploySuccessFeedbackTitle')}
+        size="md"
+        footerActions={
+          <div className="flex items-center justify-between w-full select-none">
+            <button
+              onClick={() => setShowFeedbackModal(false)}
+              className="text-xs font-bold text-text-muted hover:text-text-main transition-colors cursor-pointer bg-transparent border-none py-2 px-4"
+            >
+              {t('deploySuccessFeedbackSkip')}
+            </button>
+            <Button
+              variant="primary"
+              size="sm"
+              isLoading={isSubmittingFeedback}
+              onClick={handleFeedbackSubmit}
+            >
+              {t('deploySuccessFeedbackSubmit')}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-5">
+          <p className="text-xs text-text-muted leading-relaxed select-none">
+            {t('deploySuccessFeedbackDesc')}
+          </p>
+
+          {/* Rating Stars */}
+          <div className="space-y-1.5 select-none">
+            <label className="text-[10px] font-black uppercase text-text-muted tracking-wider block">
+              {t('deploySuccessFeedbackRating')}
+            </label>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setFeedbackRating(star)}
+                  onMouseEnter={() => setFeedbackHoverRating(star)}
+                  onMouseLeave={() => setFeedbackHoverRating(null)}
+                  className="p-1 rounded-lg hover:bg-border-main/20 transition-all border-none cursor-pointer bg-transparent"
+                >
+                  <Star
+                    className={`h-7 w-7 transition-colors ${
+                      star <= (feedbackHoverRating ?? feedbackRating)
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-text-muted/40'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Templates */}
+          <div className="space-y-1.5 select-none">
+            <label className="text-[10px] font-black uppercase text-text-muted tracking-wider block">
+              {t('deploySuccessFeedbackTemplates')}
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {[
+                { key: 'deploySuccessFeedbackTemplate1', icon: '⚡' },
+                { key: 'deploySuccessFeedbackTemplate2', icon: '🛠️' },
+                { key: 'deploySuccessFeedbackTemplate3', icon: '💎' },
+                { key: 'deploySuccessFeedbackTemplate4', icon: '🚀' }
+              ].map((item, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    const contentText = t(item.key as any);
+                    setFeedbackContent(contentText);
+                    setFeedbackTitle(contentText.substring(0, 30));
+                  }}
+                  className="text-left text-[11px] p-3 rounded-xl border border-border-main/60 bg-bg-surface hover:border-brand-primary hover:bg-brand-primary/5 transition-all cursor-pointer flex items-start gap-2 text-text-main font-semibold leading-relaxed"
+                >
+                  <span className="text-base shrink-0 select-none">{item.icon}</span>
+                  <span className="line-clamp-2">{t(item.key as any)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Comment Fields */}
+          <div className="space-y-3.5">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase text-text-muted tracking-wider block">
+                {t('deploySuccessFeedbackCommentTitle')}
+              </label>
+              <input
+                type="text"
+                value={feedbackTitle}
+                onChange={(e) => setFeedbackTitle(e.target.value)}
+                placeholder={t('testimonialTitlePlaceholder')}
+                className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase text-text-muted tracking-wider block">
+                {t('commentContent')}
+              </label>
+              <textarea
+                rows={3}
+                value={feedbackContent}
+                onChange={(e) => setFeedbackContent(e.target.value)}
+                placeholder={t('testimonialContentPlaceholder')}
+                className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none resize-none transition-all"
+                required
+              />
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
