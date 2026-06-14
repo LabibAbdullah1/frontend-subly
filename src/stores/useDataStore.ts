@@ -62,6 +62,7 @@ interface DataState {
   deleteSubdomain: (id: number) => Promise<void>;
   toggleSubdomainStatus: (id: number, status: 'active' | 'inactive') => Promise<void>;
   updateSubdomainGit: (id: number, url: string, branch: string, token?: string) => Promise<void>;
+  disconnectSubdomainGit: (id: number) => Promise<void>;
 
   addDatabase: (subdomainId: number, dbName: string, dbUser: string) => Promise<UserDatabase>;
   deleteDatabase: (id: number) => Promise<void>;
@@ -489,6 +490,13 @@ export const useDataStore = create<DataState>((set, get) => ({
     await apiFetch(`/subdomains/${id}/git/connect`, {
       method: 'POST',
       body: { git_url: url, git_branch: branch, git_token: token || null }
+    });
+    await get().fetchSubdomains();
+  },
+
+  disconnectSubdomainGit: async (id) => {
+    await apiFetch(`/subdomains/${id}/git/disconnect`, {
+      method: 'POST'
     });
     await get().fetchSubdomains();
   },

@@ -28,6 +28,7 @@ export const SubdomainPortal: React.FC = () => {
   const { 
     subdomains, 
     updateSubdomainGit,
+    disconnectSubdomainGit,
     updateEnvs,
     triggerRealDeployment,
     submitTestimonial,
@@ -287,6 +288,41 @@ export const SubdomainPortal: React.FC = () => {
         title: 'Gagal',
         message: 'Gagal mengaitkan repositori Git.',
       });
+    }
+  };
+
+  const [isDisconnectingGit, setIsDisconnectingGit] = useState(false);
+
+  const handleDisconnectGit = async () => {
+    if (!subdomain) return;
+    const confirmText = language === 'id' 
+      ? 'Apakah Anda yakin ingin memutuskan hubungan repositori Git? Metode sinkronisasi subdomain akan kembali menjadi Upload ZIP Manual.'
+      : 'Are you sure you want to disconnect the Git repository? The subdomain synchronization method will return to Manual ZIP Upload.';
+    
+    if (!window.confirm(confirmText)) return;
+
+    setIsDisconnectingGit(true);
+    try {
+      await disconnectSubdomainGit(subdomain.id);
+      setGitUrlInput('');
+      setGitVerified(false);
+      setGitTokenInput('');
+      setSelectedBranch('main');
+      addToast({
+        type: 'success',
+        title: language === 'id' ? 'Git Terputus' : 'Git Disconnected',
+        message: language === 'id' 
+          ? 'Koneksi repositori Git berhasil diputuskan. Metode sinkronisasi kembali ke ZIP Manual.'
+          : 'Git repository connection has been successfully disconnected. Synchronization method returned to Manual ZIP.',
+      });
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: language === 'id' ? 'Gagal' : 'Failed',
+        message: err.message || (language === 'id' ? 'Gagal memutuskan hubungan Git.' : 'Failed to disconnect Git.'),
+      });
+    } finally {
+      setIsDisconnectingGit(false);
     }
   };
 
@@ -915,11 +951,25 @@ export const SubdomainPortal: React.FC = () => {
                     <Button 
                       type="button" 
                       variant="secondary"
+                      className="rounded-xl text-[11px] font-bold py-2.5"
                       isLoading={isVerifyingGit}
                       onClick={handleVerifyGit}
                     >
                       {t('checkRepoBtn')}
                     </Button>
+                    {subdomain.git_url && (
+                      <button
+                        type="button"
+                        onClick={handleDisconnectGit}
+                        disabled={isDisconnectingGit}
+                        className="px-4 py-2.5 rounded-xl border border-red-500/30 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-[11px] font-bold transition-all cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isDisconnectingGit 
+                          ? (language === 'id' ? 'Memutus...' : 'Disconnecting...') 
+                          : (language === 'id' ? 'Putuskan Hubungan Git' : 'Disconnect')
+                        }
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1115,7 +1165,13 @@ export const SubdomainPortal: React.FC = () => {
 
         {/* LOGS & CONSOLE SUB-TAB */}
         {activeSubTab === 'logs' && (
-          <div className="w-full animate-in fade-in duration-200">
+          <div className="w-full animate-in fade-in duration-200 space-y-4">
+            <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 text-blue-400 text-xs leading-relaxed select-none">
+              <span className="font-bold">💡 Info:</span> {language === 'id' 
+                ? 'Fitur Live Console Log saat ini hanya mendukung aplikasi dengan runtime Node.js. Jika Anda menggunakan PHP atau Laravel, silakan periksa file logs secara manual (seperti file error_log atau storage/logs/laravel.log) melalui menu File Explorer.'
+                : 'Live Console Log is currently only available for Node.js runtime applications. If you are using PHP or Laravel, please check your log files manually (such as error_log or storage/logs/laravel.log) via the File Explorer tab.'
+              }
+            </div>
             <TerminalConsole
               streamUrl={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subdomains/${subdomain.id}/logs/stream`}
               title={`${subdomain.name}.${import.meta.env.VITE_ROOT_DOMAIN || 'subly.my.id'} — Live Console`}

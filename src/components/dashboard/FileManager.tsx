@@ -3,7 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Folder, Search, ChevronRight, 
   Trash2, Upload, AlertCircle, FileArchive, FileCode, 
-  Image, FileText
+  Image, FileText, Edit, Edit2, Download, ArrowRightLeft, 
+  Plus, Save
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
@@ -35,7 +36,6 @@ export const FileManager: React.FC<FileManagerProps> = ({
 
   const [currentPath, setCurrentPath] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [dragActive, setDragActive] = useState<boolean>(false);
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<FileItem | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
@@ -54,6 +54,201 @@ export const FileManager: React.FC<FileManagerProps> = ({
   const [isDeletingBulk, setIsDeletingBulk] = useState<boolean>(false);
   const [extractingZipItem, setExtractingZipItem] = useState<FileItem | null>(null);
   const [isExtracting, setIsExtracting] = useState<boolean>(false);
+
+  // Advanced File Manager States
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createType, setCreateType] = useState<'file' | 'folder'>('file');
+  const [createName, setCreateName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  const [renameItem, setRenameItem] = useState<FileItem | null>(null);
+  const [renameNewName, setRenameNewName] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
+
+  const [moveItem, setMoveItem] = useState<FileItem | null>(null);
+  const [moveNewPath, setMoveNewPath] = useState('');
+  const [isMoving, setIsMoving] = useState(false);
+
+  const [editFileItem, setEditFileItem] = useState<FileItem | null>(null);
+  const [editFileContent, setEditFileContent] = useState('');
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const [isSavingContent, setIsSavingContent] = useState(false);
+
+  const handleOpenCreateModal = (type: 'file' | 'folder') => {
+    setCreateType(type);
+    setCreateName('');
+    setShowCreateModal(true);
+  };
+
+  const executeCreate = async () => {
+    if (!createName.trim()) return;
+    setIsCreating(true);
+    try {
+      const fullRelativePath = currentPath ? `${currentPath}/${createName.trim()}` : createName.trim();
+      await apiFetch(`/subdomains/${subdomainId}/file-manager/create`, {
+        method: 'POST',
+        body: { path: fullRelativePath, type: createType }
+      });
+      addToast({
+        type: 'success',
+        title: createType === 'folder' ? 'Folder Dibuat' : 'Berkas Dibuat',
+        message: `Sukses membuat ${createType === 'folder' ? 'folder' : 'berkas'} "${createName.trim()}"`,
+      });
+      setShowCreateModal(false);
+      fetchFiles();
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Membuat',
+        message: err.message || 'Terjadi kesalahan.',
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleOpenRenameModal = (item: FileItem) => {
+    setRenameItem(item);
+    setRenameNewName(item.name);
+  };
+
+  const executeRename = async () => {
+    if (!renameItem || !renameNewName.trim() || renameNewName.trim() === renameItem.name) return;
+    setIsRenaming(true);
+    try {
+      await apiFetch(`/subdomains/${subdomainId}/file-manager/rename`, {
+        method: 'POST',
+        body: { path: renameItem.path, newName: renameNewName.trim() }
+      });
+      addToast({
+        type: 'success',
+        title: 'Nama Diubah',
+        message: `Sukses mengubah nama menjadi "${renameNewName.trim()}"`,
+      });
+      setRenameItem(null);
+      fetchFiles();
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Mengubah Nama',
+        message: err.message || 'Terjadi kesalahan.',
+      });
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
+  const handleOpenMoveModal = (item: FileItem) => {
+    setMoveItem(item);
+    setMoveNewPath(item.path);
+  };
+
+  const executeMove = async () => {
+    if (!moveItem || !moveNewPath.trim() || moveNewPath.trim() === moveItem.path) return;
+    setIsMoving(true);
+    try {
+      await apiFetch(`/subdomains/${subdomainId}/file-manager/move`, {
+        method: 'POST',
+        body: { path: moveItem.path, newPath: moveNewPath.trim() }
+      });
+      addToast({
+        type: 'success',
+        title: 'Berkas Dipindahkan',
+        message: `Sukses memindahkan ke "/${moveNewPath.trim()}"`,
+      });
+      setMoveItem(null);
+      fetchFiles();
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Memindahkan',
+        message: err.message || 'Terjadi kesalahan.',
+      });
+    } finally {
+      setIsMoving(false);
+    }
+  };
+
+  const handleDownload = async (item: FileItem) => {
+    try {
+      const downloadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subdomains/${subdomainId}/file-manager/download?path=${encodeURIComponent(item.path)}`;
+      const token = localStorage.getItem('subly_token');
+      
+      const response = await fetch(downloadUrl, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Gagal mengunduh berkas dari server.');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = item.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Mengunduh',
+        message: err.message || 'Terjadi kesalahan.',
+      });
+    }
+  };
+
+  const handleOpenFileEditor = async (item: FileItem) => {
+    setEditFileItem(item);
+    setIsLoadingContent(true);
+    setEditFileContent('');
+    try {
+      const res = await apiFetch<{ success: boolean; content: string }>(
+        `/subdomains/${subdomainId}/file-manager/content?path=${encodeURIComponent(item.path)}`
+      );
+      setEditFileContent(res.content || '');
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Membaca File',
+        message: err.message || 'Terjadi kesalahan.',
+      });
+      setEditFileItem(null);
+    } finally {
+      setIsLoadingContent(false);
+    }
+  };
+
+  const executeSaveContent = async () => {
+    if (!editFileItem) return;
+    setIsSavingContent(true);
+    try {
+      await apiFetch(`/subdomains/${subdomainId}/file-manager/save`, {
+        method: 'POST',
+        body: { path: editFileItem.path, content: editFileContent }
+      });
+      addToast({
+        type: 'success',
+        title: 'Berkas Disimpan',
+        message: `Berkas "${editFileItem.name}" berhasil disimpan.`,
+      });
+      setEditFileItem(null);
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Menyimpan',
+        message: err.message || 'Terjadi kesalahan.',
+      });
+    } finally {
+      setIsSavingContent(false);
+    }
+  };
+
+  const isEditableFile = (ext: string) => {
+    return ['php', 'html', 'css', 'js', 'json', 'ts', 'jsx', 'tsx', 'env', 'txt', 'md', 'htaccess'].includes(ext.toLowerCase());
+  };
 
   useEffect(() => {
     setSelectedFiles([]);
@@ -180,26 +375,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
     }
   };
 
-  // Drag and Drop implementation
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processUploadedFile(e.dataTransfer.files[0]);
-    }
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -426,73 +602,57 @@ export const FileManager: React.FC<FileManagerProps> = ({
           ))}
         </div>
 
-        {selectedFiles.length > 0 && (
-          <button 
-            onClick={() => setShowBulkDeleteModal(true)}
-            className="text-[9px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-all bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer"
+        <div className="flex gap-2 select-none">
+          <button
+            onClick={() => handleOpenCreateModal('file')}
+            className="text-[9px] font-bold uppercase tracking-widest text-brand-primary hover:text-white hover:bg-brand-primary/10 transition-all bg-brand-primary/10 border border-brand-primary/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer font-bold"
           >
-            <Trash2 className="h-3.5 w-3.5" />
-            Hapus Terpilih ({selectedFiles.length})
+            <Plus className="h-3.5 w-3.5" />
+            + File
           </button>
-        )}
+          <button
+            onClick={() => handleOpenCreateModal('folder')}
+            className="text-[9px] font-bold uppercase tracking-widest text-brand-primary hover:text-white hover:bg-brand-primary/10 transition-all bg-brand-primary/10 border border-brand-primary/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer font-bold"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            + Folder
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="text-[9px] font-bold uppercase tracking-widest text-brand-primary hover:text-white hover:bg-brand-primary/10 transition-all bg-brand-primary/10 border border-brand-primary/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer font-bold"
+          >
+            <Upload className="h-3.5 w-3.5" />
+            Upload ZIP
+          </button>
 
-        {currentPath !== '' && (
-          <button 
-            onClick={handleGoUp}
-            className="text-[9px] font-bold uppercase tracking-widest text-text-muted hover:text-text-main transition-all bg-bg-surface border border-border-main px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer"
-          >
-            Go Up
-          </button>
-        )}
+          {selectedFiles.length > 0 && (
+            <button 
+              onClick={() => setShowBulkDeleteModal(true)}
+              className="text-[9px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-all bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Hapus Terpilih ({selectedFiles.length})
+            </button>
+          )}
+
+          {currentPath !== '' && (
+            <button 
+              onClick={handleGoUp}
+              className="text-[9px] font-bold uppercase tracking-widest text-text-muted hover:text-text-main transition-all bg-bg-surface border border-border-main px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            >
+              Go Up
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Upload Drag and Drop zone */}
-      <div 
-        onDragEnter={handleDrag}
-        onDragOver={handleDrag}
-        onDragLeave={handleDrag}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`glass-panel border-dashed border-2 rounded-xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-2.5 ${
-          dragActive 
-            ? 'border-brand-primary bg-brand-primary/5 shadow-lg' 
-            : 'border-border-main hover:border-amber-500/40 hover:bg-brand-primary/2'
-        }`}
-      >
-        <input 
-          ref={fileInputRef}
-          type="file" 
-          accept=".zip"
-          onChange={handleFileChange}
-          className="hidden" 
-        />
-        {isUploading ? (
-          <div className="w-full max-w-xs flex flex-col items-center gap-2">
-            <div className="flex justify-between w-full text-xs font-bold text-brand-primary">
-              <span>{t('loading')}</span>
-              <span>{uploadProgress}%</span>
-            </div>
-            <div className="w-full bg-border-main h-1.5 rounded-full overflow-hidden">
-              <div 
-                className="bg-brand-primary h-full transition-all duration-200"
-                style={{ width: `${uploadProgress}%` }}
-              />
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="h-10 w-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
-              <Upload className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-text-main">{t('deployZip')}</p>
-              <p className="text-[10px] text-text-muted mt-1 leading-normal">
-                {t('dropzoneText')} (Maks. 50 MB)
-              </p>
-            </div>
-          </>
-        )}
-      </div>
+      <input 
+        ref={fileInputRef}
+        type="file" 
+        accept=".zip"
+        onChange={handleFileChange}
+        className="hidden" 
+      />
 
       {/* Explorer file grid list */}
       <div className="glass-panel rounded-xl overflow-hidden shadow-xs flex flex-col">
@@ -567,11 +727,43 @@ export const FileManager: React.FC<FileManagerProps> = ({
                       <td className="py-3 px-6 text-center text-[10px] font-semibold text-text-muted">
                         {item.last_modified}
                       </td>
-                      <td className="py-3 px-6 text-right pr-8">
+                      <td className="py-3 px-6 text-right pr-8 space-x-1.5">
+                        {!item.is_dir && isEditableFile(item.extension || item.name) && (
+                          <button 
+                            onClick={() => handleOpenFileEditor(item)}
+                            className="text-cyan-500 hover:text-cyan-400 transition-colors p-1.5 rounded-lg hover:bg-cyan-500/10 cursor-pointer active:scale-95 inline-flex"
+                            title="Edit File"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
+                        {!item.is_dir && (
+                          <button 
+                            onClick={() => handleDownload(item)}
+                            className="text-emerald-500 hover:text-emerald-400 transition-colors p-1.5 rounded-lg hover:bg-emerald-500/10 cursor-pointer active:scale-95 inline-flex"
+                            title="Download File"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => handleOpenMoveModal(item)}
+                          className="text-blue-500 hover:text-blue-400 transition-colors p-1.5 rounded-lg hover:bg-blue-500/10 cursor-pointer active:scale-95 inline-flex"
+                          title="Pindahkan File/Folder"
+                        >
+                          <ArrowRightLeft className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleOpenRenameModal(item)}
+                          className="text-amber-500 hover:text-amber-400 transition-colors p-1.5 rounded-lg hover:bg-amber-500/10 cursor-pointer active:scale-95 inline-flex"
+                          title="Ubah Nama"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
                         {item.extension.toLowerCase() === 'zip' && (
                           <button 
                             onClick={() => handleExtractZip(item)}
-                            className="text-brand-primary hover:text-orange-500 transition-colors p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex mr-1"
+                            className="text-brand-primary hover:text-orange-500 transition-colors p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex"
                             title="Ekstrak ZIP"
                           >
                             <FileArchive className="w-4 h-4" />
@@ -693,6 +885,158 @@ export const FileManager: React.FC<FileManagerProps> = ({
           </div>
         </div>
       </Modal>
+
+      {/* Create File/Folder Modal */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title={createType === 'folder' ? 'Buat Folder Baru' : 'Buat Berkas Baru'}
+        description={`Masukkan nama ${createType === 'folder' ? 'folder' : 'berkas'} baru yang ingin dibuat.`}
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setShowCreateModal(false)} disabled={isCreating}>
+              Batal
+            </Button>
+            <Button variant="primary" onClick={executeCreate} isLoading={isCreating}>
+              Buat
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <input
+            type="text"
+            value={createName}
+            onChange={(e) => setCreateName(e.target.value)}
+            placeholder={createType === 'folder' ? 'contoh: assets' : 'contoh: index.js'}
+            className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all font-mono"
+            autoFocus
+          />
+        </div>
+      </Modal>
+
+      {/* Rename File/Folder Modal */}
+      <Modal
+        isOpen={renameItem !== null}
+        onClose={() => setRenameItem(null)}
+        title="Ubah Nama"
+        description="Masukkan nama baru untuk berkas atau folder ini."
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setRenameItem(null)} disabled={isRenaming}>
+              Batal
+            </Button>
+            <Button variant="primary" onClick={executeRename} isLoading={isRenaming}>
+              Simpan
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <input
+            type="text"
+            value={renameNewName}
+            onChange={(e) => setRenameNewName(e.target.value)}
+            placeholder="Nama baru..."
+            className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all font-mono"
+            autoFocus
+          />
+        </div>
+      </Modal>
+
+      {/* Move File/Folder Modal */}
+      <Modal
+        isOpen={moveItem !== null}
+        onClose={() => setMoveItem(null)}
+        title="Pindahkan File / Folder"
+        description="Masukkan path folder tujuan (relatif dari root, pisahkan dengan garis miring)."
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setMoveItem(null)} disabled={isMoving}>
+              Batal
+            </Button>
+            <Button variant="primary" onClick={executeMove} isLoading={isMoving}>
+              Pindahkan
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block text-left">Path Tujuan:</label>
+          <input
+            type="text"
+            value={moveNewPath}
+            onChange={(e) => setMoveNewPath(e.target.value)}
+            placeholder="contoh: public/assets/image.png"
+            className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all font-mono"
+            autoFocus
+          />
+        </div>
+      </Modal>
+
+      {/* Code Editor Modal (Fullscreen style) */}
+      <Modal
+        isOpen={editFileItem !== null}
+        onClose={() => setEditFileItem(null)}
+        title={`Mengedit File: ${editFileItem?.name || ''}`}
+        size="lg"
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setEditFileItem(null)} disabled={isSavingContent}>
+              Batal
+            </Button>
+            <Button variant="primary" onClick={executeSaveContent} isLoading={isSavingContent}>
+              <Save className="w-3.5 h-3.5 mr-1.5 inline" /> Simpan Berkas
+            </Button>
+          </>
+        }
+      >
+        {isLoadingContent ? (
+          <div className="py-12 text-center text-text-muted font-semibold text-xs">
+            <div className="flex flex-col items-center justify-center gap-2.5">
+              <div className="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+              <p>Membaca isi berkas...</p>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full">
+            <textarea
+              value={editFileContent}
+              onChange={(e) => setEditFileContent(e.target.value)}
+              rows={16}
+              className="w-full bg-black/60 border border-border-main rounded-xl p-4 text-xs font-mono text-cyan-400 outline-none transition-all resize-none leading-relaxed"
+              spellCheck="false"
+            />
+          </div>
+        )}
+      </Modal>
+
+      {/* Floating Upload Progress Card */}
+      {isUploading && (
+        <div 
+          className="fixed bottom-6 right-6 z-50 w-80 p-5 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-5 duration-200"
+          style={{
+            background: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(251,146,60,0.08))',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(249,115,22,0.35)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5), 0 0 20px rgba(249,115,22,0.15)'
+          }}
+        >
+          <div className="flex items-center justify-between mb-3 text-left">
+            <span className="text-xs font-bold text-text-main flex items-center gap-2">
+              <Upload className="h-4 w-4 text-brand-primary animate-bounce shrink-0" />
+              Mengunggah Berkas ZIP...
+            </span>
+            <span className="text-xs font-mono font-bold text-brand-primary">{uploadProgress}%</span>
+          </div>
+          <div className="w-full bg-black/40 h-2 rounded-full overflow-hidden border border-white/5">
+            <div 
+              className="bg-gradient-to-r from-orange-500 to-amber-500 h-full transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

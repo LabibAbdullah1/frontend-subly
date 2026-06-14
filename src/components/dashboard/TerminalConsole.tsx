@@ -180,8 +180,8 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
       className="w-full flex flex-col font-mono text-xs rounded-2xl overflow-hidden border border-white/8 shadow-2xl"
       style={{
         background: 'linear-gradient(180deg, #07090f 0%, #050709 100%)',
-        minHeight: '520px',
-        height: 'calc(100vh - 320px)',
+        minHeight: '220px',
+        height: logs.length === 0 ? '220px' : '400px',
         minWidth: 0,
       }}
     >
@@ -288,7 +288,7 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
         }}
       >
         {logs.length === 0 && status === 'connecting' && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-600 py-16">
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-600 py-6">
             <div className="flex gap-1">
               {[0, 1, 2].map(i => (
                 <div
@@ -303,7 +303,7 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
         )}
 
         {logs.length === 0 && status !== 'connecting' && (
-          <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-700 py-16">
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-700 py-6">
             <WifiOff className="h-8 w-8 opacity-30" />
             <p className="text-[11px] font-semibold">Tidak ada log.</p>
             <button
