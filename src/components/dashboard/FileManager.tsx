@@ -222,31 +222,44 @@ export const FileManager: React.FC<FileManagerProps> = ({
 
   const handleDownload = async (item: FileItem) => {
     try {
-      const downloadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subdomains/${subdomainId}/file-manager/download?path=${encodeURIComponent(item.path)}`;
       const token = localStorage.getItem('subly_token');
+      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subdomains/${subdomainId}/file-manager/download?path=${encodeURIComponent(item.path)}`;
       
-      const response = await fetch(downloadUrl, {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
-      
+
       if (!response.ok) {
-        throw new Error('Gagal mengunduh berkas dari server.');
+        let errorMsg = 'Gagal mengunduh berkas.';
+        try {
+          const resJson = await response.json();
+          errorMsg = resJson.message || errorMsg;
+        } catch (e) {}
+        throw new Error(errorMsg);
       }
-      
+
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = downloadUrl;
       a.download = item.name;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      addToast({
+        type: 'success',
+        title: 'Unduh Berhasil',
+        message: `Berkas "${item.name}" berhasil diunduh.`,
+      });
     } catch (err: any) {
       addToast({
         type: 'error',
         title: 'Gagal Mengunduh',
-        message: err.message || 'Terjadi kesalahan.',
+        message: err.message || 'Terjadi kesalahan saat mengunduh berkas.',
       });
     }
   };
