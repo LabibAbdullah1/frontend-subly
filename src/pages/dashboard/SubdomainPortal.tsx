@@ -279,7 +279,6 @@ export const SubdomainPortal: React.FC = () => {
         title: 'Git Terintegrasi',
         message: `Repositori sukses dikaitkan ke branch ${selectedBranch}.`,
       });
-      await triggerRealDeployment(subdomain.id);
       setActiveSubTab('logs'); // Redirect to logs tab automatically
       checkAndTriggerFeedback();
     } catch {
@@ -474,199 +473,273 @@ export const SubdomainPortal: React.FC = () => {
         
         {/* OVERVIEW SUB-TAB */}
         {activeSubTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in duration-200">
-            <CardPanel title={t('virtualHostDetailsTitle')} className="md:col-span-2">
-              <div className="space-y-4 text-xs select-none">
-                <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                  <span className="text-text-muted font-bold uppercase tracking-wider">{t('primaryDomainLabel')}</span>
-                  <span className="font-mono text-text-main text-[11px] select-all">{subdomain.full_domain}</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                  <span className="text-text-muted font-bold uppercase tracking-wider">{t('docRootFolderLabel')}</span>
-                  <span className="font-mono text-text-main text-[11px] select-all">{subdomain.doc_root}</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                  <span className="text-text-muted font-bold uppercase tracking-wider">{t('syncMethodLabel')}</span>
-                  <span className="text-text-main font-bold uppercase">
-                    {subdomain.git_url ? t('githubRepoVal') : t('manualZipUploadVal')}
-                  </span>
-                </div>
-                {subdomain.git_url && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in duration-200">
+              <CardPanel title={t('virtualHostDetailsTitle')} className="md:col-span-2">
+                <div className="space-y-4 text-xs select-none">
                   <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                    <span className="text-text-muted font-bold uppercase tracking-wider">{t('gitRepoUrlLabel')}</span>
-                    <span className="font-mono text-brand-primary text-[11px] truncate max-w-xs md:max-w-md select-all">{subdomain.git_url}</span>
+                    <span className="text-text-muted font-bold uppercase tracking-wider">{t('primaryDomainLabel')}</span>
+                    <span className="font-mono text-text-main text-[11px] select-all">{subdomain.full_domain}</span>
                   </div>
-                )}
-                <div className="flex justify-between items-center py-2 border-b border-border-main/40">
-                  <span className="text-text-muted font-bold uppercase tracking-wider">{t('diskStorageLimitLabel')}</span>
-                  <span className="text-text-main font-bold">
-                    {subdomain.storage_override_mb ? `${subdomain.storage_override_mb} MB` : t('defaultDiskLimitVal')}
-                  </span>
+                  <div className="flex justify-between items-center py-2 border-b border-border-main/40">
+                    <span className="text-text-muted font-bold uppercase tracking-wider">{t('docRootFolderLabel')}</span>
+                    <span className="font-mono text-text-main text-[11px] select-all">{subdomain.doc_root}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border-main/40">
+                    <span className="text-text-muted font-bold uppercase tracking-wider">{t('syncMethodLabel')}</span>
+                    <span className="text-text-main font-bold uppercase">
+                      {subdomain.git_url ? t('githubRepoVal') : t('manualZipUploadVal')}
+                    </span>
+                  </div>
+                  {subdomain.git_url && (
+                    <div className="flex justify-between items-center py-2 border-b border-border-main/40">
+                      <span className="text-text-muted font-bold uppercase tracking-wider">{t('gitRepoUrlLabel')}</span>
+                      <span className="font-mono text-brand-primary text-[11px] truncate max-w-xs md:max-w-md select-all">{subdomain.git_url}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center py-2 border-b border-border-main/40">
+                    <span className="text-text-muted font-bold uppercase tracking-wider">{t('diskStorageLimitLabel')}</span>
+                    <span className="text-text-main font-bold">
+                      {subdomain.storage_override_mb ? `${subdomain.storage_override_mb} MB` : t('defaultDiskLimitVal')}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </CardPanel>
+              </CardPanel>
 
-            <CardPanel title={t('infraActionsTitle')} className="md:col-span-1 select-none">
-              <div className="space-y-4">
-                {/* Git Pull Button — shown when git is connected */}
-                {subdomain.git_url ? (
-                  <>
-                    {/* Git Pull Status Card */}
-                    <div
-                      style={{
-                        background:
-                          pullStatus === 'success'
-                            ? 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(16,185,129,0.04))'
-                            : pullStatus === 'error'
-                            ? 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.04))'
-                            : pullStatus === 'pulling'
-                            ? 'linear-gradient(135deg, rgba(251,146,60,0.10), rgba(249,115,22,0.05))'
-                            : 'linear-gradient(135deg, rgba(251,146,60,0.06), rgba(249,115,22,0.02))',
-                        border:
-                          pullStatus === 'success'
-                            ? '1px solid rgba(34,197,94,0.25)'
-                            : pullStatus === 'error'
-                            ? '1px solid rgba(239,68,68,0.25)'
-                            : '1px solid rgba(251,146,60,0.20)',
-                      }}
-                      className="rounded-2xl p-4 space-y-3"
-                    >
-                      {/* Header */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`p-1.5 rounded-lg ${
-                              pullStatus === 'pulling'
-                                ? 'bg-orange-500/20'
-                               : pullStatus === 'success'
-                                ? 'bg-green-500/20'
-                                : pullStatus === 'error'
-                                ? 'bg-red-500/20'
-                                : 'bg-orange-500/10'
-                            }`}
-                          >
-                            <GitPullRequest
-                              className={`h-4 w-4 ${
-                                pullStatus === 'pulling'
-                                  ? 'text-orange-400 animate-pulse'
-                                  : pullStatus === 'success'
-                                  ? 'text-green-400'
-                                  : pullStatus === 'error'
-                                  ? 'text-red-400'
-                                  : 'text-orange-400'
-                              }`}
-                            />
-                          </div>
-                          <div>
-                            <p className="text-[11px] font-bold text-text-main">Git Pull</p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <GitBranch className="h-3 w-3 text-text-muted" />
-                              <span className="text-[10px] text-text-muted font-mono">{subdomain.git_branch || 'main'}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          {pullStatus === 'pulling' && (
-                            <span className="text-[10px] font-bold text-orange-400 font-mono">{pullElapsed}s</span>
-                          )}
-                          {pullStatus === 'success' && (
-                            <CheckCircle2 className="h-4 w-4 text-green-400" />
-                          )}
-                          {pullStatus === 'error' && (
-                            <XCircle className="h-4 w-4 text-red-400" />
-                          )}
-                          {pullStatus === 'idle' && lastPullAt && (
-                            <div className="text-[10px] text-text-muted flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{t('lastPullLabel').replace('{time}', lastPullAt.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' }))}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Pull logs mini console */}
-                      {pullLogs.length > 0 && (
-                        <div
-                          className="rounded-xl bg-black/30 border border-white/5 p-3 max-h-32 overflow-y-auto font-mono text-[9.5px] leading-relaxed space-y-0.5"
-                          style={{ scrollbarWidth: 'none' }}
-                        >
-                          {pullLogs.map((log, i) => (
+              <CardPanel title={t('infraActionsTitle')} className="md:col-span-1 select-none">
+                <div className="space-y-4">
+                  {/* Git Pull Button — shown when git is connected */}
+                  {subdomain.git_url ? (
+                    <>
+                      {/* Git Pull Status Card */}
+                      <div
+                        style={{
+                          background:
+                            pullStatus === 'success'
+                              ? 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(16,185,129,0.04))'
+                              : pullStatus === 'error'
+                              ? 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.04))'
+                              : pullStatus === 'pulling'
+                              ? 'linear-gradient(135deg, rgba(251,146,60,0.10), rgba(249,115,22,0.05))'
+                              : 'linear-gradient(135deg, rgba(251,146,60,0.06), rgba(249,115,22,0.02))',
+                          border:
+                            pullStatus === 'success'
+                              ? '1px solid rgba(34,197,94,0.25)'
+                              : pullStatus === 'error'
+                              ? '1px solid rgba(239,68,68,0.25)'
+                              : '1px solid rgba(251,146,60,0.20)',
+                        }}
+                        className="rounded-2xl p-4 space-y-3"
+                      >
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
                             <div
-                              key={i}
-                              className={`${
-                                log.includes('✅') || log.includes('🎉')
-                                  ? 'text-green-400'
-                                  : log.includes('❌') || log.includes('⚠️')
-                                  ? 'text-red-400'
-                                  : log.includes('🚀') || log.includes('🔗') || log.includes('🌿')
-                                  ? 'text-orange-300'
-                                  : 'text-gray-400'
+                              className={`p-1.5 rounded-lg ${
+                                pullStatus === 'pulling'
+                                  ? 'bg-orange-500/20'
+                                 : pullStatus === 'success'
+                                  ? 'bg-green-500/20'
+                                  : pullStatus === 'error'
+                                  ? 'bg-red-500/20'
+                                  : 'bg-orange-500/10'
                               }`}
                             >
-                              {log}
+                              <GitPullRequest
+                                className={`h-4 w-4 ${
+                                  pullStatus === 'pulling'
+                                    ? 'text-orange-400 animate-pulse'
+                                    : pullStatus === 'success'
+                                    ? 'text-green-400'
+                                    : pullStatus === 'error'
+                                    ? 'text-red-400'
+                                    : 'text-orange-400'
+                                }`}
+                              />
                             </div>
-                          ))}
-                          <div ref={pullLogsEndRef} />
+                            <div>
+                              <p className="text-[11px] font-bold text-text-main">Git Pull</p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <GitBranch className="h-3 w-3 text-text-muted" />
+                                <span className="text-[10px] text-text-muted font-mono">{subdomain.git_branch || 'main'}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {pullStatus === 'pulling' && (
+                              <span className="text-[10px] font-bold text-orange-400 font-mono">{pullElapsed}s</span>
+                            )}
+                            {pullStatus === 'success' && (
+                              <CheckCircle2 className="h-4 w-4 text-green-400" />
+                            )}
+                            {pullStatus === 'error' && (
+                              <XCircle className="h-4 w-4 text-red-400" />
+                            )}
+                            {pullStatus === 'idle' && lastPullAt && (
+                              <div className="text-[10px] text-text-muted flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{t('lastPullLabel').replace('{time}', lastPullAt.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' }))}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
 
-                      {/* Action buttons */}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleGitPull}
-                          disabled={pullStatus === 'pulling'}
-                          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
-                            pullStatus === 'pulling'
-                              ? 'bg-orange-500/10 text-orange-400 cursor-not-allowed'
-                              : 'bg-orange-500 hover:bg-orange-400 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-[0.98]'
-                          }`}
-                          style={{
-                            boxShadow: pullStatus !== 'pulling' ? '0 0 20px rgba(249,115,22,0.25)' : 'none'
-                          }}
-                        >
-                          {pullStatus === 'pulling' ? (
-                            <>
-                              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                              {t('gitPullRunning')}
-                            </>
-                          ) : (
-                            <>
-                              <Zap className="h-3.5 w-3.5" />
-                              {pullStatus === 'error' ? t('tryAgain') : t('pullNow')}
-                            </>
-                          )}
-                        </button>
-                        {(pullStatus === 'success' || pullStatus === 'error') && (
-                          <button
-                            onClick={() => { setPullStatus('idle'); setPullLogs([]); }}
-                            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted transition-all cursor-pointer"
-                            title={t('reset')}
+                        {/* Pull logs mini console */}
+                        {pullLogs.length > 0 && (
+                          <div
+                            className="rounded-xl bg-black/30 border border-white/5 p-3 max-h-32 overflow-y-auto font-mono text-[9.5px] leading-relaxed space-y-0.5"
+                            style={{ scrollbarWidth: 'none' }}
                           >
-                            <RotateCcw className="h-3.5 w-3.5" />
-                          </button>
+                            {pullLogs.map((log, i) => (
+                              <div
+                                key={i}
+                                className={`${
+                                  log.includes('✅') || log.includes('🎉')
+                                    ? 'text-green-400'
+                                    : log.includes('❌') || log.includes('⚠️')
+                                    ? 'text-red-400'
+                                    : log.includes('🚀') || log.includes('🔗') || log.includes('🌿')
+                                    ? 'text-orange-300'
+                                    : 'text-gray-400'
+                                }`}
+                              >
+                                {log}
+                              </div>
+                            ))}
+                            <div ref={pullLogsEndRef} />
+                          </div>
                         )}
+
+                        {/* Action buttons */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleGitPull}
+                            disabled={pullStatus === 'pulling'}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                              pullStatus === 'pulling'
+                                ? 'bg-orange-500/10 text-orange-400 cursor-not-allowed'
+                                : 'bg-orange-500 hover:bg-orange-400 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-[0.98]'
+                            }`}
+                            style={{
+                              boxShadow: pullStatus !== 'pulling' ? '0 0 20px rgba(249,115,22,0.25)' : 'none'
+                            }}
+                          >
+                            {pullStatus === 'pulling' ? (
+                              <>
+                                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                {t('gitPullRunning')}
+                              </>
+                            ) : (
+                              <>
+                                <Zap className="h-3.5 w-3.5" />
+                                {pullStatus === 'error' ? t('tryAgain') : t('pullNow')}
+                              </>
+                            )}
+                          </button>
+                          {(pullStatus === 'success' || pullStatus === 'error') && (
+                            <button
+                              onClick={() => { setPullStatus('idle'); setPullLogs([]); }}
+                              className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted transition-all cursor-pointer"
+                              title={t('reset')}
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Divider */}
+                      <div className="border-t border-border-main/30" />
+                    </>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-[11px] text-text-muted font-semibold leading-normal">
+                        Anda menggunakan metode upload file manual via ZIP. Klik tombol di bawah ini untuk memicu deployment manual dari server.
+                      </p>
+                      <Button
+                        onClick={handleTriggerDeploy}
+                        variant="primary"
+                        className="w-full flex items-center justify-center gap-2 cursor-pointer animate-pulse hover:animate-none"
+                      >
+                        <Zap className="h-3.5 w-3.5" />
+                        {t('deployBtn')}
+                      </Button>
                     </div>
+                  )}
 
-                    {/* Divider */}
-                    <div className="border-t border-border-main/30" />
-                  </>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-[11px] text-text-muted font-semibold leading-normal">
-                      Anda menggunakan metode upload file manual via ZIP. Klik tombol di bawah ini untuk memicu deployment manual dari server.
-                    </p>
-                    <Button
-                      onClick={handleTriggerDeploy}
-                      variant="primary"
-                      className="w-full flex items-center justify-center gap-2 cursor-pointer animate-pulse hover:animate-none"
-                    >
-                      <Zap className="h-3.5 w-3.5" />
-                      {t('deployBtn')}
-                    </Button>
-                  </div>
-                )}
+                </div>
+              </CardPanel>
+            </div>
 
+            {/* Riwayat & Status Deployment */}
+            <CardPanel title={language === 'id' ? 'Riwayat & Status Deployment' : 'Deployment History & Status'}>
+              <div className="overflow-x-auto select-none">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border-main/40 text-text-muted font-bold uppercase tracking-wider text-[10px]">
+                      <th className="py-3 px-4">Build / Version</th>
+                      <th className="py-3 px-4">Tanggal Pengajuan</th>
+                      <th className="py-3 px-4">Detail / Catatan</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4">Catatan Admin</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-main/20 font-medium">
+                    {subdomain.deployments && subdomain.deployments.length > 0 ? (
+                      [...subdomain.deployments]
+                        .sort((a, b) => b.version - a.version)
+                        .map((dep: any) => (
+                          <tr key={dep.id} className="hover:bg-border-main/5 transition-colors">
+                            <td className="py-3 px-4 font-mono font-bold text-text-main">
+                              v{dep.version}
+                            </td>
+                            <td className="py-3 px-4 text-text-muted font-mono">
+                              {(() => {
+                                if (!dep.created_at) return '-';
+                                try {
+                                  return new Date(dep.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  });
+                                } catch {
+                                  return dep.created_at;
+                                }
+                              })()}
+                            </td>
+                            <td className="py-3 px-4 text-text-main font-semibold max-w-[200px] truncate" title={dep.notes || ''}>
+                              {dep.notes || '-'}
+                            </td>
+                            <td className="py-3 px-4">
+                              {(() => {
+                                switch (dep.status) {
+                                  case 'queued':
+                                    return <Badge status="queued" label={language === 'id' ? 'Menunggu Persetujuan' : 'Waiting Approval'} />;
+                                  case 'success':
+                                    return <Badge status="success" label={language === 'id' ? 'Berhasil' : 'Success'} />;
+                                  case 'error':
+                                    return <Badge status="error" label={language === 'id' ? 'Gagal' : 'Failed'} />;
+                                  default:
+                                    return <Badge status="inactive" label={dep.status} />;
+                                }
+                              })()}
+                            </td>
+                            <td className="py-3 px-4 text-text-muted italic text-[11px] max-w-[200px] truncate font-semibold" title={dep.admin_note || ''}>
+                              {dep.admin_note || '-'}
+                            </td>
+                          </tr>
+                        ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-text-muted font-semibold">
+                          {language === 'id' ? 'Belum ada riwayat deployment.' : 'No deployment history available.'}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </CardPanel>
           </div>
