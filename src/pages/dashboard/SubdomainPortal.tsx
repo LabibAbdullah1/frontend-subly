@@ -295,22 +295,22 @@ export const SubdomainPortal: React.FC = () => {
     if (subdomain) {
       addToast({
         type: 'info',
-        title: 'Deploy Dimulai',
-        message: 'Infrastruktur sedang memproses deployment Anda...',
+        title: 'Pengajuan Deployment',
+        message: 'Infrastruktur sedang memproses pengajuan deployment Anda...',
       });
       try {
         await triggerRealDeployment(subdomain.id);
         addToast({
           type: 'success',
-          title: 'Deploy Sukses',
-          message: 'Website Anda telah dideploy dan aktif.',
+          title: 'Pengajuan Berhasil',
+          message: 'Pengajuan deployment berhasil dikirim. Status menunggu persetujuan Admin.',
         });
         checkAndTriggerFeedback();
       } catch (err: any) {
         addToast({
           type: 'error',
-          title: 'Deploy Gagal',
-          message: err.message || 'Terjadi kesalahan saat memproses deployment.',
+          title: 'Pengajuan Gagal',
+          message: err.message || 'Terjadi kesalahan saat mengajukan deployment.',
         });
       }
     }
@@ -651,7 +651,21 @@ export const SubdomainPortal: React.FC = () => {
                     {/* Divider */}
                     <div className="border-t border-border-main/30" />
                   </>
-                ) : null}
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-[11px] text-text-muted font-semibold leading-normal">
+                      Anda menggunakan metode upload file manual via ZIP. Klik tombol di bawah ini untuk memicu deployment manual dari server.
+                    </p>
+                    <Button
+                      onClick={handleTriggerDeploy}
+                      variant="primary"
+                      className="w-full flex items-center justify-center gap-2 cursor-pointer animate-pulse hover:animate-none"
+                    >
+                      <Zap className="h-3.5 w-3.5" />
+                      {t('deployBtn')}
+                    </Button>
+                  </div>
+                )}
 
               </div>
             </CardPanel>
@@ -1022,7 +1036,6 @@ export const SubdomainPortal: React.FC = () => {
             <FileManager 
               subdomainName={subdomain.name} 
               subdomainId={subdomain.id} 
-              onDeployTrigger={handleTriggerDeploy} 
             />
           </div>
         )}

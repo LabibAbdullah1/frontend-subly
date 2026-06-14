@@ -24,13 +24,11 @@ export interface FileItem {
 interface FileManagerProps {
   subdomainName: string;
   subdomainId: number;
-  onDeployTrigger?: () => void;
 }
 
 export const FileManager: React.FC<FileManagerProps> = ({
   subdomainName,
-  subdomainId,
-  onDeployTrigger
+  subdomainId
 }) => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
@@ -41,7 +39,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<FileItem | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
-  // File upload simulation states
+  // File upload states
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -49,6 +47,17 @@ export const FileManager: React.FC<FileManagerProps> = ({
 
   // Real files loaded from backend API
   const [filesDb, setFilesDb] = useState<FileItem[]>([]);
+
+  // Bulk delete and Zip extract states
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState<boolean>(false);
+  const [isDeletingBulk, setIsDeletingBulk] = useState<boolean>(false);
+  const [extractingZipItem, setExtractingZipItem] = useState<FileItem | null>(null);
+  const [isExtracting, setIsExtracting] = useState<boolean>(false);
+
+  useEffect(() => {
+    setSelectedFiles([]);
+  }, [currentPath, subdomainId]);
 
   const fetchFiles = async () => {
     setIsLoading(true);
@@ -201,7 +210,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
     }
   };
 
-  const processUploadedFile = (file: File) => {
+  const processUploadedFile = async (file: File) => {
     // File validation
     if (!file.name.endsWith('.zip')) {
       addToast({
@@ -222,45 +231,138 @@ export const FileManager: React.FC<FileManagerProps> = ({
       return;
     }
 
-    // Simulation upload progress bar
     setIsUploading(true);
     setUploadProgress(0);
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsUploading(false);
-            
-            // Add zip file to mock db
-            const newFile: FileItem = {
-              name: file.name,
-              path: currentPath ? `${currentPath}/${file.name}` : file.name,
-              is_dir: false,
-              size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-              size_bytes: file.size,
-              last_modified: new Date().toISOString().replace('T', ' ').substring(0, 16),
-              extension: 'zip'
-            };
-            
-            setFilesDb(prevDb => [...prevDb, newFile]);
 
-            addToast({
-              type: 'success',
-              title: 'Upload Selesai',
-              message: `File ${file.name} sukses diunggah ke folder target.`,
-            });
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-            // Trigger deployment stream log in console if hook is active
-            if (onDeployTrigger) {
-              onDeployTrigger();
-            }
-          }, 400);
-          return 100;
+      const xhr = new XMLHttpRequest();
+      const token = localStorage.getItem('subly_token');
+      const uploadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subdomains/${subdomainId}/file-manager/upload?path=${currentPath}`;
+
+      await new Promise<void>((resolve, reject) => {
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            setUploadProgress(percent);
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            let errorMsg = 'Gagal mengunggah berkas.';
+            try {
+              const resJson = JSON.parse(xhr.responseText);
+              errorMsg = resJson.message || resJson.error || errorMsg;
+            } catch (err) {}
+            reject(new Error(errorMsg));
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('Koneksi jaringan bermasalah.'));
+        });
+
+        xhr.open('POST', uploadUrl);
+        if (token) {
+          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         }
-        return prev + 25;
+        xhr.send(formData);
       });
-    }, 200);
+
+      addToast({
+        type: 'success',
+        title: 'Upload Selesai',
+        message: `File ${file.name} sukses diunggah ke folder target.`,
+      });
+
+      fetchFiles();
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Mengunggah',
+        message: err.message || 'Terjadi kesalahan saat mengunggah file.',
+      });
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedFiles(currentItems.map(item => item.path));
+    } else {
+      setSelectedFiles([]);
+    }
+  };
+
+  const handleSelectFile = (path: string, checked: boolean) => {
+    if (checked) {
+      setSelectedFiles(prev => [...prev, path]);
+    } else {
+      setSelectedFiles(prev => prev.filter(p => p !== path));
+    }
+  };
+
+  const executeBulkDelete = async () => {
+    setIsDeletingBulk(true);
+    try {
+      await apiFetch(`/subdomains/${subdomainId}/file-manager`, {
+        method: 'DELETE',
+        body: { paths: selectedFiles }
+      });
+      addToast({
+        type: 'success',
+        title: 'Berkas Dihapus',
+        message: `Sukses menghapus ${selectedFiles.length} item dari server hosting.`,
+      });
+      setSelectedFiles([]);
+      setShowBulkDeleteModal(false);
+      fetchFiles();
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Menghapus',
+        message: err.message || 'Terjadi kesalahan saat menghapus berkas.',
+      });
+    } finally {
+      setIsDeletingBulk(false);
+    }
+  };
+
+  const handleExtractZip = (item: FileItem) => {
+    setExtractingZipItem(item);
+  };
+
+  const executeExtract = async () => {
+    if (!extractingZipItem) return;
+    setIsExtracting(true);
+    try {
+      await apiFetch(`/subdomains/${subdomainId}/file-manager/extract`, {
+        method: 'POST',
+        body: { path: extractingZipItem.path }
+      });
+      addToast({
+        type: 'success',
+        title: 'Ekstraksi Berhasil',
+        message: `Arsip ${extractingZipItem.name} sukses diekstrak di server.`,
+      });
+      setExtractingZipItem(null);
+      fetchFiles();
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Ekstraksi Gagal',
+        message: err.message || 'Terjadi kesalahan saat mengekstrak ZIP.',
+      });
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const getFileIcon = (ext: string) => {
@@ -326,6 +428,16 @@ export const FileManager: React.FC<FileManagerProps> = ({
             </React.Fragment>
           ))}
         </div>
+
+        {selectedFiles.length > 0 && (
+          <button 
+            onClick={() => setShowBulkDeleteModal(true)}
+            className="text-[9px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-all bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Hapus Terpilih ({selectedFiles.length})
+          </button>
+        )}
 
         {currentPath !== '' && (
           <button 
@@ -400,6 +512,14 @@ export const FileManager: React.FC<FileManagerProps> = ({
           <table className="w-full text-left min-w-[600px]">
             <thead>
               <tr className="bg-bg-surface/60 text-[9px] text-text-muted uppercase tracking-widest border-b border-border-main/40">
+                <th className="py-3 px-6 font-bold w-12 text-center select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={currentItems.length > 0 && selectedFiles.length === currentItems.length}
+                    onChange={handleSelectAll}
+                    className="rounded bg-bg-surface border-border-main text-brand-primary focus:ring-brand-primary"
+                  />
+                </th>
                 <th className="py-3 px-6 font-bold">Nama</th>
                 <th className="py-3 px-6 text-center font-bold">Ukuran</th>
                 <th className="py-3 px-6 text-center font-bold">Terakhir Diubah</th>
@@ -420,6 +540,14 @@ export const FileManager: React.FC<FileManagerProps> = ({
                 <>
                   {currentItems.map((item, index) => (
                     <tr key={index} className="group hover:bg-border-main/10 transition-colors">
+                      <td className="py-3 px-6 text-center select-none">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedFiles.includes(item.path)}
+                          onChange={(e) => handleSelectFile(item.path, e.target.checked)}
+                          className="rounded bg-bg-surface border-border-main text-brand-primary focus:ring-brand-primary cursor-pointer"
+                        />
+                      </td>
                       <td className="py-3 px-6">
                         {item.is_dir ? (
                           <button 
@@ -443,6 +571,15 @@ export const FileManager: React.FC<FileManagerProps> = ({
                         {item.last_modified}
                       </td>
                       <td className="py-3 px-6 text-right pr-8">
+                        {item.extension.toLowerCase() === 'zip' && (
+                          <button 
+                            onClick={() => handleExtractZip(item)}
+                            className="text-brand-primary hover:text-orange-500 transition-colors p-1.5 rounded-lg hover:bg-brand-primary/10 cursor-pointer active:scale-95 inline-flex mr-1"
+                            title="Ekstrak ZIP"
+                          >
+                            <FileArchive className="w-4 h-4" />
+                          </button>
+                        )}
                         <button 
                           onClick={() => handleDeleteRequest(item)}
                           className="text-text-muted hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer active:scale-95 inline-flex"
@@ -495,6 +632,66 @@ export const FileManager: React.FC<FileManagerProps> = ({
             <p className="font-bold">Menghapus item:</p>
             <p className="font-mono mt-0.5 text-[10px] bg-red-500/10 px-2 py-0.5 rounded break-all">
               /{deleteConfirmItem?.path}
+            </p>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Bulk Delete Confirmation Modal */}
+      <Modal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        title="Hapus Beberapa Item Terpilih?"
+        description="Aksi ini tidak dapat dibatalkan. Semua berkas dan folder yang Anda pilih akan terhapus selamanya dari server."
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setShowBulkDeleteModal(false)} disabled={isDeletingBulk}>
+              Batal
+            </Button>
+            <Button variant="danger" onClick={executeBulkDelete} isLoading={isDeletingBulk}>
+              Ya, Hapus Semua
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-red-600 dark:text-red-400">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="text-xs text-left">
+            <p className="font-bold">Akan menghapus {selectedFiles.length} item terpilih:</p>
+            <div className="max-h-32 overflow-y-auto mt-1 space-y-0.5" style={{ scrollbarWidth: 'none' }}>
+              {selectedFiles.map((p, idx) => (
+                <div key={idx} className="font-mono text-[9px] bg-red-500/10 px-2 py-0.5 rounded break-all">
+                  /{p}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ZIP Extraction Confirmation Modal */}
+      <Modal
+        isOpen={extractingZipItem !== null}
+        onClose={() => setExtractingZipItem(null)}
+        title="Ekstrak Berkas ZIP?"
+        description="Berkas di dalam arsip ZIP akan diekstraksi ke direktori folder saat ini. Berkas dengan nama yang sama akan ditimpa."
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setExtractingZipItem(null)} disabled={isExtracting}>
+              Batal
+            </Button>
+            <Button variant="primary" onClick={executeExtract} isLoading={isExtracting}>
+              Ekstrak Sekarang
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-brand-primary/5 border border-brand-primary/10 text-brand-primary text-xs text-left">
+          <FileArchive className="h-5 w-5 text-brand-primary shrink-0 animate-bounce" />
+          <div>
+            <p className="font-bold">Mengekstrak berkas:</p>
+            <p className="font-mono mt-0.5 text-[10px] bg-brand-primary/10 px-2 py-0.5 rounded break-all">
+              /{extractingZipItem?.path}
             </p>
           </div>
         </div>

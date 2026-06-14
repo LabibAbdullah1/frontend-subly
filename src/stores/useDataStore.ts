@@ -76,8 +76,10 @@ interface DataState {
   cancelPayment: (paymentId: number) => Promise<void>;
   uploadProof: (paymentId: number, proof: any) => Promise<void>;
 
-  addChatMessage: (userId: number, message: string, isAdmin: boolean, imageFile?: any) => Promise<void>;
+   addChatMessage: (userId: number, message: string, isAdmin: boolean, imageFile?: any) => Promise<void>;
   triggerRealDeployment: (subdomainId: number) => Promise<void>;
+  approveDeployment: (deploymentId: number, adminNote?: string) => Promise<void>;
+  rejectDeployment: (deploymentId: number, adminNote?: string) => Promise<void>;
 
   addIssueReport: (subdomainId: number, subject: string, message: string) => Promise<void>;
   resolveIssue: (issueId: number) => Promise<void>;
@@ -688,6 +690,24 @@ export const useDataStore = create<DataState>((set, get) => ({
       method: 'POST'
     });
     await get().fetchSubdomains();
+  },
+
+  approveDeployment: async (deploymentId, adminNote) => {
+    await apiFetch(`/deployments/${deploymentId}/approve`, {
+      method: 'POST',
+      body: { adminNote }
+    });
+    await get().fetchSubdomains();
+    await get().fetchAdminStats();
+  },
+
+  rejectDeployment: async (deploymentId, adminNote) => {
+    await apiFetch(`/deployments/${deploymentId}/reject`, {
+      method: 'POST',
+      body: { adminNote }
+    });
+    await get().fetchSubdomains();
+    await get().fetchAdminStats();
   },
 
   addIssueReport: async (subdomainId, subject, message) => {
