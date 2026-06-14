@@ -113,9 +113,6 @@ export const FileManager: React.FC<FileManagerProps> = ({
       
       if (!isDirectChild) return false;
 
-      // Apply Safety Traversal Guard: Hide .env visually
-      if (file.name === '.env') return false;
-
       // Apply search term
       if (searchTerm && !file.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
 

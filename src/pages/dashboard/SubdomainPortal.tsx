@@ -173,8 +173,8 @@ export const SubdomainPortal: React.FC = () => {
         title: 'Environment Tersimpan',
         message: 'Berkas variabel lingkungan (.env) berhasil diperbarui di server.',
       });
-    } catch {
-      addToast({ type: 'error', title: 'Kesalahan', message: 'Gagal memperbarui berkas .env.' });
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Kesalahan', message: err.message || 'Gagal memperbarui berkas .env.' });
     } finally {
       setIsSavingEnvs(false);
     }

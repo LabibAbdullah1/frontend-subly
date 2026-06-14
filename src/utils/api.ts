@@ -45,7 +45,10 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
   }
 
   if (!response.ok) {
-    let errorMessage = data.message || data.error;
+    let errorMessage = data.message;
+    if (data.error) {
+      errorMessage = errorMessage ? `${errorMessage} (${data.error})` : data.error;
+    }
     if (!errorMessage && data.errors) {
       const firstKey = Object.keys(data.errors)[0];
       if (firstKey) {
