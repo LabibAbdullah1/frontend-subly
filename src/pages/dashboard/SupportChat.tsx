@@ -26,7 +26,7 @@ const UPLOADS_BASE = import.meta.env.VITE_API_URL
 export const SupportChat: React.FC = () => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
-  const { chatMessages, addChatMessage, settings, fetchChats, deleteChatMessage } = useDataStore();
+  const { chatMessages, addChatMessage, settings, fetchChats, deleteChatMessage, fetchUnreadChatCount } = useDataStore();
   const { user } = useAuthStore();
   const slaRespon = settings.system_support_sla || '< 10 Menit';
 
@@ -96,19 +96,40 @@ export const SupportChat: React.FC = () => {
   }, [isAdmin, user, fetchChats, loadChatClients]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const markReadAndFetch = async () => {
       if (isAdmin) {
         loadChatClients(true);
         if (selectedClientId) {
-          fetchChats(Number(selectedClientId));
+          await fetchChats(Number(selectedClientId));
+          try {
+            await apiFetch('/chats/read', {
+              method: 'POST',
+              body: { userId: Number(selectedClientId) }
+            });
+            fetchUnreadChatCount();
+          } catch (e) {}
         }
       } else if (user) {
-        fetchChats(user.id);
+        await fetchChats(user.id);
+        try {
+          await apiFetch('/chats/read', {
+            method: 'POST',
+            body: { userId: user.id }
+          });
+          fetchUnreadChatCount();
+        } catch (e) {}
       }
-    }, 4000);
+    };
 
+    if (!isAdmin && user) {
+      apiFetch('/chats/read', { method: 'POST', body: { userId: user.id } })
+        .then(() => fetchUnreadChatCount())
+        .catch(() => {});
+    }
+
+    const interval = setInterval(markReadAndFetch, 4000);
     return () => clearInterval(interval);
-  }, [isAdmin, selectedClientId, user, fetchChats, loadChatClients]);
+  }, [isAdmin, selectedClientId, user, fetchChats, loadChatClients, fetchUnreadChatCount]);
 
   const handleSelectClient = async (clientId: string) => {
     setSelectedClientId(clientId);
@@ -121,6 +142,7 @@ export const SupportChat: React.FC = () => {
       });
       // Refresh client list to clear unread badge
       loadChatClients(true);
+      fetchUnreadChatCount();
     } catch (err) {
       console.error('Failed to mark chats as read:', err);
     }
