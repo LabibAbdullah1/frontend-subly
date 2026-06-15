@@ -72,7 +72,14 @@ interface DataState {
   updateEnvs: (subdomainId: number, envs: { key: string; value: string }[]) => Promise<void>;
 
   applyVoucher: (code: string) => Promise<{ discount: number; voucherId: number } | null>;
-  createPayment: (planId: number, subdomainName: string, voucherCode: string | null) => Promise<Payment>;
+  createPayment: (
+    planId: number, 
+    subdomainName: string, 
+    voucherCode: string | null, 
+    subdomainId?: number | null, 
+    isDiskUpgrade?: boolean, 
+    diskUpgradeSizeMb?: number
+  ) => Promise<Payment>;
   confirmPayment: (paymentId: number) => Promise<void>;
   cancelPayment: (paymentId: number) => Promise<void>;
   uploadProof: (paymentId: number, proof: any) => Promise<void>;
@@ -136,6 +143,9 @@ interface DataState {
   createNotification: (title: string, message: string, userId?: string | null) => Promise<void>;
   markNotificationAsRead: (id: number) => Promise<void>;
   deleteNotification: (id: number) => Promise<void>;
+
+  unreadChatCount: number;
+  fetchUnreadChatCount: () => Promise<void>;
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
@@ -155,6 +165,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   adminTestimonials: [],
   adminDiskUsage: null,
   notifications: [],
+  unreadChatCount: 0,
 
   fetchInitialData: async () => {
     const token = localStorage.getItem('subly_token');
@@ -585,14 +596,20 @@ export const useDataStore = create<DataState>((set, get) => ({
     }
   },
 
-  createPayment: async (planId, subdomainName, voucherCode) => {
+  createPayment: async (planId, subdomainName, voucherCode, subdomainId = null, isDiskUpgrade = false, diskUpgradeSizeMb = 0) => {
     if (subdomainName) {
       localStorage.setItem('subly_pending_claim_name', subdomainName);
     }
 
     const res = await apiFetch<{ success: boolean; data: any }>('/payments/checkout', {
       method: 'POST',
-      body: { planId, voucherCode: voucherCode || undefined }
+      body: { 
+        planId, 
+        voucherCode: voucherCode || undefined,
+        subdomainId: subdomainId || undefined,
+        isDiskUpgrade: isDiskUpgrade || undefined,
+        diskUpgradeSizeMb: diskUpgradeSizeMb || undefined
+      }
     });
 
     const p = res.data;
@@ -1031,5 +1048,24 @@ export const useDataStore = create<DataState>((set, get) => ({
       method: 'DELETE'
     });
     await get().fetchNotifications();
+  },
+
+  fetchUnreadChatCount: async () => {
+    const authUser = useAuthStore.getState().user;
+    if (!authUser) return;
+
+    try {
+      if (authUser.role === 'Admin') {
+        const res = await apiFetch<{ success: boolean; data: any[] }>('/chats');
+        const count = res.data.reduce((acc, client) => acc + (client.unreadCount || 0), 0);
+        set({ unreadChatCount: count });
+      } else {
+        const res = await apiFetch<{ success: boolean; data: any[] }>('/chats');
+        const count = res.data.filter((msg: any) => msg.isAdmin && !msg.isRead).length;
+        set({ unreadChatCount: count });
+      }
+    } catch (err) {
+      console.error('Failed to fetch unread chat count:', err);
+    }
   }
 }));

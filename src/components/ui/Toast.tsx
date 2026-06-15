@@ -61,22 +61,22 @@ export const Toast: React.FC<ToastProps> = ({
   };
 
   return (
-    <div className={`relative flex gap-3 p-4 rounded-2xl border glass-panel ${borders[type]} shadow-xl w-80 animate-in slide-in-from-right-10 duration-200 select-none overflow-hidden`}>
+    <div className={`relative flex gap-2.5 p-3 rounded-xl border glass-panel ${borders[type]} shadow-lg w-72 max-w-[calc(100vw-2rem)] pointer-events-auto animate-in slide-in-from-right-10 duration-200 select-none overflow-hidden`}>
       {icons[type]}
-      <div className="flex-1 text-left">
-        <h4 className="text-sm font-bold text-text-main leading-4">{title}</h4>
-        <p className="mt-1 text-xs text-text-muted leading-relaxed">{message}</p>
+      <div className="flex-1 text-left min-w-0">
+        <h4 className="text-xs font-bold text-text-main leading-snug truncate">{title}</h4>
+        <p className="mt-0.5 text-[11px] text-text-muted leading-normal break-words">{message}</p>
       </div>
       <button 
         onClick={() => onClose(id)}
-        className="text-text-muted hover:text-text-main self-start p-0.5 rounded hover:bg-border-main/20 cursor-pointer"
+        className="text-text-muted hover:text-text-main self-start p-0.5 rounded hover:bg-border-main/20 cursor-pointer shrink-0"
       >
-        <X className="h-4 w-4" />
+        <X className="h-3.5 w-3.5" />
       </button>
 
       {/* Auto-dismiss progress bar */}
       <div 
-        className={`absolute bottom-0 left-0 h-1 transition-all duration-75 ease-linear ${barColor[type]}`}
+        className={`absolute bottom-0 left-0 h-0.5 transition-all duration-75 ease-linear ${barColor[type]}`}
         style={{ width: `${progress}%` }}
       />
     </div>

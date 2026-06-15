@@ -8,6 +8,7 @@ import {
 import { motion } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useDataStore } from '../../stores/useDataStore';
 import type { ActiveTab } from '../../types';
 
 export const Sidebar: React.FC = () => {
@@ -20,6 +21,8 @@ export const Sidebar: React.FC = () => {
     setActiveTab,
     device
   } = useSystemStore();
+
+  const { unreadChatCount } = useDataStore();
 
   const handleTabClick = (tab: ActiveTab, isExternal?: boolean, url?: string) => {
     if (isExternal && url) {
@@ -152,7 +155,7 @@ export const Sidebar: React.FC = () => {
           isSidebarCollapsed ? 'px-2' : 'px-4'
         }`}>
           {sections.map((section, secIdx) => (
-            <div key={secIdx} className="space-y-1">
+            <div key={secIdx} className={`space-y-1 ${isSidebarCollapsed ? 'mb-3' : ''}`}>
               {(section.titleKey || section.title) && !isSidebarCollapsed && (
                 <div className="px-3.5 py-1.5 text-[10px] font-extrabold text-text-muted/65 tracking-wider uppercase">
                   {section.titleKey ? t(section.titleKey).toUpperCase() : section.title}
@@ -175,8 +178,8 @@ export const Sidebar: React.FC = () => {
                     whileHover={{ scale: 1.02, x: isSidebarCollapsed ? 0 : 2 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className={`w-full flex items-center rounded-md text-sm font-medium cursor-pointer border-none transition-colors duration-150 ${
-                      isSidebarCollapsed ? 'justify-center px-0 h-9 w-9 mx-auto' : 'justify-between px-3 py-2'
+                    className={`w-full flex items-center rounded-md text-sm font-medium cursor-pointer border-none transition-colors duration-150 relative ${
+                      isSidebarCollapsed ? 'justify-center px-0 h-10 w-10 mx-auto' : 'justify-between px-3 py-2.5'
                     } ${
                       isActive 
                         ? 'bg-brand-primary/10 text-brand-primary' 
@@ -191,8 +194,11 @@ export const Sidebar: React.FC = () => {
                         {itemLabel}
                       </span>
                     </div>
-                    {!isSidebarCollapsed && (isActive || (!!(item as any).hasDot)) ? (
-                      <span className={`h-2 w-2 rounded-full bg-brand-primary shadow-[0_0_12px_var(--brand-primary)] shrink-0 ml-1.5 ${isActive ? 'animate-pulse' : ''}`} />
+                    {isSidebarCollapsed && (item.tab === 'chat' || item.tab === 'admin-chat') && unreadChatCount > 0 && (
+                      <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
+                    )}
+                    {!isSidebarCollapsed && (isActive || (!!(item as any).hasDot) || ((item.tab === 'chat' || item.tab === 'admin-chat') && unreadChatCount > 0)) ? (
+                      <span className={`h-2 w-2 rounded-full ${((item.tab === 'chat' || item.tab === 'admin-chat') && unreadChatCount > 0) ? 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.5)]' : 'bg-brand-primary shadow-[0_0_12px_var(--brand-primary)]'} shrink-0 ml-1.5 ${isActive || ((item.tab === 'chat' || item.tab === 'admin-chat') && unreadChatCount > 0) ? 'animate-pulse' : ''}`} />
                     ) : null}
                   </motion.button>
                 );
@@ -204,7 +210,7 @@ export const Sidebar: React.FC = () => {
         {/* Footer Role Indicator */}
         <div className="p-4 border-t border-border-main">
           <div className={`flex items-center rounded-md bg-border-main/10 text-xs font-medium text-text-subtle transition-all duration-300 ${
-            isSidebarCollapsed ? 'justify-center px-0 h-9 w-9 mx-auto' : 'px-3 py-2 gap-2.5'
+            isSidebarCollapsed ? 'justify-center px-0 h-10 w-10 mx-auto' : 'px-3 py-2.5 gap-2.5'
           }`}>
             <ShieldAlert className="h-4.5 w-4.5 text-brand-primary shrink-0" />
             <span className={`truncate transition-all duration-300 ${
@@ -287,8 +293,8 @@ export const Sidebar: React.FC = () => {
                       <span className="shrink-0">{item.icon}</span>
                       <span className="truncate">{itemLabel}</span>
                     </div>
-                    {(isActive || (!!(item as any).hasDot)) ? (
-                      <span className={`h-2 w-2 rounded-full bg-brand-primary shadow-[0_0_12px_var(--brand-primary)] shrink-0 ml-1.5 ${isActive ? 'animate-pulse' : ''}`} />
+                     {(isActive || (!!(item as any).hasDot) || ((item.tab === 'chat' || item.tab === 'admin-chat') && unreadChatCount > 0)) ? (
+                      <span className={`h-2 w-2 rounded-full ${((item.tab === 'chat' || item.tab === 'admin-chat') && unreadChatCount > 0) ? 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.5)]' : 'bg-brand-primary shadow-[0_0_12px_var(--brand-primary)]'} shrink-0 ml-1.5 ${isActive || ((item.tab === 'chat' || item.tab === 'admin-chat') && unreadChatCount > 0) ? 'animate-pulse' : ''}`} />
                     ) : null}
                   </motion.button>
                 );

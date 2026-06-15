@@ -670,14 +670,14 @@ export const FileManager: React.FC<FileManagerProps> = ({
             className="text-[9px] font-bold uppercase tracking-widest text-brand-primary hover:text-white hover:bg-brand-primary/10 transition-all bg-brand-primary/10 border border-brand-primary/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer font-bold"
           >
             <Plus className="h-3.5 w-3.5" />
-            + File
+            File
           </button>
           <button
             onClick={() => handleOpenCreateModal('folder')}
             className="text-[9px] font-bold uppercase tracking-widest text-brand-primary hover:text-white hover:bg-brand-primary/10 transition-all bg-brand-primary/10 border border-brand-primary/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer font-bold"
           >
             <Plus className="h-3.5 w-3.5" />
-            + Folder
+            Folder
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}

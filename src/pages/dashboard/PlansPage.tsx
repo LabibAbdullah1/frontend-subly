@@ -1,7 +1,7 @@
 // src/pages/dashboard/PlansPage.tsx
 import React, { useState, useEffect } from 'react';
 import { 
-  Check, ShoppingCart, Globe, ShieldCheck, HardDrive, Database
+  Check, ShoppingCart, Globe, ShieldCheck, HardDrive, Database, ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
@@ -16,20 +16,24 @@ import type { Plan } from '../../types';
 export const PlansPage: React.FC = () => {
   const { t } = useTranslation();
   const { addToast } = useToastStore();
-  const { setActiveTab } = useSystemStore();
-  const { plans, applyVoucher, createPayment, settings, fetchSettings } = useDataStore();
+  const { setActiveTab, language } = useSystemStore();
+  const { plans, applyVoucher, createPayment, settings, fetchSettings, subdomains, fetchSubdomains } = useDataStore();
 
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [voucherCode, setVoucherCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<number | null>(null);
   const [subdomainName, setSubdomainName] = useState('');
+  const [targetSubdomainId, setTargetSubdomainId] = useState<number | null>(null);
+  const [applyToExisting, setApplyToExisting] = useState(false);
+  const [subdomainDropdownOpen, setSubdomainDropdownOpen] = useState(false);
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
   const [filterType, setFilterType] = useState<'ALL' | 'PHP' | 'NodeJS'>('ALL');
 
   useEffect(() => {
     fetchSettings();
-  }, [fetchSettings]);
+    fetchSubdomains();
+  }, [fetchSettings, fetchSubdomains]);
 
   const rootDomain = settings.system_root_domain || 'subly.my.id';
 
@@ -45,6 +49,8 @@ export const PlansPage: React.FC = () => {
     setVoucherCode('');
     setAppliedDiscount(null);
     setSubdomainName('');
+    setApplyToExisting(false);
+    setTargetSubdomainId(subdomains.length > 0 ? subdomains[0].id : null);
     setCheckoutModalOpen(true);
   };
 
@@ -93,6 +99,15 @@ export const PlansPage: React.FC = () => {
         });
         return;
       }
+    } else if (applyToExisting) {
+      if (!targetSubdomainId) {
+        addToast({
+          type: 'error',
+          title: t('error'),
+          message: 'Harap pilih subdomain tujuan.',
+        });
+        return;
+      }
     }
 
     setIsCheckoutInProgress(true);
@@ -107,7 +122,12 @@ export const PlansPage: React.FC = () => {
         setCheckoutModalOpen(false);
         setActiveTab('subdomains');
       } else {
-        await createPayment(selectedPlan.id, '', appliedDiscount ? voucherCode : null);
+        await createPayment(
+          selectedPlan.id, 
+          '', 
+          appliedDiscount ? voucherCode : null, 
+          applyToExisting ? targetSubdomainId : null
+        );
         addToast({
           type: 'info',
           title: t('toastInvoiceCreatedTitle'),
@@ -221,7 +241,9 @@ export const PlansPage: React.FC = () => {
                         {Number(plan.price) === 0 ? 'Gratis' : `Rp ${Number(plan.price).toLocaleString('id-ID')}`}
                       </span>
                       <span className="text-[10px] text-text-muted font-bold uppercase ml-1">
-                        {Number(plan.price) === 0 ? ` / ${t('lifetime')}` : `/ ${t('monthlyPriceSuffix')}`}
+                        {Number(plan.price) === 0 
+                          ? ` / ${t('lifetime')}` 
+                          : `/ ${plan.duration_months} ${language === 'id' ? 'Bulan' : plan.duration_months > 1 ? 'Months' : 'Month'}`}
                       </span>
                     </div>
                   </div>
@@ -328,7 +350,81 @@ export const PlansPage: React.FC = () => {
                 </p>
               </div>
             ) : (
-              /* Voucher Discount */
+              <>
+                {/* Apply to Existing Subdomain selector */}
+                {subdomains.length > 0 && (
+                  <div className="space-y-3 p-3.5 rounded-xl border border-border-main bg-bg-base/30 select-none">
+                    <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={applyToExisting}
+                        onChange={(e) => setApplyToExisting(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div 
+                        className={`h-4.5 w-4.5 rounded-md border flex items-center justify-center transition-all ${
+                          applyToExisting 
+                            ? 'bg-brand-primary border-brand-primary text-white shadow-sm' 
+                            : 'border-border-main bg-bg-surface hover:border-brand-primary/50'
+                        }`}
+                      >
+                        {applyToExisting && (
+                          <svg className="w-3 h-3 stroke-current" fill="none" viewBox="0 0 24 24" strokeWidth="3.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold text-text-main">
+                        Terapkan ke subdomain yang sudah ada (Upgrade / Perpanjang)
+                      </span>
+                    </label>
+
+                    {applyToExisting && (
+                      <div className="space-y-1.5 pt-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                        <span className="text-[10px] font-bold text-text-muted uppercase block">Pilih Subdomain Tujuan</span>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setSubdomainDropdownOpen(!subdomainDropdownOpen)}
+                            className="w-full text-left bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main flex items-center justify-between cursor-pointer"
+                          >
+                            <span>
+                              {subdomains.find(s => s.id === targetSubdomainId)?.full_domain || 'Pilih Subdomain'} 
+                              {subdomains.find(s => s.id === targetSubdomainId) && ` (${subdomains.find(s => s.id === targetSubdomainId)?.status})`}
+                            </span>
+                            <ChevronRight className={`h-4 w-4 text-text-muted transition-transform duration-200 ${subdomainDropdownOpen ? 'rotate-90' : 'rotate-0'}`} />
+                          </button>
+
+                          {subdomainDropdownOpen && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setSubdomainDropdownOpen(false)} />
+                              <div className="absolute left-0 right-0 mt-1 rounded-xl bg-bg-surface border border-border-main shadow-2xl p-2 z-20 max-h-56 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150 text-xs space-y-0.5">
+                                {subdomains.map((sub) => (
+                                  <button
+                                    key={sub.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setTargetSubdomainId(sub.id);
+                                      setSubdomainDropdownOpen(false);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 rounded-lg font-semibold text-xs cursor-pointer ${
+                                      targetSubdomainId === sub.id 
+                                        ? 'bg-brand-primary/10 text-brand-primary' 
+                                        : 'text-text-muted hover:bg-border-main/30'
+                                    }`}
+                                  >
+                                    {sub.full_domain} ({sub.status})
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Voucher Discount */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-text-main">
                   {t('voucherCode')}
@@ -357,7 +453,8 @@ export const PlansPage: React.FC = () => {
                   </p>
                 )}
               </div>
-            )}
+            </>
+          )}
 
             {/* Price Calculations */}
             <div className="border-t border-border-main/50 pt-4 flex justify-between items-center select-none">

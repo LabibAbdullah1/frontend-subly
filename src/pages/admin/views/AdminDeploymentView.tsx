@@ -24,6 +24,14 @@ export const AdminDeploymentView: React.FC<Props> = ({ allDeployments, activeQue
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
   const [adminNote, setAdminNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(allDeployments.length / itemsPerPage);
+  const currentPageSanitized = Math.min(currentPage, totalPages || 1);
+  const paginatedDeployments = allDeployments.slice(
+    (currentPageSanitized - 1) * itemsPerPage,
+    currentPageSanitized * itemsPerPage
+  );
 
   const handleActionSelect = (dep: any, type: 'approve' | 'reject') => {
     setSelectedDeployment(dep);
@@ -81,9 +89,9 @@ export const AdminDeploymentView: React.FC<Props> = ({ allDeployments, activeQue
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="flex flex-col gap-6">
         {/* Active Queue */}
-        <div className="lg:col-span-1">
+        <div>
           <CardPanel title={t('activeQueueTitle')} headerActions={
             <span className="text-[9px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded">
               {activeQueueDeployments.length} {t('queuePendingLabel').toUpperCase()}
@@ -129,7 +137,7 @@ export const AdminDeploymentView: React.FC<Props> = ({ allDeployments, activeQue
         </div>
 
         {/* Deployment History */}
-        <div className="lg:col-span-2">
+        <div>
           <CardPanel title={t('deploymentHistoryTitle')}>
             <div className="overflow-x-auto w-full mt-2">
               <table className="w-full text-left min-w-[650px]">
@@ -141,7 +149,7 @@ export const AdminDeploymentView: React.FC<Props> = ({ allDeployments, activeQue
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-main/30 text-xs">
-                  {allDeployments.map((dep, idx) => (
+                  {paginatedDeployments.map((dep, idx) => (
                     <tr key={idx} className="hover:bg-border-main/5 transition-colors">
                       <td className="py-3 px-4 font-semibold text-text-main">
                         <div className="flex flex-col">
@@ -190,6 +198,46 @@ export const AdminDeploymentView: React.FC<Props> = ({ allDeployments, activeQue
                 </tbody>
               </table>
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border-main/50 mt-4 select-none">
+                <span className="text-[10px] font-semibold text-text-muted">
+                  Menampilkan {Math.min(allDeployments.length, (currentPageSanitized - 1) * itemsPerPage + 1)} - {Math.min(allDeployments.length, currentPageSanitized * itemsPerPage)} dari {allDeployments.length} deployment
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPageSanitized === 1}
+                    className="px-2.5 py-1.5 rounded-lg border border-border-main bg-bg-surface text-text-main text-[10px] font-bold transition-all cursor-pointer hover:border-brand-primary/50 disabled:opacity-50 disabled:cursor-not-allowed select-none"
+                  >
+                    Sebelumnya
+                  </button>
+                  {Array.from({ length: totalPages }).map((_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`h-7 w-7 rounded-lg text-[10px] font-bold transition-all cursor-pointer select-none ${
+                          currentPageSanitized === pageNum
+                            ? 'bg-brand-primary text-white shadow-md'
+                            : 'border border-border-main bg-bg-surface text-text-muted hover:text-text-main hover:border-brand-primary/30'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPageSanitized === totalPages}
+                    className="px-2.5 py-1.5 rounded-lg border border-border-main bg-bg-surface text-text-main text-[10px] font-bold transition-all cursor-pointer hover:border-brand-primary/50 disabled:opacity-50 disabled:cursor-not-allowed select-none"
+                  >
+                    Berikutnya
+                  </button>
+                </div>
+              </div>
+            )}
           </CardPanel>
         </div>
       </div>

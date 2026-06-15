@@ -76,6 +76,14 @@ export const App: React.FC = () => {
   React.useEffect(() => {
     if (status === 'authenticated') {
       useDataStore.getState().fetchInitialData();
+      useDataStore.getState().fetchUnreadChatCount();
+
+      const interval = setInterval(() => {
+        useDataStore.getState().fetchNotifications();
+        useDataStore.getState().fetchUnreadChatCount();
+      }, 6000);
+
+      return () => clearInterval(interval);
     }
   }, [status]);
 
@@ -235,7 +243,7 @@ export const App: React.FC = () => {
             </main>
 
             {/* Global Floating Toast Alerts Container */}
-            <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5">
+            <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none max-w-full">
               {toasts.map((toast) => (
                 <Toast 
                   key={toast.id} 
@@ -361,7 +369,7 @@ export const App: React.FC = () => {
           </div>
 
           {/* Global Floating Toast Alerts Container */}
-          <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5">
+          <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none max-w-full">
             {toasts.map((toast) => (
               <Toast 
                 key={toast.id} 

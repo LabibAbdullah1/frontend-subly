@@ -21,6 +21,7 @@ export const AdminSettingsTab: React.FC = () => {
 
   // System params state
   const [systemStorageLimit, setSystemStorageLimit] = useState('256');
+  const [systemDiskUpgradePrice, setSystemDiskUpgradePrice] = useState('10000');
   const [systemRootDomain, setSystemRootDomain] = useState('subly.my.id');
   const [systemStorageWarningThreshold, setSystemStorageWarningThreshold] = useState('80');
   const [systemSupportSla, setSystemSupportSla] = useState('< 10 Menit');
@@ -44,6 +45,7 @@ export const AdminSettingsTab: React.FC = () => {
     if (settings) {
       setMerchantName(settings.qris_merchant_name || 'SUBLY HOSTING INDONESIA');
       setSystemStorageLimit(settings.system_storage_limit_gb || '256');
+      setSystemDiskUpgradePrice(settings.system_disk_upgrade_price_per_gb || '10000');
       setSystemRootDomain(settings.system_root_domain || 'subly.my.id');
       setSystemStorageWarningThreshold(settings.system_storage_warning_threshold || '80');
       setSystemSupportSla(settings.system_support_sla || '< 10 Menit');
@@ -80,6 +82,7 @@ export const AdminSettingsTab: React.FC = () => {
     setIsSavingParams(true);
     try {
       await updateSetting('system_storage_limit_gb', systemStorageLimit);
+      await updateSetting('system_disk_upgrade_price_per_gb', systemDiskUpgradePrice);
       await updateSetting('system_root_domain', systemRootDomain);
       await updateSetting('system_storage_warning_threshold', systemStorageWarningThreshold);
       await updateSetting('system_support_sla', systemSupportSla);
@@ -152,6 +155,7 @@ export const AdminSettingsTab: React.FC = () => {
         <form onSubmit={handleSaveParams} className="space-y-4 mt-2 text-xs">
           {[
             { labelKey: 'paramStorageLimit' as const, value: systemStorageLimit, set: setSystemStorageLimit, type: 'number', min: '1' },
+            { labelKey: 'paramDiskUpgradePrice' as const, value: systemDiskUpgradePrice, set: setSystemDiskUpgradePrice, type: 'number', min: '0' },
             { labelKey: 'paramRootDomain' as const, value: systemRootDomain, set: setSystemRootDomain, type: 'text', placeholder: 'subly.my.id' },
             { labelKey: 'paramWarningThreshold' as const, value: systemStorageWarningThreshold, set: setSystemStorageWarningThreshold, type: 'number', min: '1', max: '100' },
             { labelKey: 'paramSupportSla' as const, value: systemSupportSla, set: setSystemSupportSla, type: 'text', placeholder: '< 10 Menit' },

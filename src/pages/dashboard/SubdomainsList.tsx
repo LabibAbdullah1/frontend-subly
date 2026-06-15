@@ -225,8 +225,16 @@ export const SubdomainsList: React.FC = () => {
 
                   {/* Domain Name */}
                   <div className="text-left">
-                    <h4 className="text-sm font-bold text-text-main tracking-tight font-mono select-all">
-                      {sub.full_domain}
+                    <h4 className="text-sm font-bold tracking-tight font-mono">
+                      <a 
+                        href={`http://${sub.full_domain}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-text-main hover:text-brand-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        {sub.full_domain}
+                        <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                      </a>
                     </h4>
                     <p className="text-[9px] text-text-muted mt-1 select-none font-bold uppercase">
                       Doc root: <span className="font-mono text-text-main/80">{sub.doc_root}</span>

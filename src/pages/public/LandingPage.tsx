@@ -436,7 +436,7 @@ const ProductMockup: React.FC = () => {
 };
 export const LandingPage: React.FC = () => {
   const { t } = useTranslation();
-  const { setActiveTab } = useSystemStore();
+  const { setActiveTab, language } = useSystemStore();
   const { plans, fetchPlans, publicTestimonials, fetchPublicTestimonials, settings, fetchSettings } = useDataStore();
   const { user } = useAuthStore();
   
@@ -870,7 +870,9 @@ export const LandingPage: React.FC = () => {
                           {Number(plan.price) === 0 ? 'Gratis' : `Rp ${Number(plan.price).toLocaleString('id-ID')}`}
                         </span>
                         <span className="text-[10px] text-text-subtle">
-                          {Number(plan.price) === 0 ? ` / ${t('lifetime')}` : `/ ${plan.duration_months} ${t('monthlyPriceSuffix')}`}
+                          {Number(plan.price) === 0 
+                            ? ` / ${t('lifetime')}` 
+                            : `/ ${plan.duration_months} ${language === 'id' ? 'Bulan' : plan.duration_months > 1 ? 'Months' : 'Month'}`}
                         </span>
                       </div>
 

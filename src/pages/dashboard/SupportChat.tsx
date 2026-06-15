@@ -248,7 +248,7 @@ export const SupportChat: React.FC = () => {
           )}
 
           {/* RIGHT PANEL: Chat Box Container */}
-          <div className={`flex-1 flex flex-col h-full relative ${selectedClientId ? 'flex' : 'hidden md:flex'}`}>
+          <div className={`flex-1 flex flex-col h-full relative ${(!isAdmin || selectedClientId) ? 'flex' : 'hidden md:flex'}`}>
             {(!isAdmin || selectedClientId) ? (
               <>
                 {/* Header chat */}

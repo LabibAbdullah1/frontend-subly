@@ -27,7 +27,9 @@ export const Header: React.FC = () => {
   } = useSystemStore();
 
   const { user, logout } = useAuthStore();
-  const { subdomains } = useDataStore();
+  const { subdomains, notifications, unreadChatCount } = useDataStore();
+  const unreadNotificationsCount = notifications.filter(n => !n.isRead).length;
+  const totalUnreadCount = unreadNotificationsCount + unreadChatCount;
   
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
@@ -129,7 +131,9 @@ export const Header: React.FC = () => {
           aria-label={t('notifications')}
         >
           <Bell className="h-4.5 w-4.5" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+          {totalUnreadCount > 0 && (
+            <span className={`absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ${unreadChatCount > 0 ? 'animate-pulse' : ''}`} />
+          )}
         </button>
 
         {/* User profile details dropdown */}
