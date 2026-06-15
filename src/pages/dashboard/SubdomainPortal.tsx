@@ -538,7 +538,7 @@ export const SubdomainPortal: React.FC = () => {
           }`}
         >
           <Layers className="h-4 w-4" />
-          Overview
+          {t('overviewTab')}
         </button>
         <button
           onClick={() => setActiveSubTab('git-env')}
@@ -549,7 +549,7 @@ export const SubdomainPortal: React.FC = () => {
           }`}
         >
           <Settings className="h-4 w-4" />
-          Git & Environment
+          {t('gitEnvTab')}
         </button>
         <button
           onClick={() => setActiveSubTab('files')}
@@ -560,7 +560,7 @@ export const SubdomainPortal: React.FC = () => {
           }`}
         >
           <FolderKanban className="h-4 w-4" />
-          File Explorer
+          {t('fileExplorerTab')}
         </button>
         <button
           onClick={() => setActiveSubTab('logs')}
@@ -571,7 +571,7 @@ export const SubdomainPortal: React.FC = () => {
           }`}
         >
           <Terminal className="h-4 w-4" />
-          Logs & Console
+          {t('logsConsoleTab')}
         </button>
       </div>
 
@@ -626,21 +626,21 @@ export const SubdomainPortal: React.FC = () => {
                 </CardPanel>
 
                 {/* Riwayat & Status Deployment */}
-                <CardPanel title={language === 'id' ? 'Riwayat & Status Deployment' : 'Deployment History & Status'}>
+                <CardPanel title={t('deploymentHistoryStatusTitle')}>
                   <div className="overflow-x-auto select-none">
                     <table className="w-full text-xs text-left border-collapse">
                       <thead>
                         <tr className="border-b border-border-main/40 text-text-muted font-bold uppercase tracking-wider text-[10px]">
-                          <th className="py-3 px-4">Build / Version</th>
-                          <th className="py-3 px-4">Tanggal Pengajuan</th>
-                          <th className="py-3 px-4">Detail / Catatan</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4">Catatan Admin</th>
+                          <th className="py-3 px-4">{t('colBuildVersion')}</th>
+                          <th className="py-3 px-4">{t('colSubmissionDate')}</th>
+                          <th className="py-3 px-4">{t('colDetailNotes')}</th>
+                          <th className="py-3 px-4">{t('status')}</th>
+                          <th className="py-3 px-4">{t('colAdminNote')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border-main/20 font-medium">
                         {subdomain.deployments && subdomain.deployments.length > 0 ? (
-                          [...subdomain.deployments]
+                           [...subdomain.deployments]
                             .sort((a, b) => b.version - a.version)
                             .map((dep: any) => (
                               <tr key={dep.id} className="hover:bg-border-main/5 transition-colors">
@@ -688,7 +688,7 @@ export const SubdomainPortal: React.FC = () => {
                         ) : (
                           <tr>
                             <td colSpan={5} className="py-8 text-center text-text-muted font-semibold">
-                              {language === 'id' ? 'Belum ada riwayat deployment.' : 'No deployment history available.'}
+                              {t('noDeploymentsHistoryPortal')}
                             </td>
                           </tr>
                         )}
@@ -848,7 +848,7 @@ export const SubdomainPortal: React.FC = () => {
                     ) : (
                       <div className="space-y-3 text-left">
                         <p className="text-[11px] text-text-muted font-semibold leading-normal">
-                          Anda menggunakan metode upload file manual via ZIP. Klik tombol di bawah ini untuk memicu deployment manual dari server.
+                          {t('manualZipUpgradeHint')}
                         </p>
                         <Button
                           onClick={handleTriggerDeploy}
@@ -856,7 +856,7 @@ export const SubdomainPortal: React.FC = () => {
                           icon={<Zap className="h-3.5 w-3.5" />}
                           className="w-full animate-pulse hover:animate-none font-bold"
                         >
-                          {t('deployBtn')}
+                          {t('triggerDeploymentBtn')}
                         </Button>
                       </div>
                     )}
@@ -865,31 +865,31 @@ export const SubdomainPortal: React.FC = () => {
                 </CardPanel>
 
                 {/* Upgrade & Tambahan CardPanel */}
-                <CardPanel title="Upgrade & Tambahan" className="select-none">
+                <CardPanel title={t('upgradeAddonsTitle')} className="select-none">
                   <div className="space-y-4">
                     <div className="space-y-2 text-left">
                       <p className="text-[11px] text-text-muted font-semibold leading-normal">
-                        Ingin beralih ke paket hosting yang lebih tinggi atau lebih rendah untuk subdomain ini?
+                        {t('upgradePlanHint')}
                       </p>
                       <Button
                         onClick={() => setActiveTab('plans')}
                         variant="primary"
                         className="w-full font-bold text-xs"
                       >
-                        Upgrade Paket Hosting
+                        {t('upgradePlanBtn')}
                       </Button>
                     </div>
                     <div className="border-t border-border-main/20 my-1" />
                     <div className="space-y-2 text-left">
                       <p className="text-[11px] text-text-muted font-semibold leading-normal">
-                        Butuh penyimpanan lebih besar untuk berkas dan database Anda? Anda dapat membeli kapasitas disk tambahan secara dinamis.
+                        {t('buyStorageHint')}
                       </p>
                       <Button
                         onClick={() => setDiskUpgradeModalOpen(true)}
                         variant="outline"
                         className="w-full font-bold text-xs"
                       >
-                        Beli Penyimpanan Tambahan
+                        {t('buyStorageBtn')}
                       </Button>
                     </div>
                   </div>
