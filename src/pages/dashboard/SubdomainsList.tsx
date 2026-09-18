@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { 
   Plus, Trash2, ArrowUpRight, Globe, Github, FileArchive, Calendar, AlertTriangle,
-  Sparkles, Info, Database, HardDrive, CheckCircle2, Loader2, AlertCircle, ShieldCheck,
+  Sparkles, Info, Database, HardDrive, CheckCircle2, Loader2,
   Clock, ExternalLink
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -686,7 +686,7 @@ export const SubdomainsList: React.FC = () => {
                   const subId = claimCreatedSub?.id;
                   handleCloseClaimModal();
                   if (subId) {
-                    setActiveTab(`subdomain-portal-${subId}`);
+                    setActiveTab('subdomains', subId);
                   }
                 }}
               >

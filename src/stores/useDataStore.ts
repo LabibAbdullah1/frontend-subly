@@ -461,7 +461,6 @@ export const useDataStore = create<DataState>((set, get) => ({
 
     await get().fetchSubdomains();
     await get().fetchPayments();
-    await get().fetchDatabases();
 
     const sub = res.data.subdomain;
     return {
@@ -489,7 +488,6 @@ export const useDataStore = create<DataState>((set, get) => ({
       method: 'DELETE'
     });
     await get().fetchSubdomains();
-    await get().fetchDatabases();
     await get().fetchPayments();
   },
 
