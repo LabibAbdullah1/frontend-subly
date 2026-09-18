@@ -5,7 +5,7 @@ import {
   Settings, FolderKanban, 
   ArrowLeft, Layers, ChevronRight,
   GitPullRequest, CheckCircle2, XCircle, Clock, Zap, RotateCcw, GitBranch, RefreshCw,
-  Star, AlertCircle, Trash2, ArrowUpRight
+  Star, AlertCircle, Trash2, ArrowUpRight, Info
 } from 'lucide-react';
 import { useSystemStore } from '../../stores/useSystemStore';
 import { useDataStore } from '../../stores/useDataStore';
@@ -511,19 +511,35 @@ export const SubdomainPortal: React.FC = () => {
       {/* Subdomain Portal Header */}
       <div className="select-none">
         <h1 className="text-xl md:text-2xl font-bold tracking-tight font-mono">
-          <a 
-            href={`http://${subdomain.full_domain}`} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-text-main hover:text-brand-primary hover:underline inline-flex items-center gap-1.5"
-          >
-            {subdomain.full_domain}
-            <ArrowUpRight className="h-5 w-5 shrink-0 opacity-70" />
-          </a>
+          {subdomain.status === 'active' ? (
+            <a 
+              href={`https://${subdomain.full_domain}`} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-text-main hover:text-brand-primary hover:underline inline-flex items-center gap-1.5"
+            >
+              {subdomain.full_domain}
+              <ArrowUpRight className="h-5 w-5 shrink-0 opacity-70" />
+            </a>
+          ) : (
+            <div className="inline-flex items-center gap-2">
+              <span className="text-text-muted font-mono">{subdomain.full_domain}</span>
+              <span className="text-[10px] px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 font-sans font-semibold flex items-center gap-1">
+                <AlertCircle className="h-3.5 w-3.5" />
+                {subdomain.status === 'inactive' ? 'Subdomain Nonaktif' : 'Sedang Disiapkan'} (Link Website Dikunci)
+              </span>
+            </div>
+          )}
         </h1>
         <p className="text-[10px] text-text-muted font-bold tracking-wide uppercase mt-1">
           Document root: <span className="font-mono text-text-main/80">{subdomain.doc_root}</span>
         </p>
+        {subdomain.status === 'active' && (
+          <p className="text-[10px] text-amber-500/90 font-medium flex items-center gap-1.5 mt-2 bg-amber-500/5 px-2.5 py-1 rounded border border-amber-500/15 w-fit">
+            <Info className="h-3.5 w-3.5 shrink-0" />
+            <span>Subdomain baru mungkin membutuhkan 15–60 detik untuk propagasi DNS Cloudflare. Jika muncul halaman Cloudflare, harap tunggu sebentar lalu refresh.</span>
+          </p>
+        )}
       </div>
 
       {/* Dynamic Sub-Tab Navigator */}
@@ -588,15 +604,24 @@ export const SubdomainPortal: React.FC = () => {
                     <div className="flex justify-between items-center py-2 border-b border-border-main/40">
                       <span className="text-text-muted font-bold uppercase tracking-wider">{t('primaryDomainLabel')}</span>
                       <span className="font-mono text-[11px]">
-                        <a 
-                          href={`http://${subdomain.full_domain}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-text-main hover:text-brand-primary hover:underline inline-flex items-center gap-1"
-                        >
-                          {subdomain.full_domain}
-                          <ArrowUpRight className="h-3 w-3 shrink-0 opacity-70" />
-                        </a>
+                        {subdomain.status === 'active' ? (
+                          <a 
+                            href={`https://${subdomain.full_domain}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-text-main hover:text-brand-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            {subdomain.full_domain}
+                            <ArrowUpRight className="h-3 w-3 shrink-0 opacity-70" />
+                          </a>
+                        ) : (
+                          <span className="text-text-muted inline-flex items-center gap-1.5 select-none">
+                            {subdomain.full_domain}
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-sans font-semibold">
+                              Link Dikunci
+                            </span>
+                          </span>
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-border-main/40">

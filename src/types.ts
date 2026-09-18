@@ -37,6 +37,8 @@ export interface Subdomain {
     name: string;
     email: string;
   } | null;
+  database?: any;
+  provisioning?: any;
 }
 
 export interface UserDatabase {

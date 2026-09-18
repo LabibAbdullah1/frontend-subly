@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { 
   Plus, Trash2, ArrowUpRight, Globe, Github, FileArchive, Calendar, AlertTriangle,
-  Sparkles, Info, Database, HardDrive
+  Sparkles, Info, Database, HardDrive, CheckCircle2, Loader2, AlertCircle, ShieldCheck,
+  Clock, ExternalLink
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSystemStore } from '../../stores/useSystemStore';
@@ -31,6 +32,17 @@ export const SubdomainsList: React.FC = () => {
   const [claimTargetPaymentId, setClaimTargetPaymentId] = useState<number | null>(null);
   const [claimName, setClaimName] = useState('');
   const [isClaiming, setIsClaiming] = useState(false);
+  const [claimStep, setClaimStep] = useState<number>(0);
+  const [claimCreatedSub, setClaimCreatedSub] = useState<any>(null);
+
+  const handleCloseClaimModal = () => {
+    if (isClaiming) return;
+    setClaimModalOpen(false);
+    setClaimStep(0);
+    setClaimCreatedSub(null);
+    setClaimName('');
+    setClaimTargetPaymentId(null);
+  };
 
   const handleClaimSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,21 +67,35 @@ export const SubdomainsList: React.FC = () => {
     }
 
     setIsClaiming(true);
+    setClaimStep(1); // Tahap 1: Validasi
+
+    // Simulasi transisi visual tahap demi tahap selama request berlangsung
+    const t2 = setTimeout(() => setClaimStep(2), 700);  // Tahap 2: cPanel & DNS
+    const t3 = setTimeout(() => setClaimStep(3), 1600); // Tahap 3: Database
+    const t4 = setTimeout(() => setClaimStep(4), 2500); // Tahap 4: File root & permissions
+
     try {
-      await addSubdomain(claimName, claimTargetPaymentId);
+      const created = await addSubdomain(claimName, claimTargetPaymentId);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+      setClaimCreatedSub(created);
+      setClaimStep(5); // Tahap 5: Berhasil Selesai!
+
       addToast({
         type: 'success',
         title: t('claimSubdomainSuccessTitle'),
         message: t('claimSubdomainSuccessMsg').replace('{name}', claimName).replace('{domain}', rootDomain),
       });
-      setClaimModalOpen(false);
-      setClaimTargetPaymentId(null);
-      setClaimName('');
-    } catch (err) {
+    } catch (err: any) {
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+      setClaimStep(0);
       addToast({
         type: 'error',
         title: t('claimSubdomainErrorTitle'),
-        message: t('claimSubdomainErrorMsg'),
+        message: err.message || t('claimSubdomainErrorMsg'),
       });
     } finally {
       setIsClaiming(false);
@@ -227,15 +253,24 @@ export const SubdomainsList: React.FC = () => {
                   {/* Domain Name */}
                   <div className="text-left">
                     <h4 className="text-sm font-bold tracking-tight font-mono">
-                      <a 
-                        href={`http://${sub.full_domain}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-text-main hover:text-brand-primary hover:underline inline-flex items-center gap-1"
-                      >
-                        {sub.full_domain}
-                        <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-70" />
-                      </a>
+                      {sub.status === 'active' ? (
+                        <a 
+                          href={`https://${sub.full_domain}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-text-main hover:text-brand-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          {sub.full_domain}
+                          <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                        </a>
+                      ) : (
+                        <span className="text-text-muted inline-flex items-center gap-1.5 cursor-not-allowed select-none" title="Website belum bisa dibuka karena masih dalam proses penyiapan / propagasi DNS">
+                          {sub.full_domain}
+                          <span className="text-[8.5px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-sans font-semibold">
+                            {sub.status === 'inactive' ? 'Nonaktif' : 'Sedang Disiapkan'} (Link Dikunci)
+                          </span>
+                        </span>
+                      )}
                     </h4>
                     <p className="text-[9px] text-text-muted mt-1 select-none font-bold uppercase">
                       Doc root: <span className="font-mono text-text-main/80">{sub.doc_root}</span>
@@ -275,8 +310,17 @@ export const SubdomainsList: React.FC = () => {
                         <Database className="h-3.5 w-3.5 shrink-0 text-text-muted" />
                         MySQL Database:
                       </span>
-                      <span className="font-mono text-text-main font-bold">
-                        {db ? db.db_name : t('oneActiveDb')}
+                      <span className="font-mono text-text-main font-bold flex items-center gap-1.5">
+                        {db ? (
+                          <>
+                            <span className="text-emerald-500 text-[9px]">●</span>
+                            <span className="truncate max-w-[130px]">{db.db_name}</span>
+                          </>
+                        ) : (
+                          <span className="text-amber-500 font-medium text-[9px] bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                            Menunggu cPanel
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -381,52 +425,283 @@ export const SubdomainsList: React.FC = () => {
       {/* Claim Subdomain Wizard Modal */}
       <Modal
         isOpen={claimModalOpen}
-        onClose={() => setClaimModalOpen(false)}
-        title={t('claimSubdomainTitle')}
-        description={t('claimSubdomainDesc')}
+        onClose={handleCloseClaimModal}
+        title={
+          claimStep === 5
+            ? 'Subdomain & Database Berhasil Diaktifkan!'
+            : claimStep >= 1
+            ? 'Memproses Pembuatan Layanan'
+            : t('claimSubdomainTitle')
+        }
+        description={
+          claimStep === 5
+            ? 'Layanan web hosting dan database MySQL Anda telah selesai disiapkan.'
+            : claimStep >= 1
+            ? 'Harap tunggu beberapa detik, sistem sedang memproses pendaftaran ke cPanel & DNS.'
+            : t('claimSubdomainDesc')
+        }
       >
-        <form onSubmit={handleClaimSubmit} className="space-y-4 text-left">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-text-main">
-              {t('subdomainName')}
-            </label>
-            <div className="flex items-stretch">
-              <input
-                type="text"
-                value={claimName}
-                onChange={(e) => setClaimName(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))}
-                placeholder="website-saya"
-                className="flex-1 premium-input rounded-r-none border-r-0 font-mono"
-                required
-              />
-              <span className="bg-border-main/20 border border-border-main border-l-0 px-4 flex items-center rounded-r-xl text-xs font-bold text-text-muted select-none font-mono">
-                .{rootDomain}
-              </span>
+        {claimStep === 0 && (
+          <form onSubmit={handleClaimSubmit} className="space-y-4 text-left">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-text-main">
+                {t('subdomainName')}
+              </label>
+              <div className="flex items-stretch">
+                <input
+                  type="text"
+                  value={claimName}
+                  onChange={(e) => setClaimName(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))}
+                  placeholder="website-saya"
+                  className="flex-1 premium-input rounded-r-none border-r-0 font-mono"
+                  required
+                />
+                <span className="bg-border-main/20 border border-border-main border-l-0 px-4 flex items-center rounded-r-xl text-xs font-bold text-text-muted select-none font-mono">
+                  .{rootDomain}
+                </span>
+              </div>
+              <p className="text-[10px] text-text-muted leading-relaxed flex items-start gap-1.5 select-none pt-1">
+                <Info className="h-3.5 w-3.5 shrink-0 text-brand-primary" />
+                <span>{t('subdomainRulesHint')}</span>
+              </p>
             </div>
-            <p className="text-[10px] text-text-muted leading-relaxed flex items-start gap-1.5 select-none pt-1">
-              <Info className="h-3.5 w-3.5 shrink-0 text-brand-primary" />
-              <span>{t('subdomainRulesHint')}</span>
+
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-border-main/50 select-none">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleCloseClaimModal}
+                disabled={isClaiming}
+              >
+                {t('cancel')}
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                isLoading={isClaiming}
+              >
+                {t('activateSubdomainBtn')}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {claimStep >= 1 && claimStep <= 4 && (
+          <div className="space-y-5 py-2 text-left select-none">
+            {/* Progress bar */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-bold text-text-muted">
+                <span>Status Provisi Otomatis</span>
+                <span className="font-mono text-brand-primary">{claimStep * 25}%</span>
+              </div>
+              <div className="w-full bg-border-main/30 h-2 rounded-full overflow-hidden border border-border-main/20">
+                <div
+                  className="bg-brand-primary h-full transition-all duration-500 rounded-full"
+                  style={{ width: `${claimStep * 25}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Stepper items */}
+            <div className="space-y-2.5">
+              {/* Step 1 */}
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-bg-surface border border-border-main">
+                <div className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 bg-green-500/10 text-green-500 border border-green-500/20">
+                  <CheckCircle2 className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-text-main">1. Validasi Slot & Format Subdomain</p>
+                  <p className="text-[10px] text-text-muted font-mono truncate">{claimName}.{rootDomain}</p>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className={`flex items-center gap-3 p-3 rounded-xl bg-bg-surface border transition-colors ${
+                claimStep === 2 ? 'border-brand-primary/50 bg-brand-primary/5' : 'border-border-main'
+              }`}>
+                <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 ${
+                  claimStep > 2
+                    ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                    : claimStep === 2
+                    ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/25'
+                    : 'bg-border-main/20 text-text-muted'
+                }`}>
+                  {claimStep > 2 ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : claimStep === 2 ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Clock className="h-4 w-4" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-text-main">2. Pendaftaran Subdomain & DNS Cloudflare</p>
+                  <p className="text-[10px] text-text-muted">
+                    {claimStep > 2
+                      ? 'Subdomain aktif & DNS terdaftar'
+                      : claimStep === 2
+                      ? 'Menghubungi API cPanel & mengatur routing DNS...'
+                      : 'Menunggu giliran...'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className={`flex items-center gap-3 p-3 rounded-xl bg-bg-surface border transition-colors ${
+                claimStep === 3 ? 'border-brand-primary/50 bg-brand-primary/5' : 'border-border-main'
+              }`}>
+                <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 ${
+                  claimStep > 3
+                    ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                    : claimStep === 3
+                    ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/25'
+                    : 'bg-border-main/20 text-text-muted'
+                }`}>
+                  {claimStep > 3 ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : claimStep === 3 ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Clock className="h-4 w-4" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-text-main">3. Pembuatan Database MySQL & User Hak Akses</p>
+                  <p className="text-[10px] text-text-muted">
+                    {claimStep > 3
+                      ? 'Database & kredensial user cPanel siap'
+                      : claimStep === 3
+                      ? 'Mengalokasikan database, user MySQL, dan hak akses...'
+                      : 'Menunggu giliran...'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div className={`flex items-center gap-3 p-3 rounded-xl bg-bg-surface border transition-colors ${
+                claimStep === 4 ? 'border-brand-primary/50 bg-brand-primary/5' : 'border-border-main'
+              }`}>
+                <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 ${
+                  claimStep === 4
+                    ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/25'
+                    : 'bg-border-main/20 text-text-muted'
+                }`}>
+                  {claimStep === 4 ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Clock className="h-4 w-4" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-text-main">4. Inisialisasi Direktori & File Default</p>
+                  <p className="text-[10px] text-text-muted">
+                    {claimStep === 4
+                      ? 'Membuat public_html & landing placeholder index.html...'
+                      : 'Menunggu giliran...'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-center text-[11px] text-text-muted animate-pulse">
+              Mohon jangan menutup jendela browser ini sampai proses pembuatan selesai...
             </p>
           </div>
+        )}
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border-main/50 select-none">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setClaimModalOpen(false)}
-              disabled={isClaiming}
-            >
-              {t('cancel')}
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              isLoading={isClaiming}
-            >
-              {t('activateSubdomainBtn')}
-            </Button>
+        {claimStep === 5 && (
+          <div className="space-y-4 py-1 text-left select-none">
+            {/* Success Header Box */}
+            <div className="p-3.5 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-green-500">Subdomain & Database Berhasil Dibuat!</h4>
+                <p className="text-[11px] text-text-muted">
+                  Seluruh konfigurasi server dan kredensial database telah siap.
+                </p>
+              </div>
+            </div>
+
+            {/* Information Cards */}
+            <div className="p-3.5 rounded-xl bg-bg-surface border border-border-main space-y-3">
+              {/* Domain row */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="text-[9px] uppercase font-bold text-text-muted tracking-wider block">Domain Website</span>
+                  <p className="text-xs font-bold text-text-main font-mono truncate select-all mt-0.5">
+                    https://{claimCreatedSub?.full_domain || `${claimName}.${rootDomain}`}
+                  </p>
+                </div>
+                <span className="text-[9px] font-bold uppercase bg-green-500/10 text-green-500 border border-green-500/20 px-2.5 py-0.5 rounded-full shrink-0">
+                  {claimCreatedSub?.status || 'Active'}
+                </span>
+              </div>
+
+              <div className="border-t border-border-main/50" />
+
+              {/* Database row */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="text-[9px] uppercase font-bold text-text-muted tracking-wider block">Database MySQL (cPanel)</span>
+                  <p className="text-xs font-bold text-text-main font-mono truncate select-all mt-0.5">
+                    {claimCreatedSub?.database?.name || (databases.find(d => d.subdomain_id === claimCreatedSub?.id)?.db_name) || 'Kredensial Siap'}
+                  </p>
+                </div>
+                <span className="text-[9px] font-bold uppercase bg-brand-primary/10 text-brand-primary border border-brand-primary/20 px-2.5 py-0.5 rounded-full shrink-0">
+                  {claimCreatedSub?.database?.isReady !== false ? 'Aktif' : 'Menunggu cPanel'}
+                </span>
+              </div>
+            </div>
+
+            {/* Cloudflare DNS Propagation Alert */}
+            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-xs">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span>Pemberitahuan Propagasi DNS Cloudflare</span>
+              </div>
+              <p className="text-[10px] text-text-muted leading-relaxed">
+                Subdomain baru membutuhkan waktu <strong>15–60 detik</strong> untuk penyebaran DNS Cloudflare global. Jika Anda langsung membuka website dan mendapati pesan Cloudflare (Error 521/522/Host Error), jangan khawatir—ini normal karena DNS baru didaftarkan. Harap tunggu ~30 detik lalu refresh halaman.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-border-main/50">
+              <a
+                href={`https://${claimCreatedSub?.full_domain || `${claimName}.${rootDomain}`}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-bg-base text-xs font-bold transition-all cursor-pointer shadow-sm"
+              >
+                <Globe className="h-4 w-4 shrink-0" />
+                Buka Website
+                <ExternalLink className="h-3 w-3 shrink-0 opacity-80" />
+              </a>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full sm:flex-1"
+                onClick={() => {
+                  const subId = claimCreatedSub?.id;
+                  handleCloseClaimModal();
+                  if (subId) {
+                    setActiveTab(`subdomain-portal-${subId}`);
+                  }
+                }}
+              >
+                Ke Portal Subdomain
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCloseClaimModal}
+              >
+                Selesai
+              </Button>
+            </div>
           </div>
-        </form>
+        )}
       </Modal>
     </div>
   );

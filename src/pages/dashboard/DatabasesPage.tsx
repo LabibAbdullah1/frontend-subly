@@ -67,7 +67,7 @@ const CredRow: React.FC<{
 export const DatabasesPage: React.FC = () => {
   const { t } = useTranslation();
   const { setActiveTab } = useSystemStore();
-  const { databases, subdomains, payments } = useDataStore();
+  const { databases, subdomains, payments, settings } = useDataStore();
 
   // Build per-subdomain resource map
   const subdomainResources = subdomains.map((sub) => {
@@ -168,7 +168,7 @@ export const DatabasesPage: React.FC = () => {
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-sm font-bold text-text-main font-mono truncate select-all">
-                      {sub.name}.subly.host
+                      {sub.full_domain || `${sub.name}.${settings.system_root_domain || 'subly.my.id'}`}
                     </h3>
                     <p className="text-[9px] font-semibold text-text-muted uppercase tracking-wide mt-0.5 truncate">
                       {plan?.name ?? t('plans')} · {plan?.type ?? 'PHP'}

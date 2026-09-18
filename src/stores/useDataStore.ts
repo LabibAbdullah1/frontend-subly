@@ -461,6 +461,7 @@ export const useDataStore = create<DataState>((set, get) => ({
 
     await get().fetchSubdomains();
     await get().fetchPayments();
+    await get().fetchDatabases();
 
     const sub = res.data.subdomain;
     return {
@@ -477,7 +478,9 @@ export const useDataStore = create<DataState>((set, get) => ({
       git_last_commit: sub.gitLastCommit,
       git_connected_at: sub.gitConnectedAt,
       created_at: sub.createdAt || '',
-      updated_at: sub.updatedAt || ''
+      updated_at: sub.updatedAt || '',
+      database: res.data?.database,
+      provisioning: res.data?.provisioning
     };
   },
 
