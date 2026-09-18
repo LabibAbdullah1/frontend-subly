@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Zap, Database, ShieldCheck, Cpu, 
   ArrowRight, Check, HelpCircle, Star, Globe,
-  GitBranch, Terminal, Layers, Folder, FileText, Lock,
+  GitBranch, Terminal, Layers, Lock,
   RefreshCw, Gift
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

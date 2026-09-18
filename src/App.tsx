@@ -21,6 +21,7 @@ import { Header } from './components/layout/Header';
 // Public Pages
 import { LandingPage } from './pages/public/LandingPage';
 const AuthPagesContainer = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.AuthPagesContainer })));
+const VerifyEmailPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.VerifyEmailPage })));
 const LegalPages = React.lazy(() => import('./pages/public/LegalPages').then(m => ({ default: m.LegalPages })));
 
 // Client Pages
