@@ -18,8 +18,6 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
   const { t, language } = useTranslation();
   const { adminUsers } = useDataStore();
 
-  const locale = language === 'id' ? 'id-ID' : 'en-US';
-
   // ─── Search & Filter State ────────────────────────────────────────────────
   const [memberSearchInput, setMemberSearchInput] = useState('');
   const [memberSearch, setMemberSearch] = useState('');

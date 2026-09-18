@@ -12,7 +12,7 @@ import { Modal } from '../../components/ui/Modal';
 import { formatDate } from '../../utils/date';
 
 export const PlansCheckout: React.FC = () => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const { addToast } = useToastStore();
   const { setActiveTab } = useSystemStore();
   const { payments, uploadProof, cancelPayment, settings, fetchSettings, fetchPayments } = useDataStore();

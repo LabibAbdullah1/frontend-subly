@@ -8,9 +8,10 @@ import { CardPanel } from '../../../components/ui/CardPanel';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { Modal } from '../../../components/ui/Modal';
+import { Select } from '../../../components/ui/Select';
 import { formatDate } from '../../../utils/date';
 
-const getRemainingTime = (expiryStr: string | null, t: any, language: string) => {
+const getRemainingTime = (expiryStr: string | null, t: any) => {
   if (!expiryStr) return t('lifetime');
   const expiry = new Date(expiryStr);
   const diffTime = expiry.getTime() - Date.now();
@@ -111,7 +112,7 @@ export const AdminSubdomainView: React.FC = () => {
                       {sub.full_domain}
                     </a>
                   </td>
-                  <td className="py-3 px-4 font-mono text-[10px] text-text-muted">{getRemainingTime(sub.expired_at, t, language)}</td>
+                  <td className="py-3 px-4 font-mono text-[10px] text-text-muted">{getRemainingTime(sub.expired_at, t)}</td>
                   <td className="py-3 px-4 text-center">
                     <Badge status={sub.status === 'active' ? 'success' : 'inactive'} label={sub.status.toUpperCase()} />
                   </td>
@@ -147,7 +148,7 @@ export const AdminSubdomainView: React.FC = () => {
             <label className="text-xs font-bold text-text-main">{t('selectPaymentLabel')}</label>
             <Select
               value={selectedPaymentId || ''}
-              onChange={(e) => setSelectedPaymentId(e.target.value ? Number(e.target.value) : null)}
+              onChange={(e: any) => setSelectedPaymentId(e.target.value ? Number(e.target.value) : null)}
               options={eligiblePayments.map((p) => {
                 const owner = adminUsers.find((u) => u.id === p.user_id);
                 return { value: p.id, label: `${owner?.name || `Client #${p.user_id}`} (${owner?.email || ''}) - ${p.plan?.name || 'Hosting Plan'} - #${p.transaction_id || p.id}` };

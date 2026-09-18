@@ -11,7 +11,7 @@ import { Select } from '../../components/ui/Select';
 import { formatDate } from '../../utils/date';
 
 export const TestimonialPage: React.FC = () => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const { addToast } = useToastStore();
   const { 
     subdomains, 

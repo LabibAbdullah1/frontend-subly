@@ -13,7 +13,7 @@ import { Modal } from '../../components/ui/Modal';
 import { formatDate } from '../../utils/date';
 
 export const ProfileSettings: React.FC = () => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const { addToast } = useToastStore();
   const { user, updateProfile, deleteAccount } = useAuthStore();
   const [loading, setLoading] = useState(false);

@@ -11,7 +11,7 @@ import { Modal } from '../../../components/ui/Modal';
 import { formatDate } from '../../../utils/date';
 
 export const AdminPaymentsView: React.FC = () => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const { addToast } = useToastStore();
   const { payments, confirmPayment, fetchAdminStats, fetchSubdomains, fetchAdminDiskUsage } = useDataStore();
 
@@ -31,8 +31,6 @@ export const AdminPaymentsView: React.FC = () => {
     setConfirmPayId(null);
     await Promise.all([fetchAdminStats(), fetchSubdomains(), fetchAdminDiskUsage()]);
   };
-
-  const locale = language === 'id' ? 'id-ID' : 'en-US';
 
   return (
     <div className="space-y-6 w-full text-left">

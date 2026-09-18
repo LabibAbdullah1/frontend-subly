@@ -18,7 +18,7 @@ import { TerminalConsole } from '../../components/dashboard/TerminalConsole';
 import { FileManager } from '../../components/dashboard/FileManager';
 import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
-import { formatDate, formatDateTime } from '../../utils/date';
+import { formatDateTime } from '../../utils/date';
 
 type SubTab = 'overview' | 'git-env' | 'files' | 'logs';
 
@@ -356,31 +356,6 @@ export const SubdomainPortal: React.FC = () => {
       });
     } finally {
       setIsDisconnectingGit(false);
-    }
-  };
-
-  const handleTriggerDeploy = async () => {
-    if (subdomain) {
-      addToast({
-        type: 'info',
-        title: 'Pengajuan Deployment',
-        message: 'Infrastruktur sedang memproses pengajuan deployment Anda...',
-      });
-      try {
-        await triggerRealDeployment(subdomain.id);
-        addToast({
-          type: 'success',
-          title: 'Pengajuan Berhasil',
-          message: 'Pengajuan deployment berhasil dikirim. Status menunggu persetujuan Admin.',
-        });
-        checkAndTriggerFeedback();
-      } catch (err: any) {
-        addToast({
-          type: 'error',
-          title: 'Pengajuan Gagal',
-          message: err.message || 'Terjadi kesalahan saat mengajukan deployment.',
-        });
-      }
     }
   };
 
