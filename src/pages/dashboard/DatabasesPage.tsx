@@ -226,7 +226,7 @@ export const DatabasesPage: React.FC = () => {
                   )}
                 </div>
 
-                {db ? (
+                {sub.status === 'active' && db ? (
                   <div className="flex flex-col gap-4 mt-2.5">
                     {/* Credentials table */}
                     <div className="rounded-md border border-border-main overflow-hidden text-[11px] divide-y divide-border-main/40 bg-bg-base/20">
@@ -249,10 +249,16 @@ export const DatabasesPage: React.FC = () => {
                     </a>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-dashed border-border-main/40 bg-border-main/5 px-4 py-5 text-center select-none">
-                    <Database className="h-7 w-7 text-text-muted/40 mx-auto mb-2" />
-                    <p className="text-[10px] text-text-muted font-semibold leading-relaxed">
-                      {t('dbUnavailable')}
+                  <div className="rounded-xl border border-dashed border-red-500/30 bg-red-500/5 px-4 py-5 text-center select-none">
+                    <Database className="h-7 w-7 text-red-400 mx-auto mb-2" />
+                    <p className="text-[11px] text-text-main font-bold">
+                      {sub.status !== 'active' ? 'Database Nonaktif (Subdomain Inactive)' : t('dbUnavailable')}
+                    </p>
+                    <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+                      {sub.status !== 'active'
+                        ? 'Akses database disuspend sementara karena subdomain kedaluwarsa atau nonaktif. Lakukan perpanjangan/upgrade untuk mengaktifkan kembali database Anda.'
+                        : t('noSubdomainDatabases')
+                      }
                     </p>
                   </div>
                 )}

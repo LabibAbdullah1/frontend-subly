@@ -10,6 +10,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
+import { formatDate } from '../../utils/date';
 
 export const ProfileSettings: React.FC = () => {
   const { t, language } = useTranslation();
@@ -170,7 +171,7 @@ export const ProfileSettings: React.FC = () => {
               <div className="flex justify-between items-center py-2 border-b border-border-main/40">
                 <span className="text-text-muted font-semibold">{t('createdAtLabel')}</span>
                 <span className="text-text-main font-bold">
-                  {new Date(user?.created_at || '2026-06-01').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { dateStyle: 'medium' })}
+                  {formatDate(user?.created_at)}
                 </span>
               </div>
             </div>

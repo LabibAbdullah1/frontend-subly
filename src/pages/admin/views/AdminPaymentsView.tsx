@@ -8,6 +8,7 @@ import { CardPanel } from '../../../components/ui/CardPanel';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { Modal } from '../../../components/ui/Modal';
+import { formatDate } from '../../../utils/date';
 
 export const AdminPaymentsView: React.FC = () => {
   const { t, language } = useTranslation();
@@ -102,7 +103,7 @@ export const AdminPaymentsView: React.FC = () => {
             <tbody className="divide-y divide-border-main/30 text-xs">
               {payments.filter((p) => p.status !== 'pending').slice(0, 15).map((p) => (
                 <tr key={p.id} className="hover:bg-border-main/5 transition-colors">
-                  <td className="py-3 px-4 font-semibold text-text-muted text-[10px] font-mono">{new Date(p.created_at).toLocaleDateString(locale)}</td>
+                  <td className="py-3 px-4 font-semibold text-text-muted text-[10px] font-mono">{formatDate(p.created_at)}</td>
                   <td className="py-3 px-4 font-semibold text-text-main font-mono text-[11px] truncate" title={p.transaction_id}>{p.transaction_id}</td>
                   <td className="py-3 px-4 text-center font-bold text-text-main font-mono text-[11px]">Rp {(p.amount + p.unique_code).toLocaleString('id-ID')}</td>
                   <td className="py-3 px-4 text-center"><Badge status={p.status === 'success' ? 'success' : 'inactive'} label={p.status.toUpperCase()} /></td>

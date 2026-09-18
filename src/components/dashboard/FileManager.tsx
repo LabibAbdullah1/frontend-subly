@@ -76,8 +76,47 @@ export const FileManager: React.FC<FileManagerProps> = ({
 
   const [editFileItem, setEditFileItem] = useState<FileItem | null>(null);
   const [editFileContent, setEditFileContent] = useState('');
+  const [editLogMessage, setEditLogMessage] = useState('');
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [isSavingContent, setIsSavingContent] = useState(false);
+
+  // .htaccess Generator State
+  const [showHtaccessGeneratorModal, setShowHtaccessGeneratorModal] = useState(false);
+  const [htaccessSubfolder, setHtaccessSubfolder] = useState('public');
+
+  const executeGenerateHtaccess = async () => {
+    const folder = htaccessSubfolder.trim().replace(/^\/+/, '') || 'public';
+    const htcontent = `<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Subly Auto-Generated .htaccess Rule to target subfolder
+    RewriteCond %{REQUEST_URI} !^/${folder}/
+    RewriteRule ^(.*)$ /${folder}/$1 [L]
+</IfModule>`;
+
+    try {
+      await apiFetch(`/subdomains/${subdomainId}/file-manager/save`, {
+        method: 'POST',
+        body: {
+          path: '.htaccess',
+          content: htcontent,
+          logMessage: `Membuat rule .htaccess mengarah ke subfolder /${folder}`
+        }
+      });
+      addToast({
+        type: 'success',
+        title: '.htaccess Berhasil Dibuat',
+        message: `File .htaccess berhasil disimpan dan mengarah ke subfolder "/${folder}".`
+      });
+      setShowHtaccessGeneratorModal(false);
+      fetchFiles();
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Membuat .htaccess',
+        message: err.message || 'Terjadi kesalahan.'
+      });
+    }
+  };
 
   const handleOpenCreateModal = (type: 'file' | 'folder') => {
     setCreateType(type);
@@ -291,7 +330,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
     try {
       await apiFetch(`/subdomains/${subdomainId}/file-manager/save`, {
         method: 'POST',
-        body: { path: editFileItem.path, content: editFileContent }
+        body: { path: editFileItem.path, content: editFileContent, logMessage: editLogMessage }
       });
       addToast({
         type: 'success',
@@ -299,6 +338,8 @@ export const FileManager: React.FC<FileManagerProps> = ({
         message: `Berkas "${editFileItem.name}" berhasil disimpan.`,
       });
       setEditFileItem(null);
+      setEditLogMessage('');
+      fetchFiles();
     } catch (err: any) {
       addToast({
         type: 'error',
@@ -685,6 +726,13 @@ export const FileManager: React.FC<FileManagerProps> = ({
           >
             <Upload className="h-3.5 w-3.5" />
             Upload ZIP
+          </button>
+          <button
+            onClick={() => setShowHtaccessGeneratorModal(true)}
+            className="text-[9px] font-bold uppercase tracking-widest text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition-all bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg active:scale-95 flex items-center gap-1.5 cursor-pointer font-bold"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            .htaccess Generator
           </button>
 
           {selectedFiles.length > 0 && (
@@ -1322,8 +1370,66 @@ export const FileManager: React.FC<FileManagerProps> = ({
                 }}
               />
             </div>
+
+            {/* Commit Log Input Field */}
+            <div className="mt-3 text-left space-y-1">
+              <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Catatan Perubahan (Log Commit):</label>
+              <input
+                type="text"
+                value={editLogMessage}
+                onChange={(e) => setEditLogMessage(e.target.value)}
+                placeholder="contoh: Memperbaiki styling / update fungsi router"
+                className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2 text-xs font-semibold text-text-main outline-none transition-all font-mono"
+              />
+            </div>
           </div>
         )}
+      </Modal>
+
+      {/* .htaccess Generator Modal */}
+      <Modal
+        isOpen={showHtaccessGeneratorModal}
+        onClose={() => setShowHtaccessGeneratorModal(false)}
+        title="Generator File .htaccess"
+        description="Arahkan trafik host utama ke subfolder tertentu (misalnya folder public/ untuk Laravel atau Vite build)."
+        footerActions={
+          <>
+            <Button variant="secondary" onClick={() => setShowHtaccessGeneratorModal(false)}>
+              Batal
+            </Button>
+            <Button variant="primary" onClick={executeGenerateHtaccess}>
+              Buat / Simpan .htaccess
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4 text-left">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Target Subfolder Tujuan:</label>
+            <input
+              type="text"
+              value={htaccessSubfolder}
+              onChange={(e) => setHtaccessSubfolder(e.target.value)}
+              placeholder="contoh: public"
+              className="w-full bg-bg-surface border border-border-main focus:border-brand-primary rounded-xl px-4 py-2.5 text-xs font-semibold text-text-main outline-none transition-all font-mono"
+              autoFocus
+            />
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              Direktori target di mana index.php / index.html aplikasi Anda berada.
+            </p>
+          </div>
+
+          <div className="p-3 rounded-xl bg-bg-base/60 border border-border-main font-mono text-[11px] text-text-muted space-y-1 overflow-x-auto">
+            <p className="font-bold text-brand-primary text-[10px]">Preview Isi Rules .htaccess:</p>
+            <pre className="text-cyan-400 text-[10px] leading-relaxed">
+{`<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_URI} !^/${htaccessSubfolder.trim().replace(/^\/+/, '') || 'public'}/
+  RewriteRule ^(.*)$ /${htaccessSubfolder.trim().replace(/^\/+/, '') || 'public'}/$1 [L]
+</IfModule>`}
+            </pre>
+          </div>
+        </div>
       </Modal>
 
       {/* Floating Upload Progress Card */}

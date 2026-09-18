@@ -18,6 +18,7 @@ import { TerminalConsole } from '../../components/dashboard/TerminalConsole';
 import { FileManager } from '../../components/dashboard/FileManager';
 import { Modal } from '../../components/ui/Modal';
 import { apiFetch } from '../../utils/api';
+import { formatDate, formatDateTime } from '../../utils/date';
 
 type SubTab = 'overview' | 'git-env' | 'files' | 'logs';
 
@@ -96,10 +97,33 @@ export const SubdomainPortal: React.FC = () => {
   const [feedbackContent, setFeedbackContent] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
-  // Load testimonials on mount
+  // File Commit Logs state
+  const [fileLogs, setFileLogs] = useState<any[]>([]);
+  const [isLoadingFileLogs, setIsLoadingFileLogs] = useState(false);
+
+  const fetchFileLogs = async () => {
+    if (!subdomain) return;
+    setIsLoadingFileLogs(true);
+    try {
+      const res = await apiFetch<{ success: boolean; data: any[] }>(`/subdomains/${subdomain.id}/file-manager/logs`);
+      setFileLogs(res.data || []);
+    } catch (err) {
+      setFileLogs([]);
+    } finally {
+      setIsLoadingFileLogs(false);
+    }
+  };
+
+  // Load testimonials & file logs on mount
   useEffect(() => {
     fetchMyTestimonials();
   }, [fetchMyTestimonials]);
+
+  useEffect(() => {
+    if (subdomain?.id) {
+      fetchFileLogs();
+    }
+  }, [subdomain?.id, activeSubTab]);
 
   // Load existing git settings on open
   useEffect(() => {
@@ -625,70 +649,45 @@ export const SubdomainPortal: React.FC = () => {
                   </div>
                 </CardPanel>
 
-                {/* Riwayat & Status Deployment */}
-                <CardPanel title={t('deploymentHistoryStatusTitle')}>
+                {/* Log Perubahan Berkas (Git-like Commit Logs) */}
+                <CardPanel title="Log Perubahan Berkas (Git-like Commit Log)">
                   <div className="overflow-x-auto select-none">
                     <table className="w-full text-xs text-left border-collapse">
                       <thead>
                         <tr className="border-b border-border-main/40 text-text-muted font-bold uppercase tracking-wider text-[10px]">
-                          <th className="py-3 px-4">{t('colBuildVersion')}</th>
-                          <th className="py-3 px-4">{t('colSubmissionDate')}</th>
-                          <th className="py-3 px-4">{t('colDetailNotes')}</th>
-                          <th className="py-3 px-4">{t('status')}</th>
-                          <th className="py-3 px-4">{t('colAdminNote')}</th>
+                          <th className="py-3 px-4">Waktu Perubahan</th>
+                          <th className="py-3 px-4">File Path</th>
+                          <th className="py-3 px-4">Catatan Commit Log</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border-main/20 font-medium">
-                        {subdomain.deployments && subdomain.deployments.length > 0 ? (
-                           [...subdomain.deployments]
-                            .sort((a, b) => b.version - a.version)
-                            .map((dep: any) => (
-                              <tr key={dep.id} className="hover:bg-border-main/5 transition-colors">
-                                <td className="py-3 px-4 font-mono font-bold text-text-main">
-                                  v{dep.version}
-                                </td>
-                                <td className="py-3 px-4 text-text-muted font-mono">
-                                  {(() => {
-                                    if (!dep.created_at) return '-';
-                                    try {
-                                      return new Date(dep.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      });
-                                    } catch {
-                                      return dep.created_at;
-                                    }
-                                  })()}
-                                </td>
-                                <td className="py-3 px-4 text-text-main font-semibold max-w-[200px] truncate" title={dep.notes || ''}>
-                                  {dep.notes || '-'}
-                                </td>
-                                <td className="py-3 px-4">
-                                  {(() => {
-                                    switch (dep.status) {
-                                      case 'queued':
-                                        return <Badge status="queued" label={language === 'id' ? 'Menunggu Persetujuan' : 'Waiting Approval'} />;
-                                      case 'success':
-                                        return <Badge status="success" label={language === 'id' ? 'Berhasil' : 'Success'} />;
-                                      case 'error':
-                                        return <Badge status="error" label={language === 'id' ? 'Gagal' : 'Failed'} />;
-                                      default:
-                                        return <Badge status="inactive" label={dep.status} />;
-                                    }
-                                  })()}
-                                </td>
-                                <td className="py-3 px-4 text-text-muted italic text-[11px] max-w-[200px] truncate font-semibold" title={dep.admin_note || ''}>
-                                  {dep.admin_note || '-'}
-                                </td>
-                              </tr>
-                            ))
+                        {isLoadingFileLogs ? (
+                          <tr>
+                            <td colSpan={3} className="py-8 text-center text-text-muted font-semibold">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+                                <span>Memuat log perubahan...</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : fileLogs && fileLogs.length > 0 ? (
+                          fileLogs.map((log: any) => (
+                            <tr key={log.id} className="hover:bg-border-main/5 transition-colors">
+                              <td className="py-3 px-4 text-text-muted font-mono whitespace-nowrap text-[11px]">
+                                {formatDateTime(log.createdAt)}
+                              </td>
+                              <td className="py-3 px-4 font-mono font-bold text-brand-primary text-[11px] truncate max-w-[150px]">
+                                /{log.filePath}
+                              </td>
+                              <td className="py-3 px-4 text-text-main font-semibold max-w-[280px] truncate" title={log.logMessage || ''}>
+                                {log.logMessage || '-'}
+                              </td>
+                            </tr>
+                          ))
                         ) : (
                           <tr>
-                            <td colSpan={5} className="py-8 text-center text-text-muted font-semibold">
-                              {t('noDeploymentsHistoryPortal')}
+                            <td colSpan={3} className="py-8 text-center text-text-muted font-semibold italic text-[11px]">
+                              Belum ada catatan log perubahan berkas. Log akan tercatat secara otomatis setiap kali Anda menyimpan berkas di File Explorer.
                             </td>
                           </tr>
                         )}
@@ -846,18 +845,10 @@ export const SubdomainPortal: React.FC = () => {
                         <div className="border-t border-border-main/30" />
                       </>
                     ) : (
-                      <div className="space-y-3 text-left">
+                      <div className="space-y-2 text-left">
                         <p className="text-[11px] text-text-muted font-semibold leading-normal">
-                          {t('manualZipUpgradeHint')}
+                          Sinkronisasi berkas dilakukan secara otomatis saat Anda mengunggah atau mengekstrak ZIP melalui File Explorer.
                         </p>
-                        <Button
-                          onClick={handleTriggerDeploy}
-                          variant="primary"
-                          icon={<Zap className="h-3.5 w-3.5" />}
-                          className="w-full animate-pulse hover:animate-none font-bold"
-                        >
-                          {t('triggerDeploymentBtn')}
-                        </Button>
                       </div>
                     )}
 

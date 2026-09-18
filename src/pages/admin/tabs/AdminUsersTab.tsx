@@ -7,6 +7,7 @@ import { Select } from '../../../components/ui/Select';
 import { apiFetch } from '../../../utils/api';
 import { useDataStore } from '../../../stores/useDataStore';
 import { useTranslation } from '../../../hooks/useTranslation';
+import { formatDate } from '../../../utils/date';
 
 interface Props {
   onEditUser: (user: any) => void;
@@ -266,9 +267,7 @@ export const AdminUsersTab: React.FC<Props> = ({ onEditUser, onDeleteUser }) => 
                       />
                     </td>
                     <td className="py-3 px-4 text-center font-mono text-[10px] text-text-muted">
-                      {client.createdAt
-                        ? new Date(client.createdAt).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' })
-                        : '—'}
+                      {formatDate(client.createdAt)}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex justify-end gap-1">

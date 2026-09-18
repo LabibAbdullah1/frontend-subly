@@ -8,6 +8,7 @@ import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Select } from '../../components/ui/Select';
+import { formatDate } from '../../utils/date';
 
 export const TestimonialPage: React.FC = () => {
   const { t, language } = useTranslation();
@@ -248,7 +249,7 @@ export const TestimonialPage: React.FC = () => {
                     <div className="flex flex-col gap-2 pt-2 border-t border-border-main/20 text-[10px] text-text-muted font-semibold">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" />
-                        <span>{t('submittedAtLabel').replace('{date}', new Date(item.created_at).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { dateStyle: 'medium' }))}</span>
+                        <span>{t('submittedAtLabel').replace('{date}', formatDate(item.created_at))}</span>
                       </div>
                       
                       {item.admin_note && (

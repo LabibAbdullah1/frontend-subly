@@ -8,7 +8,7 @@ import { CardPanel } from '../../../components/ui/CardPanel';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { Modal } from '../../../components/ui/Modal';
-import { Select } from '../../../components/ui/Select';
+import { formatDate } from '../../../utils/date';
 
 const getRemainingTime = (expiryStr: string | null, t: any, language: string) => {
   if (!expiryStr) return t('lifetime');
@@ -16,8 +16,7 @@ const getRemainingTime = (expiryStr: string | null, t: any, language: string) =>
   const diffTime = expiry.getTime() - Date.now();
   if (diffTime <= 0) return t('expired');
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  const locale = language === 'id' ? 'id-ID' : 'en-US';
-  const formattedDate = expiry.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
+  const formattedDate = formatDate(expiryStr);
   if (diffDays > 30) {
     const months = Math.floor(diffDays / 30);
     return t('monthsLeft').replace('{months}', String(months)).replace('{date}', formattedDate);

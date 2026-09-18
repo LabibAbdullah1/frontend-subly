@@ -13,6 +13,7 @@ import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
+import { formatDate } from '../../utils/date';
 
 export const SubdomainsList: React.FC = () => {
   const { t } = useTranslation();
@@ -297,7 +298,7 @@ export const SubdomainsList: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
-                      <span>Expired: {sub.expired_at ? new Date(sub.expired_at).toLocaleDateString() : '-'}</span>
+                      <span>Expired: {formatDate(sub.expired_at)}</span>
                     </div>
                   </div>
                 </div>

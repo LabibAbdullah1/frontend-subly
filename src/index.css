@@ -12,43 +12,36 @@
   --color-text-muted: var(--text-muted);
   --color-border-main: var(--border-main);
   --color-glow-color: var(--glow-color);
-  --color-glow-orange: var(--glow-orange);
-  
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+
+  --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 :root {
-  /* Light Mode Configuration */
-  --brand-primary: #c1983c;       /* Gold (with better contrast for light mode) */
-  --brand-secondary: #d2ad5e;     /* Gold Hover */
-  --bg-base: #f7f8fa;             /* Light Canvas background */
-  --bg-surface: #ffffff;          /* Light Surface-1 */
-  --bg-card: #f1f2f5;             /* Light Surface-2 (Cards) */
-  --text-main: #121212;           /* Light mode primary text */
-  --text-muted: #4d5156;          /* Light mode muted text */
-  --text-subtle: #82868c;         /* Light mode subtle text */
-  --border-main: #eaebee;         /* Soft hairline border */
-  --border-strong: #d0d1d5;       /* Strong hairline border */
-  --glow-color: rgba(193, 152, 60, 0.1);
-  --glow-orange: rgba(249, 115, 22, 0.08);
+  /* Light Theme */
+  --brand-primary: #ea580c;
+  --brand-secondary: #c2410c;
+  --bg-base: #f9fafb;
+  --bg-surface: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.7);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-main: #e5e7eb;
+  --glow-color: rgba(245, 158, 11, 0.1);
   color-scheme: light;
 }
 
 :root[class="dark"] {
-  /* Dark Mode Configuration */
-  --brand-primary: #d2ad5e;       /* Gold/Orange */
-  --brand-secondary: #e0be75;     /* Gold Hover */
-  --bg-base: #010102;             /* Canvas: deepest near-black */
-  --bg-surface: #0f1011;          /* Surface-1 */
-  --bg-card: #141516;             /* Surface-2 */
-  --text-main: #f7f8f8;           /* Ink: light gray text */
-  --text-muted: #d0d6e0;          /* Ink Muted */
-  --text-subtle: #8a8f98;         /* Ink Subtle */
-  --border-main: #23252a;         /* Hairline Border */
-  --border-strong: #34343a;       /* Hairline Strong */
-  --glow-color: rgba(210, 173, 94, 0.15);
-  --glow-orange: rgba(249, 115, 22, 0.18);
+  /* Dark Theme */
+  --brand-primary: #f97316;
+  --brand-secondary: #fb923c;
+  --bg-base: #000000;
+  --bg-surface: #080808;
+  --bg-card: rgba(8, 8, 8, 0.65);
+  --text-main: #ffffff;
+  --text-muted: #bcbcbc;
+  --border-main: #1e1e1e;
+  --glow-color: rgba(245, 158, 11, 0.16);
   color-scheme: dark;
 }
 

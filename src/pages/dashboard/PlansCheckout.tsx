@@ -9,6 +9,7 @@ import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
+import { formatDate } from '../../utils/date';
 
 export const PlansCheckout: React.FC = () => {
   const { t, language } = useTranslation();
@@ -438,7 +439,7 @@ export const PlansCheckout: React.FC = () => {
                     />
                   </td>
                   <td className="py-3 px-4 text-right text-[10px] text-text-muted font-semibold select-none">
-                    {new Date(p.created_at).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US')}
+                    {formatDate(p.created_at)}
                   </td>
                 </tr>
               ))}

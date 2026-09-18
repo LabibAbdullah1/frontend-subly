@@ -10,6 +10,7 @@ import { CardPanel } from '../../components/ui/CardPanel';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Select } from '../../components/ui/Select';
+import { formatDate } from '../../utils/date';
 
 export const IssueReports: React.FC = () => {
   const { t } = useTranslation();
@@ -148,7 +149,7 @@ export const IssueReports: React.FC = () => {
                   </p>
                   <div className="border-t border-border-main/50 pt-2 flex justify-between items-center text-[9px] font-semibold text-text-muted uppercase tracking-widest">
                     <span>Subdomain ID: #{issue.subdomain_id}</span>
-                    <span>{new Date(issue.created_at).toLocaleDateString()}</span>
+                    <span>{formatDate(issue.created_at)}</span>
                   </div>
                 </div>
               ))}
