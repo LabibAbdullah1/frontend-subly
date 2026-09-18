@@ -489,6 +489,8 @@ export const useDataStore = create<DataState>((set, get) => ({
       method: 'DELETE'
     });
     await get().fetchSubdomains();
+    await get().fetchDatabases();
+    await get().fetchPayments();
   },
 
   toggleSubdomainStatus: async (id, status) => {
