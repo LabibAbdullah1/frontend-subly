@@ -20,11 +20,7 @@ import { Header } from './components/layout/Header';
 
 // Public Pages
 import { LandingPage } from './pages/public/LandingPage';
-const LoginPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.LoginPage })));
-const RegisterPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.RegisterPage })));
-const VerifyEmailPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.VerifyEmailPage })));
-const ForgotPasswordPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.ForgotPasswordPage })));
-const ResetPasswordPage = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.ResetPasswordPage })));
+const AuthPagesContainer = React.lazy(() => import('./pages/public/AuthPages').then(m => ({ default: m.AuthPagesContainer })));
 const LegalPages = React.lazy(() => import('./pages/public/LegalPages').then(m => ({ default: m.LegalPages })));
 
 // Client Pages
@@ -219,11 +215,11 @@ export const App: React.FC = () => {
             <main className="flex-1 flex flex-col overflow-x-hidden pt-14">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  key={['login', 'register', 'forgot-password', 'reset-password', 'verify-email'].includes(activeTab) ? 'auth-flow' : activeTab}
+                  initial={{ opacity: 0, scale: 0.92, filter: 'blur(6px)' }}
+                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, scale: 0.96, filter: 'blur(4px)' }}
+                  transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
                   className="flex-1 flex flex-col"
                 >
                   <React.Suspense fallback={
@@ -232,11 +228,8 @@ export const App: React.FC = () => {
                     </div>
                   }>
                     {activeTab === 'legal' && <LegalPages />}
-                    {activeTab === 'login' && <LoginPage />}
-                    {activeTab === 'register' && <RegisterPage />}
-                    {activeTab === 'forgot-password' && <ForgotPasswordPage />}
-                    {activeTab === 'reset-password' && <ResetPasswordPage />}
-                    {activeTab !== 'legal' && activeTab !== 'login' && activeTab !== 'register' && activeTab !== 'forgot-password' && activeTab !== 'reset-password' && <LandingPage />}
+                    {['login', 'register', 'forgot-password', 'reset-password', 'verify-email'].includes(activeTab) && <AuthPagesContainer />}
+                    {activeTab !== 'legal' && !['login', 'register', 'forgot-password', 'reset-password', 'verify-email'].includes(activeTab) && <LandingPage />}
                   </React.Suspense>
                 </motion.div>
               </AnimatePresence>
